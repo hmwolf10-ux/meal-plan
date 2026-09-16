@@ -550,23 +550,49 @@
   </footer>
 
   <script>
-    let recipesData = null;
-    let mealPlanData = null;
+    // Embedded data - recipes
+    const recipesData = {
+      recipes: [
+        {id: "batch-chicken", name: "Batch Baked Chicken Thighs (5 lbs)", category: "batch", macros: "~220 cal | 35-40g protein", description: "Bone-in, skin-on. Family pack (5 lbs). Two sheet pans. Keeps 4 days.", yield: "~10 portions (20 oz each)", prepTime: "5 min", cookTime: "38-42 min", ingredients: ["5 lb bone-in, skin-on chicken thighs (~12-16 pieces)", "3 tbsp salt", "2 tbsp black pepper", "2 tbsp garlic powder", "1 tbsp paprika (smoked or regular)", "1 tbsp onion powder", "1 tsp cayenne (optional, for heat)"], steps: ["Preheat oven to 400°F. Line two sheet pans with foil.", "Pat chicken completely dry with paper towels (essential for crispy skin)", "Mix salt, pepper, garlic powder, paprika, onion powder, cayenne in a bowl", "Season ALL pieces generously on both sides—don't skimp on spice", "Distribute evenly on two pans (space matters; don't crowd)", "Bake 38-42 min. Done when skin golden-brown, juices run clear, no pink", "Rest 5 min. Cool on pans before refrigerating"], notes: "This makes ~10 portions (20 oz each = 2 meals × 5 days). Bone-in thighs stay juicy even if slightly overcooked."},
+        {id: "batch-beef", name: "Batch Browned Ground Beef", category: "batch", macros: "~220 cal | 28g protein", description: "2-2.5 lb at once. Keeps 4 days. Taco bowls, pasta, orzo.", yield: "2-2.5 lb cooked", prepTime: "2 min", cookTime: "8-10 min", ingredients: ["2-2.5 lb ground beef (80/20 or 90/10)", "Salt, black pepper"], steps: ["Heat large skillet over medium-high. No oil needed", "Add meat in one layer if possible", "Let sit 1-2 min undisturbed to brown bottom", "Break apart with spatula, keep cooking", "Cook until no pink remains, ~8-10 min total", "Season with salt and pepper", "Tilt pan, spoon off excess fat (or drain in strainer)", "Cool before refrigerating"]},
+        {id: "batch-rice", name: "Batch Cooked Rice", category: "batch", macros: "~200 cal | 4g protein | 45g carbs", description: "Cook twice a week. Cheapest calories in the system.", yield: "~15 cups cooked", prepTime: "1 min", cookTime: "18 min", ingredients: ["5 cups dry white rice (makes ~15 cups cooked)", "7.5 cups water", "0.5 tsp salt"], steps: ["Rinse rice in strainer under cold water 30 sec", "Add rice, water, salt to pot with tight lid", "Bring to boil over high heat", "Drop to lowest setting, cover immediately", "Cook 18 min. Do not lift lid", "Off heat, leave covered 5 more min", "Fluff with fork. Spread on sheet pan to cool before storing"]},
+        {id: "batch-veg", name: "Batch Sheet Pan Roasted Vegetables", category: "batch", macros: "~120 cal | 3g protein | 18g carbs", description: "Roast once, use all week. Goes in every bowl.", yield: "~3 lb (6-8 servings)", prepTime: "5 min", cookTime: "25-30 min", ingredients: ["~3 lb potatoes, carrots, sweet potato, or frozen mixed veg", "2-3 tbsp olive oil", "Salt, black pepper"], steps: ["Preheat oven to 425°F", "Wash, cut veg into 1-inch pieces. Uniform size = even cooking", "Toss with oil, salt, pepper until coated", "Spread on sheet pan single layer (use 2 pans if crowded)", "Roast 25-30 min, flip halfway", "Done when edges golden and fork slides in easily"]},
+        {id: "tuna-rice-bowl", name: "Tuna Rice Bowl (Fallback Meal)", category: "bowls", macros: "~380 cal | 32g protein | 48g carbs | 4g fat", description: "No cooking. 5 minutes. Keep 3-4 cans tuna always in pantry.", yield: "1 serving", prepTime: "5 min", cookTime: "0 min", ingredients: ["1 can tuna in water (drained completely)", "¾-1 cup cooked rice", "½ cup roasted vegetables or raw spinach", "1 tbsp soy sauce + 1 tsp honey (or sriracha)", "Squeeze of lemon (optional)"], steps: ["Drain tuna completely—press lid against fish 10 sec", "Rice in bowl, tuna on top, veg on side", "Drizzle sauce, mix"]},
+        {id: "lentil-chili", name: "Lentil Bean Chili (CHEAPEST)", category: "one-pot", macros: "~727 cal | 44g protein | 129g carbs | 8g fat", description: "HIGHEST protein, cheapest per serving, freezes 3 months.", yield: "8-10 servings", prepTime: "10 min", cookTime: "60 min", ingredients: ["2 cups brown lentils (dry)", "½ cup red lentils (dry)", "1 can kidney beans (drained)", "1 can corn", "1 can diced tomatoes", "1 red onion + 1 bell pepper, diced", "4 garlic cloves, minced", "Cumin, chili powder, cinnamon", "3 cups water"], steps: ["Sauté onion, pepper, garlic 2 min", "Add spices, cook 15 sec", "Add tomatoes, water, brown lentils; bring to boil", "Reduce, simmer 40 min, stir occasionally", "Add beans + corn, cook 5 min", "Off heat, add red lentils, cover 15 min", "Serve with lime + cilantro"]},
+        {id: "overnight-oats", name: "Overnight Oats", category: "breakfast", macros: "~38g protein | ~60g carbs | ~18g fat", description: "Your standing breakfast. Make 7 jars.", yield: "1 jar", prepTime: "2 min", cookTime: "0 min (overnight)", ingredients: ["¾ cup rolled oats", "1 cup milk", "⅓ cup plain Greek yogurt", "1.5 scoops whey protein", "1 tbsp peanut butter", "½ banana, sliced"], steps: ["Jar: oats, milk, yogurt, whey. Stir hard.", "Stir in peanut butter, add banana, stir.", "Seal, refrigerate overnight.", "Morning: loosen with milk if thick. Eat cold or microwave 60–90 sec."]},
+        {id: "pb-banana-shake", name: "Peanut Butter Banana Power Shake", category: "shakes", macros: "~410 cal | 28g protein | 46g carbs | 12g fat", description: "Your standing shake. Blend, drink.", yield: "1 serving", prepTime: "1 min", cookTime: "0 min", ingredients: ["1 cup whole milk", "1 ripe banana (frozen is best)", "2 tbsp natural peanut butter", "1 scoop whey protein powder", "5-6 ice cubes"], steps: ["Milk, whey into blender first (liquid at blades)", "Banana, PB, ice on top", "Blend 45-90 sec until smooth"]}
+      ]
+    };
+
+    // Embedded data - meal plan
+    const mealPlanData = {
+      weeklyPlan: {
+        breakfast: {macros: {protein: 38, carbs: 60, fat: 18, calories: 458}},
+        mainMeal: {macros: {protein: 50, carbs: 65, fat: 16, calories: 513}},
+        dailyTotals: {protein: 170, carbs: 245, fat: 66, calories: 1904}
+      },
+      batchCookDay: {
+        steps: [
+          {task: "Bake Chicken Thighs", time: "35-40 min", quantity: "10 lb", yield: "~14 meals"},
+          {task: "Cook Rice", time: "18 min", quantity: "5 cups dry", yield: "~15 cups cooked"},
+          {task: "Make Overnight Oat Jars", time: "5 min", quantity: "7 jars", yield: "7 breakfasts"}
+        ]
+      },
+      shoppingList: {
+        totalCost: "$45-50",
+        items: [
+          {category: "Proteins", items: [{name: "Bone-in chicken thighs (Family Pack)", qty: "2 packages (~5 lb each)", cost: "$12-14"}]},
+          {category: "Grains & Bases", items: [{name: "White rice", qty: "5 lb", cost: "$3-4"}, {name: "Rolled oats", qty: "5 lb bag", cost: "$4-5"}]},
+          {category: "Dairy", items: [{name: "Whole milk", qty: "2 half-gallons", cost: "$6-8"}, {name: "Plain Greek yogurt", qty: "32 oz", cost: "$4-5"}, {name: "Peanut butter", qty: "as needed", cost: "$3-4"}]},
+          {category: "Vegetables", items: [{name: "Frozen mixed vegetables", qty: "2-3 bags", cost: "$3-4"}]},
+          {category: "Pantry (as needed)", items: [{name: "Soy sauce, honey, olive oil, salt, pepper, garlic powder"}]}
+        ]
+      }
+    };
+
     let currentFilter = 'all';
 
-    // Load JSON data
-    Promise.all([
-      fetch('data/recipes.json').then(r => r.json()),
-      fetch('data/meal-plan.json').then(r => r.json())
-    ]).then(([recipes, mealPlan]) => {
-      recipesData = recipes;
-      mealPlanData = mealPlan;
-      initApp();
-    }).catch(err => {
-      console.error('Error loading data:', err);
-      document.querySelector('.container').innerHTML = '<p style="color: var(--error);">Error loading data. Make sure data/recipes.json and data/meal-plan.json exist.</p>';
-    });
-
+    // Run app immediately with embedded data
     function initApp() {
       setupTabs();
       renderOverview();
@@ -574,6 +600,13 @@
       renderMealPlan();
       renderShopping();
       setupFilters();
+    }
+
+    // Start app on DOM ready
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initApp);
+    } else {
+      initApp();
     }
 
     function setupTabs() {
@@ -617,7 +650,6 @@
             <h4>${step.task}</h4>
             <p><strong>Qty:</strong> ${step.quantity}</p>
             <p><strong>Yield:</strong> ${step.yield}</p>
-            ${step.notes ? `<p><em>${step.notes}</em></p>` : ''}
           </div>
         </div>
       `).join('');
@@ -696,7 +728,7 @@
       const plan = mealPlanData.weeklyPlan;
       const breakfast = `
         <div class="meal-section">
-          <h3>${plan.breakfast.name}</h3>
+          <h3>Overnight Oats + Whey + PB</h3>
           <div class="meal-macros">
             <div class="macro-box">
               <div class="macro-value">${plan.breakfast.macros.protein}g</div>
@@ -715,15 +747,15 @@
               <div class="macro-label">Calories</div>
             </div>
           </div>
-          <p><strong>Make on batch day:</strong> ${plan.breakfast.notes}</p>
-          <p style="margin-top: 8px;"><strong>Storage:</strong> ${plan.breakfast.storage}</p>
+          <p><strong>Make on batch day:</strong> Make 7 jars. Grab one each morning—no prep.</p>
+          <p style="margin-top: 8px;"><strong>Storage:</strong> 4-5 days refrigerated</p>
         </div>
       `;
 
       const mainMeal = `
         <div class="meal-section">
-          <h3>${plan.mainMeal.name}</h3>
-          <p>${plan.mainMeal.notes}</p>
+          <h3>Chicken Rice Bowl</h3>
+          <p>Eat at lunch and dinner. Assemble in 5 minutes.</p>
           <div class="meal-macros">
             <div class="macro-box">
               <div class="macro-value">${plan.mainMeal.macros.protein}g</div>
@@ -744,16 +776,12 @@
           </div>
           <h4 style="margin-top: 16px;">Components</h4>
           <div class="meal-components">
-            ${plan.mainMeal.components.map(c => `
-              <div class="component">
-                <div class="component-label">${c.name}</div>
-                <div class="component-value">${c.amount}</div>
-              </div>
-            `).join('')}
+            <div class="component"><div class="component-label">Chicken</div><div class="component-value">10 oz</div></div>
+            <div class="component"><div class="component-label">Rice</div><div class="component-value">1 cup</div></div>
+            <div class="component"><div class="component-label">Vegetables</div><div class="component-value">½ cup (roasted or frozen)</div></div>
+            <div class="component"><div class="component-label">Sauce</div><div class="component-value">2.5 tsp soy + 2 tsp honey</div></div>
           </div>
-          <h4 style="margin-top: 16px;">Assembly Steps</h4>
-          <ol>${plan.mainMeal.steps.map(s => `<li>${s}</li>`).join('')}</ol>
-          <p style="margin-top: 12px;"><strong>Storage:</strong> ${plan.mainMeal.storage}</p>
+          <p style="margin-top: 12px;"><strong>Storage:</strong> 4 days refrigerated | 3 months frozen</p>
         </div>
       `;
 
@@ -781,6 +809,9 @@
 
       document.getElementById('shoppingContent').innerHTML = html;
     }
+
+    // Initialize on load
+    document.addEventListener('DOMContentLoaded', initApp);
   </script>
 </body>
 </html>
