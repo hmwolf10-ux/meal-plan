@@ -1,0 +1,225 @@
+{
+  "version": "1.0",
+  "system": {
+    "name": "Meal Plan & Batch Cooking System",
+    "version": "1.0.0"
+  },
+  "targets": {
+    "dailyProtein": {
+      "value": 160,
+      "unit": "g",
+      "description": "Daily protein target"
+    },
+    "dailyCarbs": {
+      "value": 245,
+      "unit": "g",
+      "description": "Daily carbohydrates target"
+    },
+    "dailyFat": {
+      "value": 68,
+      "unit": "g",
+      "description": "Daily fat target"
+    },
+    "dailyCalories": {
+      "value": 1904,
+      "unit": "kcal",
+      "description": "Daily calorie target"
+    }
+  },
+  "budget": {
+    "weeklyBudget": {
+      "value": 45,
+      "unit": "USD",
+      "description": "Target weekly grocery budget"
+    },
+    "dailyBudget": {
+      "value": 6.43,
+      "unit": "USD",
+      "description": "Average daily cost"
+    }
+  },
+  "timing": {
+    "batchCookFrequency": {
+      "value": 1,
+      "unit": "per week",
+      "description": "How often to batch cook"
+    },
+    "batchCookDuration": {
+      "value": 50,
+      "unit": "minutes",
+      "description": "Total time for batch cooking"
+    },
+    "dailyMealPrepTime": {
+      "value": 7,
+      "unit": "minutes",
+      "description": "Average time to assemble daily meals"
+    }
+  },
+  "storage": {
+    "refrigeratorDays": {
+      "value": 4,
+      "unit": "days",
+      "description": "How long cooked food lasts in fridge"
+    },
+    "freezerDays": {
+      "value": 90,
+      "unit": "days",
+      "description": "How long cooked food lasts in freezer"
+    }
+  },
+  "meals": {
+    "breakfast": {
+      "enabled": true,
+      "name": "Overnight Oats + PB + Whey",
+      "frequency": "daily",
+      "prepMethod": "batch",
+      "portionSize": 1,
+      "targetProtein": 38,
+      "targetCarbs": 60,
+      "targetFat": 18,
+      "targetCalories": 458
+    },
+    "lunch": {
+      "enabled": true,
+      "name": "Chicken Rice Bowl",
+      "frequency": "daily",
+      "prepMethod": "assemble",
+      "portionSize": 1,
+      "targetProtein": 50,
+      "targetCarbs": 65,
+      "targetFat": 16,
+      "targetCalories": 513
+    },
+    "dinner": {
+      "enabled": true,
+      "name": "Chicken Rice Bowl",
+      "frequency": "daily",
+      "prepMethod": "assemble",
+      "portionSize": 1,
+      "targetProtein": 50,
+      "targetCarbs": 65,
+      "targetFat": 16,
+      "targetCalories": 513
+    },
+    "snack": {
+      "enabled": true,
+      "name": "PB Banana Power Shake",
+      "frequency": "daily",
+      "prepMethod": "fresh",
+      "portionSize": 1,
+      "targetProtein": 32,
+      "targetCarbs": 55,
+      "targetFat": 16,
+      "targetCalories": 420
+    }
+  },
+  "batchCookTasks": [
+    {
+      "order": 1,
+      "name": "Bake Chicken Thighs",
+      "quantity": 10,
+      "unit": "lbs",
+      "prepTime": 5,
+      "cookTime": 40,
+      "yield": "~14 meals"
+    },
+    {
+      "order": 2,
+      "name": "Cook Rice",
+      "quantity": 5,
+      "unit": "cups dry",
+      "prepTime": 1,
+      "cookTime": 18,
+      "yield": "~15 cups cooked"
+    },
+    {
+      "order": 3,
+      "name": "Make Overnight Oat Jars",
+      "quantity": 7,
+      "unit": "jars",
+      "prepTime": 5,
+      "cookTime": 0,
+      "yield": "7 breakfasts"
+    }
+  ],
+  "shoppingLists": {
+    "weeklyCore": [
+      {
+        "category": "Proteins",
+        "items": [
+          {
+            "name": "Bone-in chicken thighs (Family Pack)",
+            "quantity": 10,
+            "unit": "lbs",
+            "estimatedCost": 12.50,
+            "critical": true
+          }
+        ]
+      },
+      {
+        "category": "Grains",
+        "items": [
+          {
+            "name": "White rice",
+            "quantity": 5,
+            "unit": "lbs",
+            "estimatedCost": 3.50,
+            "critical": true
+          },
+          {
+            "name": "Rolled oats",
+            "quantity": 5,
+            "unit": "lbs",
+            "estimatedCost": 4.50,
+            "critical": true
+          }
+        ]
+      },
+      {
+        "category": "Dairy",
+        "items": [
+          {
+            "name": "Whole milk",
+            "quantity": 2,
+            "unit": "half-gallons",
+            "estimatedCost": 7.00,
+            "critical": true
+          },
+          {
+            "name": "Plain Greek yogurt",
+            "quantity": 32,
+            "unit": "oz",
+            "estimatedCost": 4.50,
+            "critical": true
+          },
+          {
+            "name": "Natural peanut butter",
+            "quantity": 1,
+            "unit": "jar",
+            "estimatedCost": 3.50,
+            "critical": true
+          }
+        ]
+      },
+      {
+        "category": "Vegetables",
+        "items": [
+          {
+            "name": "Frozen mixed vegetables",
+            "quantity": 3,
+            "unit": "bags",
+            "estimatedCost": 3.50,
+            "critical": false
+          }
+        ]
+      }
+    ]
+  },
+  "customization": {
+    "allowVariations": true,
+    "allowDietaryRestrictions": true,
+    "allowAllergies": true,
+    "allowBudgetAdjustment": true,
+    "allowMacroAdjustment": true
+  }
+}
