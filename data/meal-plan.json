@@ -1,171 +1,329 @@
 {
+  "version": "1.0",
+  "title": "Simple Batch Cooking Meal Plan",
+  "description": "One breakfast, one main meal (twice daily), one snack. ~160g protein daily, ~$45/week.",
   "weeklyPlan": {
+    "daysPerWeek": 7,
+    "mealsPerDay": 3,
+    "totalCost": {
+      "amount": 47.50,
+      "currency": "USD",
+      "perDay": 6.79
+    },
     "targetMacros": {
-      "protein": "~160g",
-      "carbs": "~245g",
-      "fat": "~68g",
-      "dailyCost": "$6-7/day",
-      "weeklyCost": "$45/week"
-    },
-    "breakfast": {
-      "name": "Overnight Oats + Whey + PB",
-      "recipe": "overnight-oats",
-      "macros": {
-        "protein": 38,
-        "carbs": 60,
-        "fat": 18,
-        "calories": 458
+      "protein": {
+        "value": 170,
+        "unit": "g",
+        "percentage": 35.8
       },
-      "notes": "Make 7 jars on batch day. Grab one each morning—no prep.",
-      "storage": "4-5 days refrigerated"
-    },
-    "mainMeal": {
-      "name": "Chicken Rice Bowl",
-      "macros": {
-        "protein": 50,
-        "carbs": 65,
-        "fat": 16,
-        "calories": 513
+      "carbs": {
+        "value": 245,
+        "unit": "g",
+        "percentage": 51.5
       },
-      "notes": "Eat at lunch and dinner. Assemble in 5 minutes.",
-      "components": [
-        {
-          "name": "Chicken",
-          "amount": "10 oz",
-          "recipe": "batch-chicken"
+      "fat": {
+        "value": 66,
+        "unit": "g",
+        "percentage": 31.2
+      },
+      "calories": {
+        "value": 1904,
+        "unit": "kcal"
+      }
+    },
+    "meals": [
+      {
+        "id": "breakfast",
+        "name": "Overnight Oats + PB + Whey",
+        "recipe": "overnight-oats",
+        "frequency": "daily",
+        "prepTime": "PT2M",
+        "servings": 1,
+        "nutrition": {
+          "protein": { "value": 38, "unit": "g" },
+          "carbs": { "value": 60, "unit": "g" },
+          "fat": { "value": 18, "unit": "g" },
+          "calories": { "value": 458, "unit": "kcal" }
         },
-        {
-          "name": "Rice",
-          "amount": "1 cup",
-          "recipe": "batch-rice"
-        },
-        {
-          "name": "Vegetables",
-          "amount": "½ cup",
-          "note": "Roasted or frozen"
-        },
-        {
-          "name": "Sauce",
-          "amount": "2.5 tsp soy + 2 tsp honey"
+        "instructions": [
+          "Make 7 jars on batch day",
+          "Grab one each morning from fridge",
+          "Eat cold or microwave 60-90 seconds"
+        ],
+        "notes": "No daily prep required. All jars made at once on batch day.",
+        "storage": {
+          "refrigerated": 5,
+          "frozen": 0,
+          "unit": "days"
         }
-      ],
-      "steps": [
-        "Scoop rice into a bowl.",
-        "Add 10 oz chicken (weigh a few times to learn the amount by eye).",
-        "Add vegetables.",
-        "Drizzle soy sauce and honey. Mix.",
-        "From fridge: microwave 90 sec, stir, 30 more sec if cold."
-      ],
-      "storage": "4 days refrigerated | 3 months frozen"
-    },
-    "snack": {
-      "name": "Banana PB Protein Shake",
-      "recipe": "pb-banana-shake",
-      "macros": {
-        "protein": 32,
-        "carbs": 55,
-        "fat": 16,
-        "calories": 420
       },
-      "notes": "Blender meal. 90 seconds from start to finish."
-    },
-    "dailyTotals": {
-      "protein": 170,
-      "carbs": 245,
-      "fat": 66,
-      "calories": 1904
-    }
+      {
+        "id": "main-meal",
+        "name": "Chicken Rice Bowl",
+        "recipe": "batch-chicken-thighs",
+        "frequency": "twice daily (lunch + dinner)",
+        "prepTime": "PT5M",
+        "servings": 1,
+        "nutrition": {
+          "protein": { "value": 50, "unit": "g" },
+          "carbs": { "value": 65, "unit": "g" },
+          "fat": { "value": 16, "unit": "g" },
+          "calories": { "value": 513, "unit": "kcal" }
+        },
+        "components": [
+          {
+            "name": "Chicken",
+            "amount": 10,
+            "unit": "oz",
+            "recipe": "batch-chicken-thighs"
+          },
+          {
+            "name": "Rice",
+            "amount": 1,
+            "unit": "cup",
+            "recipe": "batch-rice"
+          },
+          {
+            "name": "Vegetables",
+            "amount": 0.5,
+            "unit": "cup",
+            "note": "Frozen or roasted"
+          },
+          {
+            "name": "Sauce",
+            "components": [
+              { "item": "soy sauce", "amount": 2.5, "unit": "tsp" },
+              { "item": "honey", "amount": 2, "unit": "tsp" }
+            ]
+          }
+        ],
+        "instructions": [
+          "Scoop rice into bowl",
+          "Add 10 oz cooked chicken",
+          "Add ½ cup vegetables",
+          "Drizzle soy sauce and honey",
+          "Mix well",
+          "Microwave 90 seconds (or eat cold)"
+        ],
+        "notes": "Same meal twice per day. Assembly takes ~5 minutes.",
+        "storage": {
+          "refrigerated": 4,
+          "frozen": 90,
+          "unit": "days"
+        }
+      },
+      {
+        "id": "snack",
+        "name": "PB Banana Power Shake",
+        "recipe": "pb-banana-shake",
+        "frequency": "daily",
+        "prepTime": "PT1M",
+        "servings": 1,
+        "nutrition": {
+          "protein": { "value": 32, "unit": "g" },
+          "carbs": { "value": 55, "unit": "g" },
+          "fat": { "value": 16, "unit": "g" },
+          "calories": { "value": 420, "unit": "kcal" }
+        },
+        "instructions": [
+          "Add milk and whey to blender first",
+          "Add banana, peanut butter, ice",
+          "Blend 45-90 seconds until smooth",
+          "Drink immediately"
+        ],
+        "notes": "Always fresh. Takes 90 seconds from blender to glass."
+      }
+    ]
   },
   "batchCookDay": {
-    "totalTime": "50 minutes",
-    "steps": [
+    "name": "Weekly Batch Cook Session",
+    "description": "Cook once per week. Feeds you for 7 days.",
+    "totalTime": {
+      "active": "PT15M",
+      "total": "PT50M"
+    },
+    "tasks": [
       {
-        "task": "Bake Chicken Thighs",
-        "time": "35-40 min (active: 5 min prep)",
-        "recipe": "batch-chicken",
-        "quantity": "10 lb (2 family packs)",
-        "yield": "~14 meals (20 oz each)",
-        "notes": "Use two sheet pans. Don't crowd."
+        "order": 1,
+        "name": "Bake Chicken Thighs",
+        "recipe": "batch-chicken-thighs",
+        "prepTime": "PT5M",
+        "cookTime": "PT40M",
+        "quantity": 10,
+        "unit": "lbs",
+        "yield": "~14 meals",
+        "equipment": ["2 sheet pans", "foil"],
+        "notes": "Can start with rice while chicken bakes"
       },
       {
-        "task": "Cook Rice",
-        "time": "18 min (active: 1 min prep)",
+        "order": 2,
+        "name": "Cook Rice",
         "recipe": "batch-rice",
-        "quantity": "5 cups dry",
-        "yield": "~15 cups cooked (2 cups per day × 7 = 14 cups used)",
-        "notes": "Don't lift the lid during cooking"
+        "prepTime": "PT1M",
+        "cookTime": "PT18M",
+        "quantity": 5,
+        "unit": "cups dry",
+        "yield": "~15 cups cooked",
+        "equipment": ["pot with lid"],
+        "notes": "Start after prepping chicken. Do not lift lid while cooking."
       },
       {
-        "task": "Make Overnight Oat Jars",
-        "time": "5 min",
-        "quantity": "7 jars",
-        "notes": "Line up containers, mass-assemble, refrigerate"
+        "order": 3,
+        "name": "Make Overnight Oat Jars",
+        "recipe": "overnight-oats",
+        "prepTime": "PT5M",
+        "cookTime": "PT0M",
+        "quantity": 7,
+        "unit": "jars",
+        "yield": "7 breakfasts",
+        "equipment": ["7 mason jars or containers"],
+        "notes": "Can do while chicken and rice cook. Mass-assemble for speed."
+      }
+    ],
+    "timeline": [
+      {
+        "time": "0:00",
+        "activity": "Start batch cooking session"
+      },
+      {
+        "time": "0:05",
+        "activity": "Preheat oven to 400°F, start prepping chicken"
+      },
+      {
+        "time": "0:10",
+        "activity": "Chicken goes in oven, start rice"
+      },
+      {
+        "time": "0:15",
+        "activity": "Rice is cooking, start making oat jars"
+      },
+      {
+        "time": "0:30",
+        "activity": "Oat jars done, rice done"
+      },
+      {
+        "time": "0:45",
+        "activity": "Chicken almost done"
+      },
+      {
+        "time": "0:50",
+        "activity": "Chicken done, rest and cool all items"
       }
     ]
   },
   "shoppingList": {
-    "totalCost": "$45-50",
-    "items": [
+    "totalCost": {
+      "amount": 47.50,
+      "currency": "USD"
+    },
+    "categories": [
       {
-        "category": "Proteins",
+        "name": "Proteins",
         "items": [
           {
             "name": "Bone-in chicken thighs (Family Pack)",
-            "qty": "2 packages (~5 lb each)",
-            "cost": "$12-14"
+            "quantity": 2,
+            "unit": "packages (~5 lb each = 10 lb total)",
+            "cost": 12.50,
+            "currency": "USD"
           }
         ]
       },
       {
-        "category": "Grains & Bases",
+        "name": "Grains & Starches",
         "items": [
           {
             "name": "White rice",
-            "qty": "5 lb",
-            "cost": "$3-4"
+            "quantity": 5,
+            "unit": "lbs",
+            "cost": 3.50,
+            "currency": "USD"
           },
           {
             "name": "Rolled oats",
-            "qty": "5 lb bag",
-            "cost": "$4-5"
+            "quantity": 5,
+            "unit": "lb bag",
+            "cost": 4.50,
+            "currency": "USD"
           }
         ]
       },
       {
-        "category": "Dairy",
+        "name": "Dairy & Proteins",
         "items": [
           {
             "name": "Whole milk",
-            "qty": "2 half-gallons",
-            "cost": "$6-8"
+            "quantity": 2,
+            "unit": "half-gallons",
+            "cost": 7.00,
+            "currency": "USD"
           },
           {
             "name": "Plain Greek yogurt",
-            "qty": "32 oz",
-            "cost": "$4-5"
+            "quantity": 32,
+            "unit": "oz",
+            "cost": 4.50,
+            "currency": "USD"
           },
           {
-            "name": "Peanut butter",
-            "qty": "as needed",
-            "cost": "$3-4"
+            "name": "Natural peanut butter",
+            "quantity": "as needed",
+            "unit": "",
+            "cost": 3.50,
+            "currency": "USD"
           }
         ]
       },
       {
-        "category": "Vegetables",
+        "name": "Produce & Vegetables",
         "items": [
           {
             "name": "Frozen mixed vegetables",
-            "qty": "2-3 bags",
-            "cost": "$3-4"
+            "quantity": 2,
+            "unit": "bags (or more for fresh seasonal)",
+            "cost": 3.50,
+            "currency": "USD"
           }
         ]
       },
       {
-        "category": "Pantry (as needed)",
+        "name": "Pantry (As Needed)",
         "items": [
           {
-            "name": "Soy sauce, honey, olive oil, salt, pepper, garlic powder"
+            "name": "Soy sauce",
+            "quantity": "varies",
+            "unit": "",
+            "optional": true
+          },
+          {
+            "name": "Honey",
+            "quantity": "varies",
+            "unit": "",
+            "optional": true
+          },
+          {
+            "name": "Olive oil",
+            "quantity": "varies",
+            "unit": "",
+            "optional": true
+          },
+          {
+            "name": "Salt & black pepper",
+            "quantity": "varies",
+            "unit": "",
+            "optional": true
+          },
+          {
+            "name": "Garlic powder",
+            "quantity": "varies",
+            "unit": "",
+            "optional": true
+          },
+          {
+            "name": "Paprika",
+            "quantity": "varies",
+            "unit": "",
+            "optional": true
           }
         ]
       }
@@ -174,45 +332,74 @@
   "variations": {
     "proteinSwaps": [
       {
-        "name": "Ground turkey",
-        "note": "Brown in skillet, 8-10 min"
+        "original": "Chicken thighs",
+        "alternative": "Ground turkey",
+        "notes": "Same protein content, brown in skillet 8-10 min"
       },
       {
-        "name": "Ground beef",
-        "note": "Brown same way, ~8-10 min"
+        "original": "Chicken thighs",
+        "alternative": "Ground beef",
+        "notes": "Higher fat content, same prep method"
       },
       {
-        "name": "Eggs",
-        "note": "Batch boil 2 dozen, peel, store 5 days"
+        "original": "Chicken thighs",
+        "alternative": "Batch boiled eggs",
+        "notes": "Boil 2 dozen, peel, store 5 days"
       },
       {
-        "name": "Tuna cans",
-        "note": "No cooking, ready-to-eat fallback"
+        "original": "Chicken thighs",
+        "alternative": "Canned tuna",
+        "notes": "No cooking required, ready-to-eat fallback"
       }
     ],
-    "grainSwaps": [
+    "carbSwaps": [
       {
-        "name": "Pasta/Orzo",
-        "note": "Cook 1 lb, keeps 4 days"
+        "original": "White rice",
+        "alternative": "Pasta or orzo",
+        "notes": "Same macros, cook 1 lb, keeps 4 days"
       },
       {
-        "name": "Oats",
-        "note": "Already buying for breakfast"
+        "original": "White rice",
+        "alternative": "Oats (already buying for breakfast)",
+        "notes": "Increase ratio in bowls"
       },
       {
-        "name": "Bread",
-        "note": "Toast for sides"
+        "original": "White rice",
+        "alternative": "Bread (toast for sides)",
+        "notes": "Good for some meals"
       }
     ],
     "vegetableSwaps": [
       {
-        "name": "Frozen only",
-        "note": "Most cost-effective"
+        "original": "Frozen mixed veg",
+        "alternative": "Fresh seasonal vegetables",
+        "notes": "Roast or steam as needed. Most cost-effective: frozen"
       },
       {
-        "name": "Fresh seasonal",
-        "note": "Roast or steam"
+        "original": "Frozen mixed veg",
+        "alternative": "Canned vegetables",
+        "notes": "Lower quality, higher sodium"
       }
+    ]
+  },
+  "tips": {
+    "shopping": [
+      "Check weekly grocery ads and build around what's on sale",
+      "Buy proteins on sale and freeze for next week",
+      "Frozen vegetables are cheapest and most convenient",
+      "Pantry staples should always be stocked: oil, salt, pepper, spices"
+    ],
+    "storage": [
+      "Use flat containers for rice (cools faster)",
+      "Use airtight containers for chicken (lasts longer)",
+      "Mason jars work perfectly for overnight oats",
+      "Label everything with the date prepared"
+    ],
+    "preparation": [
+      "Weigh portions first few times, then learn by eye",
+      "Cook on the same day each week for consistency",
+      "Let hot food cool completely before refrigerating",
+      "Reheat in microwave 90 seconds, then check temperature"
     ]
   }
 }

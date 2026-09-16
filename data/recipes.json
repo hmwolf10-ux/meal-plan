@@ -1,201 +1,406 @@
 {
+  "version": "1.0",
   "recipes": [
     {
-      "id": "batch-chicken",
-      "name": "Batch Baked Chicken Thighs (5 lbs)",
+      "id": "batch-chicken-thighs",
+      "name": "Batch Baked Chicken Thighs",
+      "description": "Bone-in, skin-on chicken thighs. Crispy skin, juicy meat. Foundation protein for the week.",
       "category": "batch",
-      "macros": "~220 cal | 35-40g protein",
-      "description": "Bone-in, skin-on. Family pack (5 lbs). Two sheet pans. Keeps 4 days.",
-      "yield": "~10 portions (20 oz each)",
-      "prepTime": "5 min",
-      "cookTime": "38-42 min",
+      "tags": ["chicken", "batch-prep", "high-protein", "keto-friendly"],
+      "yield": {
+        "quantity": 10,
+        "unit": "portions (20 oz each)"
+      },
+      "prepTime": "PT5M",
+      "cookTime": "PT40M",
+      "totalTime": "PT45M",
+      "difficulty": "easy",
+      "servings": 10,
+      "nutrition": {
+        "calories": 220,
+        "protein": { "value": 35, "unit": "g" },
+        "carbs": { "value": 0, "unit": "g" },
+        "fat": { "value": 10, "unit": "g" }
+      },
+      "cost": {
+        "total": 12,
+        "currency": "USD",
+        "perServing": 1.20
+      },
+      "storage": {
+        "refrigerated": 4,
+        "frozen": 90,
+        "unit": "days"
+      },
       "ingredients": [
-        "5 lb bone-in, skin-on chicken thighs (~12-16 pieces)",
-        "3 tbsp salt",
-        "2 tbsp black pepper",
-        "2 tbsp garlic powder",
-        "1 tbsp paprika (smoked or regular)",
-        "1 tbsp onion powder",
-        "1 tsp cayenne (optional, for heat)"
+        { "item": "bone-in, skin-on chicken thighs", "quantity": 5, "unit": "lb" },
+        { "item": "salt", "quantity": 3, "unit": "tbsp" },
+        { "item": "black pepper", "quantity": 2, "unit": "tbsp" },
+        { "item": "garlic powder", "quantity": 2, "unit": "tbsp" },
+        { "item": "paprika (smoked or regular)", "quantity": 1, "unit": "tbsp" },
+        { "item": "onion powder", "quantity": 1, "unit": "tbsp" },
+        { "item": "cayenne", "quantity": 1, "unit": "tsp", "optional": true }
       ],
-      "steps": [
-        "Preheat oven to 400°F. Line two sheet pans with foil.",
-        "Pat chicken completely dry with paper towels (essential for crispy skin)",
-        "Mix salt, pepper, garlic powder, paprika, onion powder, cayenne in a bowl",
-        "Season ALL pieces generously on both sides—don't skimp on spice",
-        "Distribute evenly on two pans (space matters; don't crowd)",
-        "Bake 38-42 min. Done when skin golden-brown, juices run clear, no pink",
-        "Rest 5 min. Cool on pans before refrigerating"
+      "instructions": [
+        {
+          "step": 1,
+          "instruction": "Preheat oven to 400°F. Line two sheet pans with foil."
+        },
+        {
+          "step": 2,
+          "instruction": "Pat chicken completely dry with paper towels (essential for crispy skin)"
+        },
+        {
+          "step": 3,
+          "instruction": "Mix salt, pepper, garlic powder, paprika, onion powder, cayenne in a bowl"
+        },
+        {
+          "step": 4,
+          "instruction": "Season all pieces generously on both sides"
+        },
+        {
+          "step": 5,
+          "instruction": "Distribute evenly on two pans (don't crowd them)"
+        },
+        {
+          "step": 6,
+          "instruction": "Bake 38-42 minutes. Done when skin is golden-brown and juices run clear"
+        },
+        {
+          "step": 7,
+          "instruction": "Rest 5 minutes. Cool on pans before refrigerating"
+        }
       ],
-      "notes": "This makes ~10 portions (20 oz each = 2 meals × 5 days). Bone-in thighs stay juicy even if slightly overcooked."
+      "notes": "Bone-in thighs stay juicy even if slightly overcooked. This is the best protein base for the system."
     },
     {
-      "id": "batch-beef",
+      "id": "batch-ground-beef",
       "name": "Batch Browned Ground Beef",
+      "description": "Quick-cooked bulk ground beef. Versatile protein for bowls, tacos, pasta.",
       "category": "batch",
-      "macros": "~220 cal | 28g protein",
-      "description": "2-2.5 lb at once. Keeps 4 days. Taco bowls, pasta, orzo.",
-      "yield": "2-2.5 lb cooked",
-      "prepTime": "2 min",
-      "cookTime": "8-10 min",
+      "tags": ["beef", "batch-prep", "high-protein"],
+      "yield": {
+        "quantity": 2.5,
+        "unit": "lb cooked"
+      },
+      "prepTime": "PT2M",
+      "cookTime": "PT10M",
+      "totalTime": "PT12M",
+      "difficulty": "easy",
+      "servings": 8,
+      "nutrition": {
+        "calories": 220,
+        "protein": { "value": 28, "unit": "g" },
+        "carbs": { "value": 0, "unit": "g" },
+        "fat": { "value": 11, "unit": "g" }
+      },
+      "cost": {
+        "total": 7,
+        "currency": "USD",
+        "perServing": 0.88
+      },
+      "storage": {
+        "refrigerated": 4,
+        "frozen": 90,
+        "unit": "days"
+      },
       "ingredients": [
-        "2-2.5 lb ground beef (80/20 or 90/10)",
-        "Salt, black pepper"
+        { "item": "ground beef (80/20 or 90/10)", "quantity": 2.5, "unit": "lb" },
+        { "item": "salt", "quantity": "to taste" },
+        { "item": "black pepper", "quantity": "to taste" }
       ],
-      "steps": [
-        "Heat large skillet over medium-high. No oil needed",
-        "Add meat in one layer if possible",
-        "Let sit 1-2 min undisturbed to brown bottom",
-        "Break apart with spatula, keep cooking",
-        "Cook until no pink remains, ~8-10 min total",
-        "Season with salt and pepper",
-        "Tilt pan, spoon off excess fat (or drain in strainer)",
-        "Cool before refrigerating"
+      "instructions": [
+        {
+          "step": 1,
+          "instruction": "Heat large skillet over medium-high heat. No oil needed."
+        },
+        {
+          "step": 2,
+          "instruction": "Add meat in one layer if possible"
+        },
+        {
+          "step": 3,
+          "instruction": "Let sit 1-2 minutes undisturbed to brown the bottom"
+        },
+        {
+          "step": 4,
+          "instruction": "Break apart with spatula and continue cooking"
+        },
+        {
+          "step": 5,
+          "instruction": "Cook until no pink remains, approximately 8-10 minutes total"
+        },
+        {
+          "step": 6,
+          "instruction": "Season with salt and pepper to taste"
+        },
+        {
+          "step": 7,
+          "instruction": "Tilt pan and spoon off excess fat (or drain in colander)"
+        },
+        {
+          "step": 8,
+          "instruction": "Cool before refrigerating"
+        }
       ]
     },
     {
       "id": "batch-rice",
       "name": "Batch Cooked Rice",
+      "description": "Perfect white rice. Cheapest carbs in the system. Cook in bulk for the week.",
       "category": "batch",
-      "macros": "~200 cal | 4g protein | 45g carbs",
-      "description": "Cook twice a week. Cheapest calories in the system.",
-      "yield": "~15 cups cooked",
-      "prepTime": "1 min",
-      "cookTime": "18 min",
+      "tags": ["rice", "batch-prep", "cheap"],
+      "yield": {
+        "quantity": 15,
+        "unit": "cups cooked"
+      },
+      "prepTime": "PT1M",
+      "cookTime": "PT18M",
+      "totalTime": "PT19M",
+      "difficulty": "easy",
+      "servings": 15,
+      "nutrition": {
+        "calories": 200,
+        "protein": { "value": 4, "unit": "g" },
+        "carbs": { "value": 45, "unit": "g" },
+        "fat": { "value": 0, "unit": "g" }
+      },
+      "cost": {
+        "total": 1.50,
+        "currency": "USD",
+        "perServing": 0.10
+      },
+      "storage": {
+        "refrigerated": 5,
+        "frozen": 90,
+        "unit": "days"
+      },
       "ingredients": [
-        "5 cups dry white rice (makes ~15 cups cooked)",
-        "7.5 cups water",
-        "0.5 tsp salt"
+        { "item": "dry white rice", "quantity": 5, "unit": "cups" },
+        { "item": "water", "quantity": 7.5, "unit": "cups" },
+        { "item": "salt", "quantity": 0.5, "unit": "tsp" }
       ],
-      "steps": [
-        "Rinse rice in strainer under cold water 30 sec",
-        "Add rice, water, salt to pot with tight lid",
-        "Bring to boil over high heat",
-        "Drop to lowest setting, cover immediately",
-        "Cook 18 min. Do not lift lid",
-        "Off heat, leave covered 5 more min",
-        "Fluff with fork. Spread on sheet pan to cool before storing"
-      ]
-    },
-    {
-      "id": "batch-veg",
-      "name": "Batch Sheet Pan Roasted Vegetables",
-      "category": "batch",
-      "macros": "~120 cal | 3g protein | 18g carbs",
-      "description": "Roast once, use all week. Goes in every bowl.",
-      "yield": "~3 lb (6-8 servings)",
-      "prepTime": "5 min",
-      "cookTime": "25-30 min",
-      "ingredients": [
-        "~3 lb potatoes, carrots, sweet potato, or frozen mixed veg",
-        "2-3 tbsp olive oil",
-        "Salt, black pepper"
-      ],
-      "steps": [
-        "Preheat oven to 425°F",
-        "Wash, cut veg into 1-inch pieces. Uniform size = even cooking",
-        "Toss with oil, salt, pepper until coated",
-        "Spread on sheet pan single layer (use 2 pans if crowded)",
-        "Roast 25-30 min, flip halfway",
-        "Done when edges golden and fork slides in easily"
-      ]
-    },
-    {
-      "id": "tuna-rice-bowl",
-      "name": "Tuna Rice Bowl (Fallback Meal)",
-      "category": "bowls",
-      "macros": "~380 cal | 32g protein | 48g carbs | 4g fat",
-      "description": "No cooking. 5 minutes. Keep 3-4 cans tuna always in pantry.",
-      "yield": "1 serving",
-      "prepTime": "5 min",
-      "cookTime": "0 min",
-      "ingredients": [
-        "1 can tuna in water (drained completely)",
-        "¾-1 cup cooked rice",
-        "½ cup roasted vegetables or raw spinach",
-        "1 tbsp soy sauce + 1 tsp honey (or sriracha)",
-        "Squeeze of lemon (optional)"
-      ],
-      "steps": [
-        "Drain tuna completely—press lid against fish 10 sec",
-        "Rice in bowl, tuna on top, veg on side",
-        "Drizzle sauce, mix"
-      ]
-    },
-    {
-      "id": "lentil-chili",
-      "name": "Lentil Bean Chili (CHEAPEST)",
-      "category": "one-pot",
-      "macros": "~727 cal | 44g protein | 129g carbs | 8g fat",
-      "description": "HIGHEST protein, cheapest per serving, freezes 3 months.",
-      "yield": "8-10 servings",
-      "prepTime": "10 min",
-      "cookTime": "60 min",
-      "ingredients": [
-        "2 cups brown lentils (dry)",
-        "½ cup red lentils (dry)",
-        "1 can kidney beans (drained)",
-        "1 can corn",
-        "1 can diced tomatoes",
-        "1 red onion + 1 bell pepper, diced",
-        "4 garlic cloves, minced",
-        "Cumin, chili powder, cinnamon",
-        "3 cups water"
-      ],
-      "steps": [
-        "Sauté onion, pepper, garlic 2 min",
-        "Add spices, cook 15 sec",
-        "Add tomatoes, water, brown lentils; bring to boil",
-        "Reduce, simmer 40 min, stir occasionally",
-        "Add beans + corn, cook 5 min",
-        "Off heat, add red lentils, cover 15 min",
-        "Serve with lime + cilantro"
+      "instructions": [
+        {
+          "step": 1,
+          "instruction": "Rinse rice in strainer under cold water for 30 seconds"
+        },
+        {
+          "step": 2,
+          "instruction": "Add rice, water, and salt to pot with tight-fitting lid"
+        },
+        {
+          "step": 3,
+          "instruction": "Bring to boil over high heat"
+        },
+        {
+          "step": 4,
+          "instruction": "Reduce to lowest setting and cover immediately"
+        },
+        {
+          "step": 5,
+          "instruction": "Cook for exactly 18 minutes. Do not lift lid."
+        },
+        {
+          "step": 6,
+          "instruction": "Remove from heat and let sit covered for 5 more minutes"
+        },
+        {
+          "step": 7,
+          "instruction": "Fluff with fork. Spread on sheet pan to cool before storing."
+        }
       ]
     },
     {
       "id": "overnight-oats",
-      "name": "Overnight Oats",
+      "name": "Overnight Oats + PB + Whey",
+      "description": "High-protein breakfast. Make 7 jars Sunday. Grab and go every morning.",
       "category": "breakfast",
-      "macros": "~38g protein | ~60g carbs | ~18g fat",
-      "description": "Your standing breakfast. Make 7 jars.",
-      "yield": "1 jar",
-      "prepTime": "2 min",
-      "cookTime": "0 min (overnight)",
+      "tags": ["oats", "breakfast", "high-protein"],
+      "yield": {
+        "quantity": 1,
+        "unit": "jar"
+      },
+      "prepTime": "PT2M",
+      "cookTime": "PT0M",
+      "totalTime": "PT2M",
+      "difficulty": "easy",
+      "servings": 1,
+      "nutrition": {
+        "calories": 458,
+        "protein": { "value": 38, "unit": "g" },
+        "carbs": { "value": 60, "unit": "g" },
+        "fat": { "value": 18, "unit": "g" }
+      },
+      "cost": {
+        "total": 1.50,
+        "currency": "USD",
+        "perServing": 1.50
+      },
+      "storage": {
+        "refrigerated": 5,
+        "frozen": 0,
+        "unit": "days"
+      },
       "ingredients": [
-        "¾ cup rolled oats",
-        "1 cup milk",
-        "⅓ cup plain Greek yogurt",
-        "1.5 scoops whey protein",
-        "1 tbsp peanut butter",
-        "½ banana, sliced"
+        { "item": "rolled oats", "quantity": 0.75, "unit": "cup" },
+        { "item": "whole milk", "quantity": 1, "unit": "cup" },
+        { "item": "plain Greek yogurt", "quantity": 0.33, "unit": "cup" },
+        { "item": "whey protein powder", "quantity": 1.5, "unit": "scoops" },
+        { "item": "natural peanut butter", "quantity": 1, "unit": "tbsp" },
+        { "item": "banana, sliced", "quantity": 0.5, "unit": "" }
       ],
-      "steps": [
-        "Jar: oats, milk, yogurt, whey. Stir hard.",
-        "Stir in peanut butter, add banana, stir.",
-        "Seal, refrigerate overnight.",
-        "Morning: loosen with milk if thick. Eat cold or microwave 60–90 sec."
-      ]
+      "instructions": [
+        {
+          "step": 1,
+          "instruction": "Add oats, milk, yogurt, and whey to mason jar or container"
+        },
+        {
+          "step": 2,
+          "instruction": "Stir vigorously until well combined"
+        },
+        {
+          "step": 3,
+          "instruction": "Stir in peanut butter"
+        },
+        {
+          "step": 4,
+          "instruction": "Add banana slices"
+        },
+        {
+          "step": 5,
+          "instruction": "Seal and refrigerate overnight"
+        },
+        {
+          "step": 6,
+          "instruction": "Morning: eat cold or microwave 60-90 seconds. Add milk if too thick."
+        }
+      ],
+      "notes": "Make 7 jars on batch day for the entire week. No prep needed in the morning."
     },
     {
       "id": "pb-banana-shake",
-      "name": "Peanut Butter Banana Power Shake",
+      "name": "PB Banana Power Shake",
+      "description": "Quick protein shake. 90 seconds from blender to glass.",
       "category": "shakes",
-      "macros": "~410 cal | 28g protein | 46g carbs | 12g fat",
-      "description": "Your standing shake. Blend, drink.",
-      "yield": "1 serving",
-      "prepTime": "1 min",
-      "cookTime": "0 min",
+      "tags": ["shake", "protein", "quick"],
+      "yield": {
+        "quantity": 1,
+        "unit": "serving"
+      },
+      "prepTime": "PT1M",
+      "cookTime": "PT0M",
+      "totalTime": "PT1M",
+      "difficulty": "easy",
+      "servings": 1,
+      "nutrition": {
+        "calories": 410,
+        "protein": { "value": 28, "unit": "g" },
+        "carbs": { "value": 46, "unit": "g" },
+        "fat": { "value": 12, "unit": "g" }
+      },
+      "cost": {
+        "total": 1.50,
+        "currency": "USD",
+        "perServing": 1.50
+      },
       "ingredients": [
-        "1 cup whole milk",
-        "1 ripe banana (frozen is best)",
-        "2 tbsp natural peanut butter",
-        "1 scoop whey protein powder",
-        "5-6 ice cubes"
+        { "item": "whole milk", "quantity": 1, "unit": "cup" },
+        { "item": "banana (frozen is best)", "quantity": 1, "unit": "" },
+        { "item": "natural peanut butter", "quantity": 2, "unit": "tbsp" },
+        { "item": "whey protein powder", "quantity": 1, "unit": "scoop" },
+        { "item": "ice cubes", "quantity": 5, "unit": "" }
       ],
-      "steps": [
-        "Milk, whey into blender first (liquid at blades)",
-        "Banana, PB, ice on top",
-        "Blend 45-90 sec until smooth"
+      "instructions": [
+        {
+          "step": 1,
+          "instruction": "Add milk and whey protein to blender first (liquid at bottom)"
+        },
+        {
+          "step": 2,
+          "instruction": "Add banana, peanut butter, and ice on top"
+        },
+        {
+          "step": 3,
+          "instruction": "Blend on high for 45-90 seconds until smooth"
+        }
+      ]
+    },
+    {
+      "id": "lentil-chili",
+      "name": "Lentil Bean Chili",
+      "description": "CHEAPEST meal in the system. Highest protein. Freezes for months.",
+      "category": "one-pot",
+      "tags": ["chili", "lentils", "cheap", "high-protein"],
+      "yield": {
+        "quantity": 8,
+        "unit": "servings"
+      },
+      "prepTime": "PT10M",
+      "cookTime": "PT60M",
+      "totalTime": "PT70M",
+      "difficulty": "easy",
+      "servings": 8,
+      "nutrition": {
+        "calories": 727,
+        "protein": { "value": 44, "unit": "g" },
+        "carbs": { "value": 129, "unit": "g" },
+        "fat": { "value": 8, "unit": "g" }
+      },
+      "cost": {
+        "total": 8,
+        "currency": "USD",
+        "perServing": 1.00
+      },
+      "storage": {
+        "refrigerated": 5,
+        "frozen": 120,
+        "unit": "days"
+      },
+      "ingredients": [
+        { "item": "brown lentils (dry)", "quantity": 2, "unit": "cups" },
+        { "item": "red lentils (dry)", "quantity": 0.5, "unit": "cup" },
+        { "item": "kidney beans (canned, drained)", "quantity": 1, "unit": "can" },
+        { "item": "corn (canned)", "quantity": 1, "unit": "can" },
+        { "item": "diced tomatoes (canned)", "quantity": 1, "unit": "can (28 oz)" },
+        { "item": "red onion, diced", "quantity": 1, "unit": "" },
+        { "item": "bell pepper, diced", "quantity": 1, "unit": "" },
+        { "item": "garlic cloves, minced", "quantity": 4, "unit": "" },
+        { "item": "cumin", "quantity": 2, "unit": "tsp" },
+        { "item": "chili powder", "quantity": 2, "unit": "tsp" },
+        { "item": "cinnamon", "quantity": 0.25, "unit": "tsp" },
+        { "item": "water", "quantity": 3, "unit": "cups" },
+        { "item": "salt & pepper", "quantity": "to taste" }
+      ],
+      "instructions": [
+        {
+          "step": 1,
+          "instruction": "Sauté onion, pepper, and garlic in large pot for 2 minutes"
+        },
+        {
+          "step": 2,
+          "instruction": "Add spices (cumin, chili powder, cinnamon) and cook 15 seconds"
+        },
+        {
+          "step": 3,
+          "instruction": "Add canned tomatoes, water, and brown lentils. Bring to boil."
+        },
+        {
+          "step": 4,
+          "instruction": "Reduce heat and simmer 40 minutes, stirring occasionally"
+        },
+        {
+          "step": 5,
+          "instruction": "Add kidney beans and corn, cook 5 more minutes"
+        },
+        {
+          "step": 6,
+          "instruction": "Off heat, stir in red lentils and cover for 15 minutes"
+        },
+        {
+          "step": 7,
+          "instruction": "Serve with lime and cilantro"
+        }
       ]
     }
   ]
