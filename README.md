@@ -4,9 +4,9 @@ A complete meal planning system designed around three core principles: **batch-f
 
 ## Quick Start
 
-- **[View the Recipes](recipes.md)** – 20+ batch cooking recipes and meal ideas
-- **[View the Weekly Meal Plan](meal-plan.md)** – Daily structure + batch cook schedule
-- **[Open the Dashboard](index.html)** – Visual overview and links
+- **[Open the Dashboard](index.html)** – Visual overview, recipes, meal plan, and shopping list
+- **[Browse the Recipe Data](data/recipes.json)** – Canonical recipe collection
+- **[Browse the Meal Plan Data](data/meal-plan.json)** – Canonical weekly plan and shopping list
 
 ## The System
 
@@ -50,7 +50,7 @@ Everything in this system is built from these 5 recipes:
 4. **Batch Sheet Pan Roasted Vegetables** – 3 lbs, 30 min
 5. **Batch Cooked Orzo/Pasta** – 1 lb, 9 min
 
-From these foundations, you can assemble 20+ different meals.
+The dashboard contains the canonical batch foundations and meal ideas in `data/recipes.json`; additional variations can be composed from those foundations.
 
 ### Meal Categories
 
@@ -61,7 +61,7 @@ From these foundations, you can assemble 20+ different meals.
 - **Budget Tier** – Overnight oats, rice cakes, egg fried rice, tuna fried rice
 - **Reference** – Tips, shopping strategies, batch cooking philosophy
 
-See [recipes.md](recipes.md) for full details.
+The dashboard reads the JSON files in `data/` at runtime, so those files are the canonical source for recipes, targets, meal planning, and shopping data.
 
 ## Weekly Shopping List
 
@@ -138,15 +138,18 @@ See [recipes.md](recipes.md) for full details.
 
 ## Files in This Repository
 
-- **index.html** – Dashboard overview with links
+- **index.html** – Dashboard shell
+- **src/app.js** – Dashboard rendering and interaction logic
+- **styles/main.css** – Dashboard styles
+- **data/config.json** – Targets and customization settings
+- **data/recipes.json** – Recipe collection
+- **data/meal-plan.json** – Weekly plan and shopping list
 - **README.md** – This file
-- **recipes.md** – Complete recipe reference (20+ recipes)
-- **meal-plan.md** – Weekly structure + batch cook schedule
 
 ## Getting Started
 
-1. **Read** [meal-plan.md](meal-plan.md) for the full weekly structure
-2. **Browse** [recipes.md](recipes.md) for recipe details and variations
+1. **Open** [index.html](index.html) through a local web server
+2. **Browse** [data/recipes.json](data/recipes.json) for recipe details
 3. **Pick a batch day** (Saturday is ideal)
 4. **Make your first batch:** Start with chicken, rice, and oats
 5. **Assemble meals** throughout the week from prepped components
@@ -175,4 +178,4 @@ September 2026 – Same meal twice a day, every day.
 
 ---
 
-Questions? See [meal-plan.md](meal-plan.md) for troubleshooting, or review [recipes.md](recipes.md) for specific recipe details.
+The dashboard requires a local web server because it loads the JSON data files with `fetch`. For example, run `python -m http.server` from the repository root and open `http://localhost:8000`.
