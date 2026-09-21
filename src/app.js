@@ -42,7 +42,22 @@ function planTotals() {
     return totals;
   }, { servings: 0, cost: 0, calories: 0, protein: 0 });
 }
-function recipeOptions(selected) { return state.recipes.map((recipe) => `<option value="${escapeHtml(recipe.id)}"${recipe.id === selected ? " selected" : ""}>${escapeHtml(recipe.name)}</option>`).join(""); }
+function recipesForSlot(label, selected) {
+  const type = label.toLowerCase();
+  let allowed = state.recipes;
+  if (type.includes("breakfast")) {
+    allowed = state.recipes.filter((recipe) => recipe.category === "breakfast");
+  } else if (type.includes("snack")) {
+    allowed = state.recipes.filter((recipe) => recipe.category === "snack");
+  } else if (type.includes("lunch") || type.includes("dinner")) {
+    allowed = state.recipes.filter((recipe) => ["lunch", "dinner", "one-pot", "batch"].includes(recipe.category));
+  }
+  if (!allowed.some((recipe) => recipe.id === selected)) {
+    const selectedRecipe = recipeFor(selected);
+    if (selectedRecipe) allowed = [selectedRecipe, ...allowed];
+  }
+  return allowed.map((recipe) => `<option value="${escapeHtml(recipe.id)}"${recipe.id === selected ? " selected" : ""}>${escapeHtml(recipe.name)}</option>`).join("");
+}
 
 function renderPlanner() {
   const totals = planTotals();
@@ -60,7 +75,7 @@ function renderPlanner() {
       <div class="slot-marker">${escapeHtml(slot.label.slice(0, 1).toUpperCase())}</div>
       <div class="slot-main">
         <div class="slot-top"><input class="slot-label" aria-label="Meal name" data-slot="${slot.id}" data-field="label" value="${escapeHtml(slot.label)}"><button class="icon-btn" data-remove-slot="${slot.id}" aria-label="Remove ${escapeHtml(slot.label)}">Remove</button></div>
-        <select class="recipe-select" data-slot="${slot.id}" data-field="recipeId" aria-label="Recipe">${recipeOptions(slot.recipeId)}</select>
+        <select class="recipe-select" data-slot="${slot.id}" data-field="recipeId" aria-label="${escapeHtml(slot.label)} recipe">${recipesForSlot(slot.label, slot.recipeId)}</select>
         <div class="slot-controls">
           <label>Portions this week <input type="number" min="1" step="1" value="${total}" data-slot="${slot.id}" data-field="servings"></label>
           <label>Portions per batch <input type="number" min="1" step="1" value="${batchSizeFor(slot, recipe)}" data-slot="${slot.id}" data-field="batchSize"></label>
