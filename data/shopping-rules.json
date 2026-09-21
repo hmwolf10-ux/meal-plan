@@ -6,9 +6,9 @@
       "id": "milk",
       "matches": ["whole milk", "milk"],
       "recipeUnit": "cup",
-      "packageQuantity": 8,
-      "packageLabel": "half-gallon",
-      "packageNote": "8 cups"
+      "packageQuantity": 16,
+      "packageLabel": "gallon",
+      "packageNote": "16 cups"
     },
     {
       "id": "yogurt",
