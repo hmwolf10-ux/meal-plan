@@ -145,12 +145,12 @@ function toPurchaseLine(item) {
   if (rule?.omit) return null;
   if (typeof item.quantity !== "number") return { ...item, buy: "Use the amount in the recipe", needed };
   if (rule) {
-    if (rule.id === "pantry-seasoning") return { ...item, buy: "Check pantry; buy 1 container if needed", needed };
-    if (!rule.packageQuantity) return { ...item, buy: `1 ${rule.packageLabel}`, needed };
+    if (rule.id === "pantry-seasoning") return { ...item, buy: `Check pantry; buy 1 container of ${name} if needed`, needed };
+    if (!rule.packageQuantity) return { ...item, buy: `Buy 1 ${rule.packageLabel} of ${name}`, needed };
     const packages = Math.max(1, Math.ceil(item.quantity / rule.packageQuantity));
-    return { ...item, buy: `${packages} ${rule.packageLabel}${packages === 1 ? "" : "s"} (${rule.packageNote})`, needed };
+    return { ...item, buy: `Buy ${packages} ${rule.packageLabel}${packages === 1 ? "" : "s"} of ${name} (${rule.packageNote})`, needed };
   }
-  return { ...item, buy: `${formatAmount(item.quantity)}${item.unit ? ` ${item.unit}` : ""} ${name}`, needed };
+  return { ...item, buy: `Buy ${formatAmount(item.quantity)}${item.unit ? ` ${item.unit}` : ""} of ${name}`, needed };
 }
 function renderShopping() {
   const items = shoppingGroups();
