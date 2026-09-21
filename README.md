@@ -2,9 +2,21 @@
 
 A complete meal planning system designed around three core principles: **batch-friendly**, **budget-first**, and **high-protein**.
 
+## Use the Meal Planner
+
+**[Open the live meal planner](https://hmwolf10-ux.github.io/meal-plan/)**
+
+That link opens the interactive GitHub Pages website. From there you can:
+
+- Build your weekly plan by adding meal slots
+- Choose recipes and set portions per day and days planned
+- See ingredients automatically scaled for your batch size
+- Generate a shopping list and prep guide
+- Browse the full recipe book with storage guidance
+
 ## Quick Start
 
-- **[Open the Dashboard](index.html)** – Visual overview, recipes, meal plan, and shopping list
+- **[Open the live website](https://hmwolf10-ux.github.io/meal-plan/)** – Interactive meal planner hosted on GitHub Pages
 - **[Browse the Recipe Data](data/recipes.json)** – Canonical recipe collection
 - **[Browse the Meal Plan Data](data/meal-plan.json)** – Canonical weekly plan and shopping list
 
@@ -146,13 +158,20 @@ The dashboard reads the JSON files in `data/` at runtime, so those files are the
 - **data/meal-plan.json** – Weekly plan and shopping list
 - **README.md** – This file
 
-## Getting Started
+## Getting Started Locally
 
-1. **Open** [index.html](index.html) through a local web server
-2. **Browse** [data/recipes.json](data/recipes.json) for recipe details
-3. **Pick a batch day** (Saturday is ideal)
-4. **Make your first batch:** Start with chicken, rice, and oats
-5. **Assemble meals** throughout the week from prepped components
+The live website is the easiest way to use the planner. To run the current code locally:
+
+1. **Clone** this repository
+2. **Start a local web server** from the repository root:
+   ```powershell
+   python -m http.server 8000
+   ```
+3. **Open** [http://localhost:8000](http://localhost:8000) in your browser
+4. **Browse** [data/recipes.json](data/recipes.json) for recipe details
+5. **Pick a batch day** (Saturday is ideal)
+6. **Make your first batch:** Start with chicken, rice, and oats
+7. **Assemble meals** throughout the week from prepped components
 
 ## Tips
 
@@ -178,4 +197,4 @@ September 2026 – Same meal twice a day, every day.
 
 ---
 
-The dashboard requires a local web server because it loads the JSON data files with `fetch`. For example, run `python -m http.server` from the repository root and open `http://localhost:8000`. Validate the data with `powershell -ExecutionPolicy Bypass -File scripts\validate-data.ps1`.
+The dashboard requires a local web server because it loads the JSON data files with `fetch`. Validate the data with `powershell -ExecutionPolicy Bypass -File scripts\validate-data.ps1`.
