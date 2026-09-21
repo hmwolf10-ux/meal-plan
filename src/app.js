@@ -166,10 +166,12 @@ function shoppingGroups() {
     const recipe = recipeFor(slot.recipeId); if (!recipe) return;
     const multiplier = servingsFor(slot) / recipe.servings;
     recipe.ingredients.forEach((item) => {
-      const name = item.item.toLowerCase().replace(/\s*\([^)]*\)/g, "").replace(/,\s*(sliced|diced|minced|chopped|frozen is best)/g, "").trim();
+      const cleanedName = item.item.replace(/\s*\([^)]*\)/g, "").replace(/,\s*(sliced|diced|minced|chopped|frozen is best)/gi, "").trim();
+      const displayName = cleanedName ? cleanedName.charAt(0).toUpperCase() + cleanedName.slice(1) : cleanedName;
+      const name = displayName.toLowerCase();
       const unit = String(item.unit || "").toLowerCase().trim();
       const key = `${name}|${unit}`;
-      if (!groups[key]) groups[key] = { ...item, item: name, unit, quantity: typeof item.quantity === "number" ? 0 : item.quantity, recipes: [] };
+      if (!groups[key]) groups[key] = { ...item, item: displayName, itemKey: name, unit, quantity: typeof item.quantity === "number" ? 0 : item.quantity, recipes: [] };
       if (typeof item.quantity === "number") groups[key].quantity += item.quantity * multiplier;
       if (!groups[key].recipes.includes(slot.label)) groups[key].recipes.push(slot.label);
     });
@@ -178,7 +180,7 @@ function shoppingGroups() {
 }
 function toPurchaseLine(item) {
   const needed = typeof item.quantity === "number" ? `${formatAmount(item.quantity)}${item.unit ? ` ${item.unit}` : ""}` : "amount from source recipe";
-  const name = item.item;
+  const name = item.itemKey || item.item.toLowerCase();
   const rule = state.shoppingRules.find((candidate) => candidate.matches.some((match) => name.includes(match)) && (candidate.recipeUnit === "*" || candidate.recipeUnit === item.unit));
   if (rule?.omit) return null;
   if (typeof item.quantity !== "number") return { ...item, buy: "Use the amount in the recipe", needed };
