@@ -1,119 +1,147 @@
-const DATA_FILES = {
-  recipes: "./data/recipes.json",
-  mealPlan: "./data/meal-plan.json",
-  config: "./data/config.json"
-};
-
-const state = { recipes: [], mealPlan: null, config: null, filter: "all" };
+const DATA_FILES = { recipes: "./data/recipes.json", mealPlan: "./data/meal-plan.json", config: "./data/config.json" };
+const state = { recipes: [], config: null, slots: [], filter: "all", selectedRecipe: null };
 const $ = (selector) => document.querySelector(selector);
-const escapeHtml = (value) => String(value ?? "")
-  .replaceAll("&", "&amp;").replaceAll("<", "&lt;")
-  .replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#039;");
-const formatMetric = (metric) => `${metric.value}${metric.unit === "kcal" ? " kcal" : metric.unit}`;
-const metricLine = (nutrition) => [
-  `${nutrition.protein.value}${nutrition.protein.unit} protein`,
-  `${nutrition.carbs.value}${nutrition.carbs.unit} carbs`,
-  `${nutrition.fat.value}${nutrition.fat.unit} fat`,
-  `${nutrition.calories.value}${nutrition.calories.unit}`
-].join(" | ");
+const escapeHtml = (value) => String(value ?? "").replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#039;");
+const recipeFor = (id) => state.recipes.find((recipe) => recipe.id === id);
+const number = (value) => Number(value) || 0;
+const tidy = (value) => Number.isInteger(value) ? value : Number(value.toFixed(2));
+const formatAmount = (value) => value === "to taste" ? value : tidy(value);
+const duration = (iso) => { const match = String(iso || "").match(/PT(?:(\d+)H)?(?:(\d+)M)?/); return match ? `${match[1] ? `${match[1]} hr ` : ""}${match[2] || 0} min` : iso; };
+const metricLine = (nutrition) => `${nutrition.protein.value}${nutrition.protein.unit} protein · ${nutrition.carbs.value}${nutrition.carbs.unit} carbs · ${nutrition.fat.value}${nutrition.fat.unit} fat · ${nutrition.calories.value}${nutrition.calories.unit}`;
 
 async function loadData() {
   const entries = await Promise.all(Object.entries(DATA_FILES).map(async ([key, path]) => {
     const response = await fetch(path);
-    if (!response.ok) throw new Error(`Unable to load ${path} (${response.status})`);
+    if (!response.ok) throw new Error(`Unable to load ${path}`);
     return [key, await response.json()];
   }));
-  Object.assign(state, Object.fromEntries(entries));
+  const data = Object.fromEntries(entries);
+  state.recipes = data.recipes.recipes;
+  state.config = data.config;
+  const saved = JSON.parse(localStorage.getItem("table-plan") || "null");
+  state.slots = saved || [
+    { id: crypto.randomUUID(), label: "Breakfast", recipeId: "overnight-oats", portions: 1, days: 7 },
+    { id: crypto.randomUUID(), label: "Lunch", recipeId: "batch-chicken-thighs", portions: 1, days: 7 },
+    { id: crypto.randomUUID(), label: "Dinner", recipeId: "batch-chicken-thighs", portions: 1, days: 7 },
+    { id: crypto.randomUUID(), label: "Snack", recipeId: "pb-banana-shake", portions: 1, days: 7 }
+  ];
 }
 
-function renderOverview() {
-  const targets = state.config.targets;
-  const batchTasks = state.mealPlan.batchCookDay.tasks;
-  $("#overview-content").innerHTML = `
-    <div class="section"><h3>Daily Targets</h3><div class="stat-row">
-      ${[
-        ["Protein", targets.dailyProtein], ["Carbs", targets.dailyCarbs],
-        ["Fat", targets.dailyFat], ["Calories", targets.dailyCalories]
-      ].map(([label, value]) => `<div><div class="stat-label">${label}</div><div class="stat-value">${formatMetric(value)}</div></div>`).join("")}
-    </div></div>
-    <div class="section"><h3>Weekly Cost &amp; Time</h3><div class="stat-row">
-      <div><div class="stat-label">Groceries</div><div class="stat-value">$${state.mealPlan.weeklyPlan.totalCost.amount}</div></div>
-      <div><div class="stat-label">Batch Cook</div><div class="stat-value">${state.mealPlan.batchCookDay.totalTime.total.replace("PT", "").replace("M", " min")}</div></div>
-      <div><div class="stat-label">Daily Prep</div><div class="stat-value">${targets.dailyMealPrepTime.value} min</div></div>
-    </div></div>
-    <div class="section"><h3>Batch Cook Schedule</h3><table><thead><tr><th>Task</th><th>Time</th><th>Quantity</th><th>Yield</th></tr></thead><tbody>
-      ${batchTasks.map((task) => `<tr><td>${escapeHtml(task.name)}</td><td>${escapeHtml(task.prepTime)} prep + ${escapeHtml(task.cookTime)} cook</td><td>${task.quantity} ${escapeHtml(task.unit)}</td><td>${escapeHtml(task.yield)}</td></tr>`).join("")}
-    </tbody></table></div>`;
+function save() { localStorage.setItem("table-plan", JSON.stringify(state.slots)); }
+function planTotals() {
+  return state.slots.reduce((totals, slot) => {
+    const recipe = recipeFor(slot.recipeId); if (!recipe) return totals;
+    const servings = number(slot.portions) * number(slot.days);
+    totals.servings += servings; totals.cost += number(recipe.cost?.perServing || recipe.cost?.total / recipe.servings) * servings;
+    totals.calories += number(recipe.nutrition.calories) * number(slot.portions);
+    totals.protein += number(recipe.nutrition.protein.value) * number(slot.portions);
+    return totals;
+  }, { servings: 0, cost: 0, calories: 0, protein: 0 });
 }
+function recipeOptions(selected) { return state.recipes.map((recipe) => `<option value="${escapeHtml(recipe.id)}"${recipe.id === selected ? " selected" : ""}>${escapeHtml(recipe.name)}</option>`).join(""); }
 
-function renderFilters() {
-  const categories = [...new Set(state.recipes.map((recipe) => recipe.category))];
-  $("#recipe-filters").innerHTML = ["all", ...categories].map((category) =>
-    `<button class="filter-btn${state.filter === category ? " active" : ""}" data-filter="${escapeHtml(category)}">${category === "all" ? "All" : escapeHtml(category)}</button>`
-  ).join("");
+function renderPlanner() {
+  const totals = planTotals();
+  $("#plan-count").textContent = state.slots.length;
+  $("#plan-stats").innerHTML = [
+    ["Meals planned", totals.servings, "portions this week"],
+    ["Est. groceries", `$${totals.cost.toFixed(2)}`, "based on recipe costs"],
+    ["Daily calories", Math.round(totals.calories), `target ${state.config.targets.dailyCalories.value}`],
+    ["Daily protein", `${Math.round(totals.protein)}g`, `target ${state.config.targets.dailyProtein.value}g`]
+  ].map(([label, value, note]) => `<div class="stat-card"><span>${label}</span><strong>${value}</strong><small>${note}</small></div>`).join("");
+  $("#meal-slots").innerHTML = state.slots.map((slot) => {
+    const recipe = recipeFor(slot.recipeId); if (!recipe) return "";
+    const total = number(slot.portions) * number(slot.days);
+    return `<article class="meal-slot">
+      <div class="slot-marker">${escapeHtml(slot.label.slice(0, 1).toUpperCase())}</div>
+      <div class="slot-main">
+        <div class="slot-top"><input class="slot-label" aria-label="Meal name" data-slot="${slot.id}" data-field="label" value="${escapeHtml(slot.label)}"><button class="icon-btn" data-remove-slot="${slot.id}" aria-label="Remove ${escapeHtml(slot.label)}">Remove</button></div>
+        <select class="recipe-select" data-slot="${slot.id}" data-field="recipeId" aria-label="Recipe">${recipeOptions(slot.recipeId)}</select>
+        <div class="slot-controls">
+          <label>Portions per day <input type="number" min="0.5" step="0.5" value="${slot.portions}" data-slot="${slot.id}" data-field="portions"></label>
+          <label>Days planned <input type="number" min="1" max="7" value="${slot.days}" data-slot="${slot.id}" data-field="days"></label>
+          <span class="yield"><strong>${total} portions</strong><small>${duration(recipe.totalTime)} · ${recipe.storage ? `fridge ${recipe.storage.refrigerated} days` : "fresh"}</small></span>
+        </div>
+        <div class="slot-meta"><span>${escapeHtml(recipe.description || "")}</span><button class="text-btn" data-view-recipe="${recipe.id}">View recipe & ingredients →</button></div>
+      </div>
+    </article>`;
+  }).join("");
 }
 
 function renderRecipes() {
+  const categories = ["all", ...new Set(state.recipes.map((recipe) => recipe.category))];
+  $("#recipe-filters").innerHTML = categories.map((category) => `<button class="filter-btn${state.filter === category ? " active" : ""}" data-filter="${escapeHtml(category)}">${category === "all" ? "All" : escapeHtml(category)}</button>`).join("");
   const recipes = state.filter === "all" ? state.recipes : state.recipes.filter((recipe) => recipe.category === state.filter);
-  $("#recipes-table").innerHTML = `<table><thead><tr><th>Recipe</th><th>Category</th><th>Macros</th><th>Time</th></tr></thead><tbody>
-    ${recipes.map((recipe) => `<tr class="recipe-row" data-recipe-id="${escapeHtml(recipe.id)}">
-      <td><strong>${escapeHtml(recipe.name)}</strong></td><td>${escapeHtml(recipe.category)}</td>
-      <td>${metricLine(recipe.nutrition)}</td><td>${escapeHtml(recipe.prepTime)} prep | ${escapeHtml(recipe.cookTime)} cook</td>
-    </tr>`).join("")}</tbody></table>`;
+  $("#recipes-grid").innerHTML = recipes.map((recipe) => `<article class="recipe-card" data-view-recipe="${recipe.id}">
+    <div class="recipe-card-top"><span class="tag">${escapeHtml(recipe.category)}</span><span>${duration(recipe.totalTime)}</span></div>
+    <h3>${escapeHtml(recipe.name)}</h3><p>${escapeHtml(recipe.description || "")}</p>
+    <div class="macros">${metricLine(recipe.nutrition)}</div><div class="recipe-card-footer"><span>${recipe.servings} ${escapeHtml(recipe.yield?.unit || "servings")}</span><span class="arrow">→</span></div>
+  </article>`).join("");
 }
 
 function showRecipe(id) {
-  const recipe = state.recipes.find((item) => item.id === id);
-  if (!recipe) return;
+  const recipe = recipeFor(id); if (!recipe) return;
+  state.selectedRecipe = id;
   $("#recipe-detail").innerHTML = `<div class="recipe-detail">
-    <h3>${escapeHtml(recipe.name)}</h3><div class="macros">${metricLine(recipe.nutrition)}</div>
-    <p>Prep: ${escapeHtml(recipe.prepTime)} | Cook: ${escapeHtml(recipe.cookTime)}</p>
-    <h4>Ingredients</h4><ul>${recipe.ingredients.map((item) => `<li>${escapeHtml(item.quantity)} ${escapeHtml(item.unit)} ${escapeHtml(item.item)}</li>`).join("")}</ul>
-    <h4>Instructions</h4><ol>${recipe.instructions.map((step) => `<li>${escapeHtml(step.instruction)}</li>`).join("")}</ol>
-    <button class="btn btn-secondary" data-close-recipe>Close</button>
+    <div class="detail-heading"><div><span class="tag">${escapeHtml(recipe.category)}</span><h2>${escapeHtml(recipe.name)}</h2><p>${escapeHtml(recipe.description || "")}</p></div><button class="icon-btn" data-close-recipe>Close</button></div>
+    <div class="detail-grid"><div><h4>Scale this recipe</h4><label class="scale-label">How many servings? <input id="recipe-scale" type="number" min="0.5" step="0.5" value="${recipe.servings}"></label><ul id="scaled-ingredients">${scaledIngredients(recipe, recipe.servings)}</ul></div>
+    <div><h4>Method</h4><ol>${recipe.instructions.map((step) => `<li>${escapeHtml(step.instruction)}</li>`).join("")}</ol><div class="storage-note"><strong>Storage</strong><span>${recipe.storage ? `${recipe.storage.refrigerated} days refrigerated${recipe.storage.frozen ? ` · ${recipe.storage.frozen} days frozen` : ""}` : "Follow package guidance"}.</span></div></div></div>
   </div>`;
-  $("#recipe-detail").scrollIntoView({ behavior: "smooth" });
+  $("#recipe-detail").scrollIntoView({ behavior: "smooth", block: "start" });
+}
+function scaledIngredients(recipe, servings) {
+  return recipe.ingredients.map((item) => {
+    const amount = typeof item.quantity === "number" ? formatAmount(item.quantity * servings / recipe.servings) : item.quantity;
+    return `<li><strong>${escapeHtml(amount)}</strong> ${escapeHtml(item.unit)} ${escapeHtml(item.item)}${item.optional ? " <em>optional</em>" : ""}</li>`;
+  }).join("");
 }
 
-function renderPlan() {
-  $("#plan-content").innerHTML = state.mealPlan.weeklyPlan.meals.map((meal) => `
-    <div class="section"><h3>${escapeHtml(meal.name)}</h3><div class="macros">${metricLine(meal.nutrition)}</div>
-    <p>${escapeHtml(meal.notes || "")}</p><ul>${meal.instructions.map((instruction) => `<li>${escapeHtml(instruction)}</li>`).join("")}</ul></div>
-  `).join("");
+function shoppingGroups() {
+  const groups = {};
+  state.slots.forEach((slot) => {
+    const recipe = recipeFor(slot.recipeId); if (!recipe) return;
+    const multiplier = number(slot.portions) * number(slot.days) / recipe.servings;
+    recipe.ingredients.forEach((item) => {
+      const key = `${item.item}|${item.unit}`;
+      if (!groups[key]) groups[key] = { ...item, quantity: typeof item.quantity === "number" ? 0 : item.quantity, recipes: [] };
+      if (typeof item.quantity === "number") groups[key].quantity += item.quantity * multiplier;
+      if (!groups[key].recipes.includes(slot.label)) groups[key].recipes.push(slot.label);
+    });
+  });
+  return Object.values(groups);
 }
-
 function renderShopping() {
-  const categories = state.mealPlan.shoppingList.categories;
-  $("#shopping-content").innerHTML = `<div class="section"><h3>Shopping List - $${state.mealPlan.shoppingList.totalCost.amount}/week</h3>
-    ${categories.map((category) => `<h4>${escapeHtml(category.name)}</h4><table><thead><tr><th>Item</th><th>Quantity</th><th>Cost</th></tr></thead><tbody>
-      ${category.items.map((item) => `<tr><td>${escapeHtml(item.name)}</td><td>${escapeHtml(item.quantity)} ${escapeHtml(item.unit)}</td><td>${item.cost == null ? "varies" : `$${item.cost}`}</td></tr>`).join("")}
-    </tbody></table>`).join("")}</div>`;
+  const items = shoppingGroups();
+  $("#shopping-content").innerHTML = `<div class="shopping-summary"><strong>${items.length} ingredients</strong><span>Calculated from ${state.slots.length} meal slots · quantities are uncooked unless noted</span></div>
+  <div class="shopping-list">${items.map((item) => `<label class="shopping-item"><input type="checkbox"><span><strong>${escapeHtml(formatAmount(item.quantity))} ${escapeHtml(item.unit)}</strong> ${escapeHtml(item.item)}<small>For ${escapeHtml(item.recipes.join(", "))}</small></span></label>`).join("")}</div>`;
+}
+function renderPrep() {
+  const batchItems = state.slots.filter((slot) => { const recipe = recipeFor(slot.recipeId); return recipe && (recipe.category === "batch" || number(slot.days) > (recipe.storage?.refrigerated || 1)); });
+  $("#prep-content").innerHTML = `<div class="prep-layout"><div class="section"><h3>Suggested batch day</h3><p class="muted">Start with recipes that take the longest, then assemble while they cook.</p>${batchItems.length ? batchItems.map((slot, index) => { const recipe = recipeFor(slot.recipeId); return `<div class="prep-step"><span>${index + 1}</span><div><strong>${escapeHtml(recipe.name)}</strong><small>${number(slot.portions) * number(slot.days)} portions · ${duration(recipe.totalTime)} · ${escapeHtml(recipe.instructions[0]?.instruction || "")}</small></div></div>`; }).join("") : `<p class="empty">Add a meal to see a prep sequence.</p>`}</div>
+  <div class="section"><h3>Storage reminders</h3><div class="reminders"><p><strong>Cool before storing.</strong><span>Divide hot food into shallow containers so it cools quickly.</span></p><p><strong>Label the date.</strong><span>Keep the first few days in the fridge and freeze the rest when a recipe calls for it.</span></p><p><strong>Use your senses.</strong><span>When in doubt, throw it out. Follow local food-safety guidance.</span></p></div></div></div>`;
 }
 
+function updateSlot(id, field, value) {
+  const slot = state.slots.find((item) => item.id === id); if (!slot) return;
+  slot[field] = field === "label" || field === "recipeId" ? value : Math.max(field === "days" ? 1 : 0.5, number(value));
+  save(); renderPlanner(); renderShopping(); renderPrep();
+}
 function wireEvents() {
   document.addEventListener("click", (event) => {
     const tab = event.target.closest("[data-tab]");
-    if (tab) {
-      document.querySelectorAll(".tab-btn").forEach((button) => button.classList.toggle("active", button === tab));
-      document.querySelectorAll(".content").forEach((content) => content.classList.toggle("active", content.id === tab.dataset.tab));
-    }
-    const filter = event.target.closest("[data-filter]");
-    if (filter) { state.filter = filter.dataset.filter; renderFilters(); renderRecipes(); }
-    const recipe = event.target.closest("[data-recipe-id]");
-    if (recipe) showRecipe(recipe.dataset.recipeId);
+    if (tab) { document.querySelectorAll(".tab-btn").forEach((button) => button.classList.toggle("active", button === tab)); document.querySelectorAll(".content").forEach((content) => content.classList.toggle("active", content.id === tab.dataset.tab)); }
+    const filter = event.target.closest("[data-filter]"); if (filter) { state.filter = filter.dataset.filter; renderRecipes(); }
+    const view = event.target.closest("[data-view-recipe]"); if (view) showRecipe(view.dataset.viewRecipe);
     if (event.target.closest("[data-close-recipe]")) $("#recipe-detail").replaceChildren();
+    if (event.target.closest("[data-add-slot]")) { state.slots.push({ id: crypto.randomUUID(), label: "New meal", recipeId: state.recipes[0].id, portions: 1, days: 7 }); save(); renderPlanner(); }
+    const remove = event.target.closest("[data-remove-slot]"); if (remove) { state.slots = state.slots.filter((slot) => slot.id !== remove.dataset.removeSlot); save(); renderPlanner(); renderShopping(); renderPrep(); }
+    if (event.target.closest("[data-print]")) window.print();
   });
+  document.addEventListener("change", (event) => { const input = event.target.closest("[data-slot][data-field]"); if (input) updateSlot(input.dataset.slot, input.dataset.field, input.value); });
+  document.addEventListener("input", (event) => { if (event.target.id === "recipe-scale") { const recipe = recipeFor(state.selectedRecipe); if (recipe) $("#scaled-ingredients").innerHTML = scaledIngredients(recipe, number(event.target.value)); } });
 }
-
 async function init() {
-  try {
-    await loadData();
-    renderOverview(); renderFilters(); renderRecipes(); renderPlan(); renderShopping(); wireEvents();
-  } catch (error) {
-    const message = $("#app-error");
-    message.textContent = `${error.message}. Refresh the page and try again.`;
-    message.hidden = false;
-  }
+  try { await loadData(); renderPlanner(); renderRecipes(); renderShopping(); renderPrep(); wireEvents(); }
+  catch (error) { $("#app-error").textContent = `${error.message}. Refresh the page and try again.`; $("#app-error").hidden = false; }
 }
-
 init();

@@ -3,51 +3,60 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Meal Plan</title>
+  <title>Table — your meal plan, made simple</title>
   <link rel="stylesheet" href="styles/main.css">
 </head>
 <body>
   <header class="site-header">
     <div class="header-inner">
       <div>
-        <p class="eyebrow">WEEKLY SYSTEM</p>
-        <h1>Meal Plan <span>&amp; Recipes</span></h1>
-        <p class="subtitle">Budget-first, batch-friendly, high-protein meals.</p>
+        <p class="eyebrow">YOUR WEEKLY KITCHEN SYSTEM</p>
+        <h1>Table <span>/ meal planning without the guesswork</span></h1>
+        <p class="subtitle">Choose recipes. Set how often you eat them. We’ll do the math.</p>
       </div>
-      <div class="header-badge">7-day plan</div>
+      <div class="header-badge"><span id="plan-count">0</span> meal slots</div>
     </div>
   </header>
 
   <nav class="nav" aria-label="Primary navigation">
-    <button class="tab-btn active" data-tab="overview">Overview</button>
-    <button class="tab-btn" data-tab="recipes">Recipes</button>
-    <button class="tab-btn" data-tab="plan">Meal Plan</button>
-    <button class="tab-btn" data-tab="shopping">Shopping</button>
+    <button class="tab-btn active" data-tab="planner">My plan</button>
+    <button class="tab-btn" data-tab="recipes">Recipe book</button>
+    <button class="tab-btn" data-tab="shopping">Shopping list</button>
+    <button class="tab-btn" data-tab="prep">Prep guide</button>
   </nav>
 
   <main class="container">
     <p id="app-error" class="error" role="alert" hidden></p>
-    <section class="content active" id="overview" aria-labelledby="overview-title">
-      <h2 id="overview-title" class="visually-hidden">Overview</h2>
-      <div id="overview-content"></div>
+    <section class="content active" id="planner">
+      <div class="page-heading">
+        <div><p class="kicker">START HERE</p><h2>This week’s meals</h2><p class="muted">Build a plan around how you actually eat. Every quantity below updates when you change a slot.</p></div>
+        <button class="btn" data-add-slot>Add a meal</button>
+      </div>
+      <div class="stat-row" id="plan-stats"></div>
+      <div id="meal-slots"></div>
+      <div class="callout"><strong>How the math works</strong><span>Set portions per day and days planned. Table multiplies each recipe’s ingredients, then rounds your shopping quantities up to practical amounts.</span></div>
     </section>
-    <section class="content" id="recipes" aria-labelledby="recipes-title">
-      <h2 id="recipes-title" class="visually-hidden">Recipes</h2>
-      <div id="recipe-filters" class="filters" aria-label="Recipe filters"></div>
-      <div id="recipes-table"></div>
+
+    <section class="content" id="recipes">
+      <div class="page-heading">
+        <div><p class="kicker">THE RECIPE BOOK</p><h2>Pick something to make</h2><p class="muted">Tap a recipe to see the exact ingredients for any batch size.</p></div>
+        <div id="recipe-filters" class="filters" aria-label="Recipe filters"></div>
+      </div>
+      <div id="recipes-grid" class="recipe-grid"></div>
       <div id="recipe-detail"></div>
     </section>
-    <section class="content" id="plan" aria-labelledby="plan-title">
-      <h2 id="plan-title" class="visually-hidden">Meal Plan</h2>
-      <div id="plan-content"></div>
-    </section>
-    <section class="content" id="shopping" aria-labelledby="shopping-title">
-      <h2 id="shopping-title" class="visually-hidden">Shopping List</h2>
+
+    <section class="content" id="shopping">
+      <div class="page-heading"><div><p class="kicker">TAKE THIS TO THE STORE</p><h2>Shopping list</h2><p class="muted">Everything needed for the meals in your plan, grouped by aisle.</p></div><button class="btn btn-secondary" data-print>Print list</button></div>
       <div id="shopping-content"></div>
     </section>
-  </main>
 
-  <footer>Budget-first, batch-friendly, high-protein.</footer>
+    <section class="content" id="prep">
+      <div class="page-heading"><div><p class="kicker">COOK ONCE, EAT EASILY</p><h2>Your prep guide</h2><p class="muted">A simple order of operations, plus storage reminders so food doesn’t go to waste.</p></div></div>
+      <div id="prep-content"></div>
+    </section>
+  </main>
+  <footer>Table is a planning tool. Use your own food-safety judgment and follow package instructions.</footer>
   <script type="module" src="src/app.js"></script>
 </body>
 </html>
