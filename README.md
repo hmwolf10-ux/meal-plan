@@ -13,8 +13,8 @@ A complete meal planning system designed around three core principles: **batch-f
 This repository contains everything needed to:
 - Cook high-protein meals in bulk 1-2x per week
 - Assemble ready-to-eat meals in 5 minutes
-- Stay within a $45/week grocery budget
-- Hit ~160g protein daily
+- Stay within a ~$47.50/week grocery budget
+- Hit ~170g protein daily
 
 ### How It Works
 
@@ -44,7 +44,7 @@ This repository contains everything needed to:
 
 Everything in this system is built from these 5 recipes:
 
-1. **Batch Baked Chicken Thighs** – 5 lbs, 35-40 min, stores 4 days
+1. **Batch Baked Chicken Thighs** – 10 lbs, 35-40 min, stores 4 days
 2. **Batch Browned Ground Beef** – 2-2.5 lbs, 10 min, stores 4 days
 3. **Batch Cooked Rice** – 5 cups dry → 15 cups cooked, 18 min
 4. **Batch Sheet Pan Roasted Vegetables** – 3 lbs, 30 min
@@ -178,4 +178,4 @@ September 2026 – Same meal twice a day, every day.
 
 ---
 
-The dashboard requires a local web server because it loads the JSON data files with `fetch`. For example, run `python -m http.server` from the repository root and open `http://localhost:8000`.
+The dashboard requires a local web server because it loads the JSON data files with `fetch`. For example, run `python -m http.server` from the repository root and open `http://localhost:8000`. Validate the data with `powershell -ExecutionPolicy Bypass -File scripts\validate-data.ps1`.

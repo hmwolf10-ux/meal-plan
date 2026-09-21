@@ -1,17 +1,18 @@
 {
   "@context": "https://schema.org/",
   "version": "1.0",
-  "description": "Recipe collection following schema.org/Recipe standard. All recipes tested and macro-tracked.",
+  "description": "Recipe collection using the Schema.org Recipe shape. All recipes are macro-tracked.",
   "recipes": [
     {
+      "@type": "Recipe",
       "id": "batch-chicken-thighs",
       "name": "Batch Baked Chicken Thighs",
       "description": "Bone-in, skin-on chicken thighs. Crispy skin, juicy meat. Foundation protein for the week.",
       "category": "batch",
       "tags": ["chicken", "batch-prep", "high-protein", "keto-friendly"],
       "yield": {
-        "quantity": 10,
-        "unit": "portions (20 oz each)"
+        "quantity": 14,
+        "unit": "portions (10 oz each)"
       },
       "prepTime": "PT5M",
       "cookTime": "PT40M",
@@ -35,7 +36,7 @@
         "unit": "days"
       },
       "ingredients": [
-        { "item": "bone-in, skin-on chicken thighs", "quantity": 5, "unit": "lb" },
+        { "item": "bone-in, skin-on chicken thighs", "quantity": 10, "unit": "lb" },
         { "item": "salt", "quantity": 3, "unit": "tbsp" },
         { "item": "black pepper", "quantity": 2, "unit": "tbsp" },
         { "item": "garlic powder", "quantity": 2, "unit": "tbsp" },
@@ -76,6 +77,7 @@
       "notes": "Bone-in thighs stay juicy even if slightly overcooked. This is the best protein base for the system."
     },
     {
+      "@type": "Recipe",
       "id": "batch-ground-beef",
       "name": "Batch Browned Ground Beef",
       "description": "Quick-cooked bulk ground beef. Versatile protein for bowls, tacos, pasta.",
@@ -147,6 +149,7 @@
       ]
     },
     {
+      "@type": "Recipe",
       "id": "batch-rice",
       "name": "Batch Cooked Rice",
       "description": "Perfect white rice. Cheapest carbs in the system. Cook in bulk for the week.",
@@ -214,6 +217,7 @@
       ]
     },
     {
+      "@type": "Recipe",
       "id": "overnight-oats",
       "name": "Overnight Oats + PB + Whey",
       "description": "High-protein breakfast. Make 7 jars Sunday. Grab and go every morning.",
@@ -281,6 +285,7 @@
       "notes": "Make 7 jars on batch day for the entire week. No prep needed in the morning."
     },
     {
+      "@type": "Recipe",
       "id": "pb-banana-shake",
       "name": "PB Banana Power Shake",
       "description": "Quick protein shake. 90 seconds from blender to glass.",
@@ -296,10 +301,10 @@
       "difficulty": "easy",
       "servings": 1,
       "nutrition": {
-        "calories": 410,
-        "protein": { "value": 28, "unit": "g" },
-        "carbs": { "value": 46, "unit": "g" },
-        "fat": { "value": 12, "unit": "g" }
+        "calories": 420,
+        "protein": { "value": 32, "unit": "g" },
+        "carbs": { "value": 55, "unit": "g" },
+        "fat": { "value": 16, "unit": "g" }
       },
       "cost": {
         "total": 1.50,
@@ -329,6 +334,7 @@
       ]
     },
     {
+      "@type": "Recipe",
       "id": "lentil-chili",
       "name": "Lentil Bean Chili",
       "description": "CHEAPEST meal in the system. Highest protein. Freezes for months.",

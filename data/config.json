@@ -6,7 +6,7 @@
   },
   "targets": {
     "dailyProtein": {
-      "value": 160,
+      "value": 170,
       "unit": "g",
       "description": "Daily protein target"
     },
@@ -16,7 +16,7 @@
       "description": "Daily carbohydrates target"
     },
     "dailyFat": {
-      "value": 68,
+      "value": 66,
       "unit": "g",
       "description": "Daily fat target"
     },
@@ -28,12 +28,12 @@
   },
   "budget": {
     "weeklyBudget": {
-      "value": 45,
+      "value": 47.5,
       "unit": "USD",
       "description": "Target weekly grocery budget"
     },
     "dailyBudget": {
-      "value": 6.43,
+      "value": 6.79,
       "unit": "USD",
       "description": "Average daily cost"
     }

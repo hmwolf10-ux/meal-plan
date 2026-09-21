@@ -1,10 +1,10 @@
 {
   "version": "1.0",
   "title": "Simple Batch Cooking Meal Plan",
-  "description": "One breakfast, one main meal (twice daily), one snack. ~160g protein daily, ~$45/week.",
+  "description": "One breakfast, one main meal (twice daily), one snack. ~170g protein daily, ~$47.50/week.",
   "weeklyPlan": {
     "daysPerWeek": 7,
-    "mealsPerDay": 3,
+    "mealsPerDay": 4,
     "totalCost": {
       "amount": 47.50,
       "currency": "USD",
