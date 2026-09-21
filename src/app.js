@@ -58,6 +58,24 @@ function recipesForSlot(label, selected) {
   }
   return allowed.map((recipe) => `<option value="${escapeHtml(recipe.id)}"${recipe.id === selected ? " selected" : ""}>${escapeHtml(recipe.name)}</option>`).join("");
 }
+function addSlot(category) {
+  const candidates = state.recipes.filter((recipe) => {
+    if (category === "breakfast") return recipe.category === "breakfast";
+    if (category === "snack") return recipe.category === "snack";
+    return ["lunch", "dinner", "one-pot", "batch"].includes(recipe.category);
+  });
+  const recipe = candidates[0] || state.recipes[0];
+  state.slots.push({
+    id: crypto.randomUUID(),
+    label: category === "snack" ? "Snack" : category === "breakfast" ? "Breakfast" : "Lunch / dinner",
+    recipeId: recipe.id,
+    servings: 7,
+    batchSize: Math.min(7, number(recipe.storage?.refrigerated) || 7)
+  });
+  save();
+  renderPlanner();
+  renderShopping();
+}
 
 function renderPlanner() {
   const totals = planTotals();
@@ -80,10 +98,31 @@ function renderPlanner() {
           <label>Portions per batch <input type="number" min="1" step="1" value="${batchSizeFor(slot, recipe)}" data-slot="${slot.id}" data-field="batchSize"></label>
           <span class="yield"><strong>${Math.ceil(total / batchSizeFor(slot, recipe))} batch${Math.ceil(total / batchSizeFor(slot, recipe)) === 1 ? "" : "es"}</strong><small>${duration(recipe.totalTime)} · fridge ${recipe.storage ? `${recipe.storage.refrigerated} days` : "check storage"}</small></span>
         </div>
-        <div class="slot-meta"><span>${escapeHtml(recipe.description || "")}</span><button class="text-btn" data-view-recipe="${recipe.id}">View recipe & ingredients →</button></div>
+        <div class="slot-meta"><span>${escapeHtml(recipe.description || "")}</span><button class="text-btn" data-view-batch="${slot.id}">${document.querySelector(`[data-batch-open="${slot.id}"]`) ? "Hide batch recipe ↑" : "Show batch recipe →"}</button></div>
+        <div class="batch-recipe" data-batch-panel="${slot.id}"></div>
       </div>
     </article>`;
   }).join("");
+  document.querySelectorAll("[data-batch-panel]").forEach((panel) => {
+    const slot = state.slots.find((item) => item.id === panel.dataset.batchPanel);
+    if (slot && document.querySelector(`[data-batch-open="${slot.id}"]`)) panel.innerHTML = batchRecipeMarkup(slot, recipeFor(slot.recipeId));
+  });
+}
+function batchRecipeMarkup(slot, recipe) {
+  const total = servingsFor(slot);
+  const batchSize = batchSizeFor(slot, recipe);
+  const batches = Math.ceil(total / batchSize);
+  const ingredients = recipe.ingredients.map((item) => {
+    const amount = typeof item.quantity === "number"
+      ? formatAmount(item.quantity * batchSize / recipe.servings)
+      : item.quantity;
+    return `<li><strong>${escapeHtml(amount)}</strong> ${escapeHtml(item.unit || "")} ${escapeHtml(item.item)}${item.optional ? " <em>optional</em>" : ""}</li>`;
+  }).join("");
+  return `<div class="batch-recipe-inner" data-batch-open="${slot.id}">
+    <div class="batch-heading"><strong>Make ${batchSize} portions at a time</strong><span>${batches} batch${batches === 1 ? "" : "es"} for ${total} portions</span></div>
+    <div class="batch-grid"><div><h4>Ingredients for one batch</h4><ul>${ingredients}</ul></div><div><h4>Method</h4><ol>${recipe.instructions.map((step) => `<li>${escapeHtml(step.instruction)}</li>`).join("")}</ol></div></div>
+    ${batches > 1 ? `<small class="batch-note">Make the same batch ${batches} times. The last batch may be smaller if ${total} portions is not evenly divisible by ${batchSize}.</small>` : ""}
+  </div>`;
 }
 
 function renderRecipes() {
@@ -177,9 +216,26 @@ function wireEvents() {
       save(); renderPlanner(); renderShopping(); renderPrep();
       return;
     }
+    const batch = event.target.closest("[data-view-batch]");
+    if (batch) {
+      const slot = state.slots.find((item) => item.id === batch.dataset.viewBatch);
+      const panel = document.querySelector(`[data-batch-panel="${batch.dataset.viewBatch}"]`);
+      const open = panel?.querySelector("[data-batch-open]");
+      if (slot && panel) {
+        if (open) {
+          panel.replaceChildren();
+          batch.textContent = "Show batch recipe →";
+        } else {
+          panel.innerHTML = batchRecipeMarkup(slot, recipeFor(slot.recipeId));
+          batch.textContent = "Hide batch recipe ↑";
+        }
+      }
+      return;
+    }
     const view = event.target.closest("[data-view-recipe]"); if (view) showRecipe(view.dataset.viewRecipe);
     if (event.target.closest("[data-close-recipe]")) $("#recipe-detail").replaceChildren();
-    if (event.target.closest("[data-add-slot]")) { state.slots.push({ id: crypto.randomUUID(), label: "New meal", recipeId: state.recipes[0].id, servings: 7, batchSize: Math.min(7, number(state.recipes[0].storage?.refrigerated) || 7) }); save(); renderPlanner(); }
+    const addSlotButton = event.target.closest("[data-add-slot]");
+    if (addSlotButton) { addSlot(addSlotButton.dataset.addSlot); return; }
     const remove = event.target.closest("[data-remove-slot]"); if (remove) { state.slots = state.slots.filter((slot) => slot.id !== remove.dataset.removeSlot); save(); renderPlanner(); renderShopping(); }
     if (event.target.closest("[data-print]")) window.print();
   });
