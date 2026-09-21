@@ -153,8 +153,8 @@ function toPurchaseLine(item) {
 }
 function renderShopping() {
   const items = shoppingGroups();
-  $("#shopping-content").innerHTML = `<div class="shopping-summary"><strong>${items.length} items to shop</strong><span>Buy quantities are practical package estimates. “Needed” is the recipe math.</span></div>
-  <div class="shopping-list">${items.map((item) => `<label class="shopping-item"><input type="checkbox"><span><strong>${escapeHtml(item.item)}</strong><small>${escapeHtml(item.buy)} · Needed: ${escapeHtml(item.needed)} · For ${escapeHtml(item.recipes.join(", "))}</small></span></label>`).join("")}</div>`;
+  $("#shopping-content").innerHTML = `<div class="shopping-summary"><strong>${items.length} items</strong></div>
+  <div class="shopping-list">${items.map((item) => `<label class="shopping-item"><input type="checkbox"><span><strong>${escapeHtml(item.item)}</strong><small>${escapeHtml(item.buy.replace(/^Buy\s+/i, ""))}</small></span></label>`).join("")}</div>`;
 }
 function updateSlot(id, field, value, dayIndex) {
   const slot = state.slots.find((item) => item.id === id); if (!slot) return;
