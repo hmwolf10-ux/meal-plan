@@ -110,18 +110,34 @@ function shoppingGroups() {
     const recipe = recipeFor(slot.recipeId); if (!recipe) return;
     const multiplier = servingsFor(slot) / recipe.servings;
     recipe.ingredients.forEach((item) => {
-      const key = `${item.item}|${item.unit}`;
-      if (!groups[key]) groups[key] = { ...item, quantity: typeof item.quantity === "number" ? 0 : item.quantity, recipes: [] };
+      const name = item.item.toLowerCase().replace(/\s*\([^)]*\)/g, "").replace(/,\s*(sliced|diced|minced|chopped|frozen is best)/g, "").trim();
+      const unit = String(item.unit || "").toLowerCase().trim();
+      const key = `${name}|${unit}`;
+      if (!groups[key]) groups[key] = { ...item, item: name, unit, quantity: typeof item.quantity === "number" ? 0 : item.quantity, recipes: [] };
       if (typeof item.quantity === "number") groups[key].quantity += item.quantity * multiplier;
       if (!groups[key].recipes.includes(slot.label)) groups[key].recipes.push(slot.label);
     });
   });
-  return Object.values(groups);
+  return Object.values(groups).filter((item) => !/^(ice cubes|water)$/.test(item.item)).map(toPurchaseLine);
+}
+function toPurchaseLine(item) {
+  const needed = typeof item.quantity === "number" ? `${formatAmount(item.quantity)}${item.unit ? ` ${item.unit}` : ""}` : "amount from source recipe";
+  const name = item.item;
+  if (typeof item.quantity !== "number") return { ...item, buy: `Use the amount in the recipe`, needed };
+  if (/whole milk|milk/.test(name) && item.unit === "cup") return { ...item, buy: `${Math.ceil(item.quantity / 8)} half-gallon${Math.ceil(item.quantity / 8) === 1 ? "" : "s"} (8 cups each)`, needed };
+  if (/greek yogurt|yogurt/.test(name) && item.unit === "cup") return { ...item, buy: `${Math.max(1, Math.ceil(item.quantity / 4))} 32 oz tub${Math.ceil(item.quantity / 4) === 1 ? "" : "s"}`, needed };
+  if (/rolled oats|oats/.test(name) && item.unit === "cup") return { ...item, buy: `${Math.max(1, Math.ceil(item.quantity / 10))} 5 lb bag${Math.ceil(item.quantity / 10) === 1 ? "" : "s"}`, needed };
+  if (/whey protein/.test(name) && /scoop/.test(item.unit)) return { ...item, buy: "1 tub", needed };
+  if (/peanut butter/.test(name) && /tbsp/.test(item.unit)) return { ...item, buy: `${Math.max(1, Math.ceil(item.quantity / 32))} jar${Math.ceil(item.quantity / 32) === 1 ? "" : "s"}`, needed };
+  if (/banana/.test(name) && !item.unit) return { ...item, buy: `${Math.ceil(item.quantity)} bananas`, needed };
+  if (/chicken/.test(name) && item.unit === "lb") return { ...item, buy: `${Math.max(1, Math.ceil(item.quantity / 5))} family pack${Math.ceil(item.quantity / 5) === 1 ? "" : "s"} (~5 lb each)`, needed };
+  if (/salt|pepper|garlic powder|paprika|onion powder|cayenne|spice/.test(name)) return { ...item, buy: "Check pantry; buy 1 container if needed", needed };
+  return { ...item, buy: `${formatAmount(item.quantity)}${item.unit ? ` ${item.unit}` : ""} ${name}`, needed };
 }
 function renderShopping() {
   const items = shoppingGroups();
-  $("#shopping-content").innerHTML = `<div class="shopping-summary"><strong>${items.length} ingredients</strong><span>Calculated from ${state.slots.length} meal slots · quantities are uncooked unless noted</span></div>
-  <div class="shopping-list">${items.map((item) => `<label class="shopping-item"><input type="checkbox"><span><strong>${escapeHtml(formatAmount(item.quantity))} ${escapeHtml(item.unit)}</strong> ${escapeHtml(item.item)}<small>For ${escapeHtml(item.recipes.join(", "))}</small></span></label>`).join("")}</div>`;
+  $("#shopping-content").innerHTML = `<div class="shopping-summary"><strong>${items.length} items to shop</strong><span>Buy quantities are practical package estimates. “Needed” is the recipe math.</span></div>
+  <div class="shopping-list">${items.map((item) => `<label class="shopping-item"><input type="checkbox"><span><strong>${escapeHtml(item.buy)}</strong><small>Needed: ${escapeHtml(item.needed)} · For ${escapeHtml(item.recipes.join(", "))}</small></span></label>`).join("")}</div>`;
 }
 function updateSlot(id, field, value, dayIndex) {
   const slot = state.slots.find((item) => item.id === id); if (!slot) return;
