@@ -14,6 +14,8 @@ That link opens the interactive GitHub Pages website. From there you can:
 - Generate a shopping list and prep guide
 - Browse the full recipe book with storage guidance
 
+The recipe book currently contains **100 recipes**. It combines 50 recipes normalized from the MIT-licensed [Ovi/DummyJSON GitHub dataset](https://github.com/Ovi/DummyJSON) with original batch, meal, and snack recipes created for this project. The imported records preserve their source instructions and are marked where the source did not provide ingredient quantities or macro details; those entries should be treated as reference recipes rather than automatically scalable batch recipes.
+
 ## Quick Start
 
 - **[Open the live website](https://hmwolf10-ux.github.io/meal-plan/)** – Interactive meal planner hosted on GitHub Pages
