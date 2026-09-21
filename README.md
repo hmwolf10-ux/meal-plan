@@ -157,6 +157,7 @@ The dashboard reads the JSON files in `data/` at runtime, so those files are the
 - **styles/main.css** – Dashboard styles
 - **data/config.json** – Targets and customization settings
 - **data/recipes.json** – Recipe collection
+- **data/shopping-rules.json** – Editable grocery-package rules used to turn recipe math into practical store quantities
 - **data/meal-plan.json** – Weekly plan and shopping list
 - **README.md** – This file
 

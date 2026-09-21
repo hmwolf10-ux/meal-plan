@@ -1,5 +1,5 @@
-const DATA_FILES = { recipes: "./data/recipes.json", mealPlan: "./data/meal-plan.json", config: "./data/config.json" };
-const state = { recipes: [], config: null, slots: [], filter: "all", search: "", selectedRecipe: null };
+const DATA_FILES = { recipes: "./data/recipes.json", mealPlan: "./data/meal-plan.json", config: "./data/config.json", shoppingRules: "./data/shopping-rules.json" };
+const state = { recipes: [], config: null, shoppingRules: [], slots: [], filter: "all", search: "", selectedRecipe: null };
 const $ = (selector) => document.querySelector(selector);
 const escapeHtml = (value) => String(value ?? "").replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#039;");
 const recipeFor = (id) => state.recipes.find((recipe) => recipe.id === id);
@@ -20,6 +20,7 @@ async function loadData() {
   const data = Object.fromEntries(entries);
   state.recipes = data.recipes.recipes;
   state.config = data.config;
+  state.shoppingRules = data.shoppingRules.rules;
   const saved = JSON.parse(localStorage.getItem("table-plan") || "null");
   state.slots = saved || [
     { id: crypto.randomUUID(), label: "Breakfast", recipeId: "overnight-oats", servings: 7, batchSize: 5 },
@@ -118,20 +119,20 @@ function shoppingGroups() {
       if (!groups[key].recipes.includes(slot.label)) groups[key].recipes.push(slot.label);
     });
   });
-  return Object.values(groups).filter((item) => !/^(ice cubes|water)$/.test(item.item)).map(toPurchaseLine);
+  return Object.values(groups).map(toPurchaseLine).filter(Boolean);
 }
 function toPurchaseLine(item) {
   const needed = typeof item.quantity === "number" ? `${formatAmount(item.quantity)}${item.unit ? ` ${item.unit}` : ""}` : "amount from source recipe";
   const name = item.item;
-  if (typeof item.quantity !== "number") return { ...item, buy: `Use the amount in the recipe`, needed };
-  if (/whole milk|milk/.test(name) && item.unit === "cup") return { ...item, buy: `${Math.ceil(item.quantity / 8)} half-gallon${Math.ceil(item.quantity / 8) === 1 ? "" : "s"} (8 cups each)`, needed };
-  if (/greek yogurt|yogurt/.test(name) && item.unit === "cup") return { ...item, buy: `${Math.max(1, Math.ceil(item.quantity / 4))} 32 oz tub${Math.ceil(item.quantity / 4) === 1 ? "" : "s"}`, needed };
-  if (/rolled oats|oats/.test(name) && item.unit === "cup") return { ...item, buy: `${Math.max(1, Math.ceil(item.quantity / 10))} 5 lb bag${Math.ceil(item.quantity / 10) === 1 ? "" : "s"}`, needed };
-  if (/whey protein/.test(name) && /scoop/.test(item.unit)) return { ...item, buy: "1 tub", needed };
-  if (/peanut butter/.test(name) && /tbsp/.test(item.unit)) return { ...item, buy: `${Math.max(1, Math.ceil(item.quantity / 32))} jar${Math.ceil(item.quantity / 32) === 1 ? "" : "s"}`, needed };
-  if (/banana/.test(name) && !item.unit) return { ...item, buy: `${Math.ceil(item.quantity)} bananas`, needed };
-  if (/chicken/.test(name) && item.unit === "lb") return { ...item, buy: `${Math.max(1, Math.ceil(item.quantity / 5))} family pack${Math.ceil(item.quantity / 5) === 1 ? "" : "s"} (~5 lb each)`, needed };
-  if (/salt|pepper|garlic powder|paprika|onion powder|cayenne|spice/.test(name)) return { ...item, buy: "Check pantry; buy 1 container if needed", needed };
+  const rule = state.shoppingRules.find((candidate) => candidate.matches.some((match) => name.includes(match)) && (candidate.recipeUnit === "*" || candidate.recipeUnit === item.unit));
+  if (rule?.omit) return null;
+  if (typeof item.quantity !== "number") return { ...item, buy: "Use the amount in the recipe", needed };
+  if (rule) {
+    if (rule.id === "pantry-seasoning") return { ...item, buy: "Check pantry; buy 1 container if needed", needed };
+    if (!rule.packageQuantity) return { ...item, buy: `1 ${rule.packageLabel}`, needed };
+    const packages = Math.max(1, Math.ceil(item.quantity / rule.packageQuantity));
+    return { ...item, buy: `${packages} ${rule.packageLabel}${packages === 1 ? "" : "s"} (${rule.packageNote})`, needed };
+  }
   return { ...item, buy: `${formatAmount(item.quantity)}${item.unit ? ` ${item.unit}` : ""} ${name}`, needed };
 }
 function renderShopping() {

@@ -1,0 +1,76 @@
+{
+  "version": "1.0",
+  "description": "Practical grocery conversions used to turn recipe quantities into buyable shopping-list items.",
+  "rules": [
+    {
+      "id": "milk",
+      "matches": ["whole milk", "milk"],
+      "recipeUnit": "cup",
+      "packageQuantity": 8,
+      "packageLabel": "half-gallon",
+      "packageNote": "8 cups"
+    },
+    {
+      "id": "yogurt",
+      "matches": ["plain greek yogurt", "greek yogurt", "yogurt"],
+      "recipeUnit": "cup",
+      "packageQuantity": 4,
+      "packageLabel": "32 oz tub",
+      "packageNote": "about 4 cups"
+    },
+    {
+      "id": "oats",
+      "matches": ["rolled oats", "oats"],
+      "recipeUnit": "cup",
+      "packageQuantity": 10,
+      "packageLabel": "5 lb bag",
+      "packageNote": "about 10 cups"
+    },
+    {
+      "id": "protein-powder",
+      "matches": ["whey protein powder"],
+      "recipeUnit": "scoop",
+      "packageQuantity": 0,
+      "packageLabel": "tub",
+      "packageNote": "package size varies"
+    },
+    {
+      "id": "peanut-butter",
+      "matches": ["natural peanut butter", "peanut butter"],
+      "recipeUnit": "tbsp",
+      "packageQuantity": 32,
+      "packageLabel": "jar",
+      "packageNote": "about 32 tablespoons"
+    },
+    {
+      "id": "bananas",
+      "matches": ["banana"],
+      "recipeUnit": "",
+      "packageQuantity": 1,
+      "packageLabel": "banana",
+      "packageNote": "round up to whole bananas"
+    },
+    {
+      "id": "chicken-family-pack",
+      "matches": ["chicken"],
+      "recipeUnit": "lb",
+      "packageQuantity": 5,
+      "packageLabel": "family pack",
+      "packageNote": "about 5 lb each"
+    },
+    {
+      "id": "pantry-seasoning",
+      "matches": ["salt", "pepper", "garlic powder", "paprika", "onion powder", "cayenne", "seasoning"],
+      "recipeUnit": "*",
+      "packageQuantity": 0,
+      "packageLabel": "container",
+      "packageNote": "check pantry first"
+    },
+    {
+      "id": "not-a-shopping-item",
+      "matches": ["ice cubes", "water"],
+      "recipeUnit": "*",
+      "omit": true
+    }
+  ]
+}
