@@ -61,7 +61,6 @@ function recipesForSlot(label, selected) {
 
 function renderPlanner() {
   const totals = planTotals();
-  $("#plan-count").textContent = state.slots.length;
   $("#plan-stats").innerHTML = [
     ["Meals planned", totals.servings, "portions this week"],
     ["Est. groceries", `$${totals.cost.toFixed(2)}`, "based on recipe costs"],
