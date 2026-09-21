@@ -91,6 +91,8 @@ function renderRecipes() {
 function showRecipe(id) {
   const recipe = recipeFor(id); if (!recipe) return;
   state.selectedRecipe = id;
+  document.querySelectorAll(".tab-btn").forEach((button) => button.classList.toggle("active", button.dataset.tab === "recipes"));
+  document.querySelectorAll(".content").forEach((content) => content.classList.toggle("active", content.id === "recipes"));
   $("#recipe-detail").innerHTML = `<div class="recipe-detail">
     <div class="detail-heading"><div><span class="tag">${escapeHtml(recipe.category)}</span><h2>${escapeHtml(recipe.name)}</h2><p>${escapeHtml(recipe.description || "")}</p></div><button class="icon-btn" data-close-recipe>Close</button></div>
     <div class="detail-grid"><div><h4>Scale this recipe</h4><label class="scale-label">How many servings? <input id="recipe-scale" type="number" min="0.5" step="0.5" value="${recipe.servings}"></label><ul id="scaled-ingredients">${scaledIngredients(recipe, recipe.servings)}</ul></div>
