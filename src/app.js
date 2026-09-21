@@ -1,5 +1,6 @@
 const DATA_FILES = { recipes: "./data/recipes.json", mealPlan: "./data/meal-plan.json", config: "./data/config.json" };
-const state = { recipes: [], config: null, slots: [], filter: "all", selectedRecipe: null };
+const state = { recipes: [], config: null, slots: [], filter: "all", search: "", selectedRecipe: null };
+const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const $ = (selector) => document.querySelector(selector);
 const escapeHtml = (value) => String(value ?? "").replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#039;");
 const recipeFor = (id) => state.recipes.find((recipe) => recipe.id === id);
@@ -8,6 +9,7 @@ const tidy = (value) => Number.isInteger(value) ? value : Number(value.toFixed(2
 const formatAmount = (value) => value === "to taste" ? value : tidy(value);
 const duration = (iso) => { const match = String(iso || "").match(/PT(?:(\d+)H)?(?:(\d+)M)?/); return match ? `${match[1] ? `${match[1]} hr ` : ""}${match[2] || 0} min` : iso; };
 const metricLine = (nutrition) => `${nutrition.protein.value}${nutrition.protein.unit} protein · ${nutrition.carbs.value}${nutrition.carbs.unit} carbs · ${nutrition.fat.value}${nutrition.fat.unit} fat · ${nutrition.calories.value}${nutrition.calories.unit}`;
+const scheduleFor = (slot) => slot.schedule?.length === 7 ? slot.schedule : DAYS.map((_, index) => index < number(slot.days) ? number(slot.portions) : 0);
 
 async function loadData() {
   const entries = await Promise.all(Object.entries(DATA_FILES).map(async ([key, path]) => {
@@ -20,10 +22,10 @@ async function loadData() {
   state.config = data.config;
   const saved = JSON.parse(localStorage.getItem("table-plan") || "null");
   state.slots = saved || [
-    { id: crypto.randomUUID(), label: "Breakfast", recipeId: "overnight-oats", portions: 1, days: 7 },
-    { id: crypto.randomUUID(), label: "Lunch", recipeId: "batch-chicken-thighs", portions: 1, days: 7 },
-    { id: crypto.randomUUID(), label: "Dinner", recipeId: "batch-chicken-thighs", portions: 1, days: 7 },
-    { id: crypto.randomUUID(), label: "Snack", recipeId: "pb-banana-shake", portions: 1, days: 7 }
+    { id: crypto.randomUUID(), label: "Breakfast", recipeId: "overnight-oats", portions: 1, days: 7, schedule: [1, 1, 1, 1, 1, 1, 1] },
+    { id: crypto.randomUUID(), label: "Lunch", recipeId: "batch-chicken-thighs", portions: 1, days: 7, schedule: [1, 1, 1, 1, 1, 1, 1] },
+    { id: crypto.randomUUID(), label: "Dinner", recipeId: "batch-chicken-thighs", portions: 1, days: 7, schedule: [1, 1, 1, 1, 1, 1, 1] },
+    { id: crypto.randomUUID(), label: "Snack", recipeId: "pb-banana-shake", portions: 1, days: 7, schedule: [1, 1, 1, 1, 1, 1, 1] }
   ];
 }
 
@@ -31,10 +33,10 @@ function save() { localStorage.setItem("table-plan", JSON.stringify(state.slots)
 function planTotals() {
   return state.slots.reduce((totals, slot) => {
     const recipe = recipeFor(slot.recipeId); if (!recipe) return totals;
-    const servings = number(slot.portions) * number(slot.days);
+    const servings = scheduleFor(slot).reduce((sum, portions) => sum + number(portions), 0);
     totals.servings += servings; totals.cost += number(recipe.cost?.perServing || recipe.cost?.total / recipe.servings) * servings;
-    totals.calories += number(recipe.nutrition.calories) * number(slot.portions);
-    totals.protein += number(recipe.nutrition.protein.value) * number(slot.portions);
+    totals.calories += number(recipe.nutrition.calories) * servings / 7;
+    totals.protein += number(recipe.nutrition.protein.value) * servings / 7;
     return totals;
   }, { servings: 0, cost: 0, calories: 0, protein: 0 });
 }
@@ -51,17 +53,17 @@ function renderPlanner() {
   ].map(([label, value, note]) => `<div class="stat-card"><span>${label}</span><strong>${value}</strong><small>${note}</small></div>`).join("");
   $("#meal-slots").innerHTML = state.slots.map((slot) => {
     const recipe = recipeFor(slot.recipeId); if (!recipe) return "";
-    const total = number(slot.portions) * number(slot.days);
+    const schedule = scheduleFor(slot);
+    const total = schedule.reduce((sum, portions) => sum + number(portions), 0);
     return `<article class="meal-slot">
       <div class="slot-marker">${escapeHtml(slot.label.slice(0, 1).toUpperCase())}</div>
       <div class="slot-main">
         <div class="slot-top"><input class="slot-label" aria-label="Meal name" data-slot="${slot.id}" data-field="label" value="${escapeHtml(slot.label)}"><button class="icon-btn" data-remove-slot="${slot.id}" aria-label="Remove ${escapeHtml(slot.label)}">Remove</button></div>
         <select class="recipe-select" data-slot="${slot.id}" data-field="recipeId" aria-label="Recipe">${recipeOptions(slot.recipeId)}</select>
         <div class="slot-controls">
-          <label>Portions per day <input type="number" min="0.5" step="0.5" value="${slot.portions}" data-slot="${slot.id}" data-field="portions"></label>
-          <label>Days planned <input type="number" min="1" max="7" value="${slot.days}" data-slot="${slot.id}" data-field="days"></label>
-          <span class="yield"><strong>${total} portions</strong><small>${duration(recipe.totalTime)} · ${recipe.storage ? `fridge ${recipe.storage.refrigerated} days` : "fresh"}</small></span>
+          <span class="yield"><strong>${total} portions this week</strong><small>${duration(recipe.totalTime)} · ${recipe.storage ? `fridge ${recipe.storage.refrigerated} days` : "fresh"}</small></span>
         </div>
+        <div class="week-schedule"><span class="schedule-label">Portions by day</span>${DAYS.map((day, index) => `<label><span>${day}</span><input type="number" min="0" step="0.5" value="${schedule[index]}" data-slot="${slot.id}" data-day="${index}" data-field="schedule"></label>`).join("")}</div>
         <div class="slot-meta"><span>${escapeHtml(recipe.description || "")}</span><button class="text-btn" data-view-recipe="${recipe.id}">View recipe & ingredients →</button></div>
       </div>
     </article>`;
@@ -71,12 +73,17 @@ function renderPlanner() {
 function renderRecipes() {
   const categories = ["all", ...new Set(state.recipes.map((recipe) => recipe.category))];
   $("#recipe-filters").innerHTML = categories.map((category) => `<button class="filter-btn${state.filter === category ? " active" : ""}" data-filter="${escapeHtml(category)}">${category === "all" ? "All" : escapeHtml(category)}</button>`).join("");
-  const recipes = state.filter === "all" ? state.recipes : state.recipes.filter((recipe) => recipe.category === state.filter);
-  $("#recipes-grid").innerHTML = recipes.map((recipe) => `<article class="recipe-card" data-view-recipe="${recipe.id}">
+  const recipes = state.recipes.filter((recipe) => {
+    const matchesFilter = state.filter === "all" || recipe.category === state.filter;
+    const query = state.search.toLowerCase();
+    return matchesFilter && (!query || `${recipe.name} ${recipe.description || ""} ${recipe.category} ${(recipe.tags || []).join(" ")}`.toLowerCase().includes(query));
+  });
+  $("#recipe-count").textContent = `${recipes.length} recipe${recipes.length === 1 ? "" : "s"} shown`;
+  $("#recipes-grid").innerHTML = recipes.length ? recipes.map((recipe) => `<article class="recipe-card" data-view-recipe="${recipe.id}">
     <div class="recipe-card-top"><span class="tag">${escapeHtml(recipe.category)}</span><span>${duration(recipe.totalTime)}</span></div>
     <h3>${escapeHtml(recipe.name)}</h3><p>${escapeHtml(recipe.description || "")}</p>
-    <div class="macros">${metricLine(recipe.nutrition)}</div><div class="recipe-card-footer"><span>${recipe.servings} ${escapeHtml(recipe.yield?.unit || "servings")}</span><span class="arrow">→</span></div>
-  </article>`).join("");
+    <div class="macros">${metricLine(recipe.nutrition)}</div><div class="recipe-card-footer"><span>${recipe.servings} ${escapeHtml(recipe.yield?.unit || "servings")}</span><button class="text-btn" data-add-recipe="${recipe.id}">Add to plan +</button></div>
+  </article>`).join("") : `<div class="empty recipe-empty">No recipes match that search. Try another ingredient or category.</div>`;
 }
 
 function showRecipe(id) {
@@ -100,7 +107,7 @@ function shoppingGroups() {
   const groups = {};
   state.slots.forEach((slot) => {
     const recipe = recipeFor(slot.recipeId); if (!recipe) return;
-    const multiplier = number(slot.portions) * number(slot.days) / recipe.servings;
+    const multiplier = scheduleFor(slot).reduce((sum, portions) => sum + number(portions), 0) / recipe.servings;
     recipe.ingredients.forEach((item) => {
       const key = `${item.item}|${item.unit}`;
       if (!groups[key]) groups[key] = { ...item, quantity: typeof item.quantity === "number" ? 0 : item.quantity, recipes: [] };
@@ -116,14 +123,21 @@ function renderShopping() {
   <div class="shopping-list">${items.map((item) => `<label class="shopping-item"><input type="checkbox"><span><strong>${escapeHtml(formatAmount(item.quantity))} ${escapeHtml(item.unit)}</strong> ${escapeHtml(item.item)}<small>For ${escapeHtml(item.recipes.join(", "))}</small></span></label>`).join("")}</div>`;
 }
 function renderPrep() {
-  const batchItems = state.slots.filter((slot) => { const recipe = recipeFor(slot.recipeId); return recipe && (recipe.category === "batch" || number(slot.days) > (recipe.storage?.refrigerated || 1)); });
+  const batchItems = state.slots.filter((slot) => { const recipe = recipeFor(slot.recipeId); return recipe && (recipe.category === "batch" || scheduleFor(slot).filter(Boolean).length > (recipe.storage?.refrigerated || 1)); });
   $("#prep-content").innerHTML = `<div class="prep-layout"><div class="section"><h3>Suggested batch day</h3><p class="muted">Start with recipes that take the longest, then assemble while they cook.</p>${batchItems.length ? batchItems.map((slot, index) => { const recipe = recipeFor(slot.recipeId); return `<div class="prep-step"><span>${index + 1}</span><div><strong>${escapeHtml(recipe.name)}</strong><small>${number(slot.portions) * number(slot.days)} portions · ${duration(recipe.totalTime)} · ${escapeHtml(recipe.instructions[0]?.instruction || "")}</small></div></div>`; }).join("") : `<p class="empty">Add a meal to see a prep sequence.</p>`}</div>
   <div class="section"><h3>Storage reminders</h3><div class="reminders"><p><strong>Cool before storing.</strong><span>Divide hot food into shallow containers so it cools quickly.</span></p><p><strong>Label the date.</strong><span>Keep the first few days in the fridge and freeze the rest when a recipe calls for it.</span></p><p><strong>Use your senses.</strong><span>When in doubt, throw it out. Follow local food-safety guidance.</span></p></div></div></div>`;
 }
 
-function updateSlot(id, field, value) {
+function updateSlot(id, field, value, dayIndex) {
   const slot = state.slots.find((item) => item.id === id); if (!slot) return;
-  slot[field] = field === "label" || field === "recipeId" ? value : Math.max(field === "days" ? 1 : 0.5, number(value));
+  if (field === "schedule") {
+    slot.schedule = scheduleFor(slot);
+    slot.schedule[Number(dayIndex)] = Math.max(0, number(value));
+    slot.portions = Math.max(...slot.schedule, 0.5);
+    slot.days = slot.schedule.filter(Boolean).length;
+  } else {
+    slot[field] = field === "label" || field === "recipeId" ? value : Math.max(field === "days" ? 1 : 0.5, number(value));
+  }
   save(); renderPlanner(); renderShopping(); renderPrep();
 }
 function wireEvents() {
@@ -131,13 +145,33 @@ function wireEvents() {
     const tab = event.target.closest("[data-tab]");
     if (tab) { document.querySelectorAll(".tab-btn").forEach((button) => button.classList.toggle("active", button === tab)); document.querySelectorAll(".content").forEach((content) => content.classList.toggle("active", content.id === tab.dataset.tab)); }
     const filter = event.target.closest("[data-filter]"); if (filter) { state.filter = filter.dataset.filter; renderRecipes(); }
+    const addRecipe = event.target.closest("[data-add-recipe]");
+    if (addRecipe) {
+      const recipe = recipeFor(addRecipe.dataset.addRecipe);
+      state.slots.push({ id: crypto.randomUUID(), label: recipe.name, recipeId: recipe.id, portions: 1, days: 7, schedule: [1, 1, 1, 1, 1, 1, 1] });
+      save(); renderPlanner(); renderShopping(); renderPrep();
+      return;
+    }
     const view = event.target.closest("[data-view-recipe]"); if (view) showRecipe(view.dataset.viewRecipe);
     if (event.target.closest("[data-close-recipe]")) $("#recipe-detail").replaceChildren();
-    if (event.target.closest("[data-add-slot]")) { state.slots.push({ id: crypto.randomUUID(), label: "New meal", recipeId: state.recipes[0].id, portions: 1, days: 7 }); save(); renderPlanner(); }
+    if (event.target.closest("[data-add-slot]")) { state.slots.push({ id: crypto.randomUUID(), label: "New meal", recipeId: state.recipes[0].id, portions: 1, days: 7, schedule: [1, 1, 1, 1, 1, 1, 1] }); save(); renderPlanner(); }
     const remove = event.target.closest("[data-remove-slot]"); if (remove) { state.slots = state.slots.filter((slot) => slot.id !== remove.dataset.removeSlot); save(); renderPlanner(); renderShopping(); renderPrep(); }
     if (event.target.closest("[data-print]")) window.print();
   });
-  document.addEventListener("change", (event) => { const input = event.target.closest("[data-slot][data-field]"); if (input) updateSlot(input.dataset.slot, input.dataset.field, input.value); });
+  document.addEventListener("change", (event) => {
+    const input = event.target.closest("[data-slot][data-field]");
+    if (input) updateSlot(input.dataset.slot, input.dataset.field, input.value, input.dataset.day);
+    if (event.target.id === "recipe-search") { state.search = event.target.value; renderRecipes(); }
+  });
+  document.addEventListener("input", (event) => {
+    if (event.target.id === "recipe-search") {
+      state.search = event.target.value;
+      renderRecipes();
+      const search = $("#recipe-search");
+      search.focus();
+      search.setSelectionRange(state.search.length, state.search.length);
+    }
+  });
   document.addEventListener("input", (event) => { if (event.target.id === "recipe-scale") { const recipe = recipeFor(state.selectedRecipe); if (recipe) $("#scaled-ingredients").innerHTML = scaledIngredients(recipe, number(event.target.value)); } });
 }
 async function init() {

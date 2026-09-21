@@ -9,11 +9,7 @@
 <body>
   <header class="site-header">
     <div class="header-inner">
-      <div>
-        <p class="eyebrow">YOUR WEEKLY KITCHEN SYSTEM</p>
-        <h1>Table <span>/ meal planning without the guesswork</span></h1>
-        <p class="subtitle">Choose recipes. Set how often you eat them. We’ll do the math.</p>
-      </div>
+      <div><p class="eyebrow">YOUR WEEKLY KITCHEN SYSTEM</p><h1>Table <span>/ meal planning without the guesswork</span></h1></div>
       <div class="header-badge"><span id="plan-count">0</span> meal slots</div>
     </div>
   </header>
@@ -39,7 +35,8 @@
 
     <section class="content" id="recipes">
       <div class="page-heading">
-        <div><p class="kicker">THE RECIPE BOOK</p><h2>Pick something to make</h2><p class="muted">Tap a recipe to see the exact ingredients for any batch size.</p></div>
+        <div><p class="kicker">THE RECIPE BOOK</p><h2>Pick something to make</h2><p class="muted">Search the library, filter by type, or add a recipe to your plan. <strong id="recipe-count"></strong></p></div>
+        <label class="recipe-search"><span>Search recipes</span><input id="recipe-search" type="search" placeholder="Try chicken, breakfast, cheap..." autocomplete="off"></label>
         <div id="recipe-filters" class="filters" aria-label="Recipe filters"></div>
       </div>
       <div id="recipes-grid" class="recipe-grid"></div>
