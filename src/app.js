@@ -1,7 +1,7 @@
 const DATA_FILES = {
-  recipes: "../data/recipes.json",
-  mealPlan: "../data/meal-plan.json",
-  config: "../data/config.json"
+  recipes: "./data/recipes.json",
+  mealPlan: "./data/meal-plan.json",
+  config: "./data/config.json"
 };
 
 const state = { recipes: [], mealPlan: null, config: null, filter: "all" };
@@ -111,7 +111,7 @@ async function init() {
     renderOverview(); renderFilters(); renderRecipes(); renderPlan(); renderShopping(); wireEvents();
   } catch (error) {
     const message = $("#app-error");
-    message.textContent = `${error.message}. Run this site through a local web server instead of opening index.html directly.`;
+    message.textContent = `${error.message}. Refresh the page and try again.`;
     message.hidden = false;
   }
 }
