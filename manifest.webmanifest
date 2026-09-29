@@ -1,0 +1,14 @@
+{
+  "name": "Meal Diary: Recipes, Calories and Shopping List",
+  "short_name": "Meal Diary",
+  "description": "Log meals, track calories and macros, scale recipes, and build a shopping list.",
+  "start_url": "./#/diary",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f3f5f9",
+  "theme_color": "#0b62d6",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}

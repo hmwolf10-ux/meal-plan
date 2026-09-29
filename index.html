@@ -2,88 +2,25 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Recipes, Meal Plan and Shopping List</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b62d6">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Meal Diary">
+<title>Meal Diary: Recipes, Calories and Shopping List</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-<div class="wrap">
-  <header>
-    <h1>Recipes, Meal Plan and Shopping List</h1>
-    <div class="tabs">
-      <button id="t-start">Start Here</button>
-      <button id="t-book" class="on">Recipes</button>
-      <button id="t-plan">My Plan <span id="cnt"></span></button>
-      <button id="t-guides">Guides</button>
-    </div>
-  </header>
-
-  <section id="start">
-    <div class="card"><h2>How this works</h2><ol>
-      <li><b>Recipes</b>: find recipes and tick the ones you want to cook. Open one to change how many servings; all amounts rescale.</li>
-      <li><b>My Plan</b>: shows your ticked recipes, the calories and protein, and <b>one shopping list</b> with everything added together.</li>
-      <li><b>Guides</b>: how to cook chicken, beef, pork, fish, eggs, rice and vegetables, how to season, how to store food safely, and more.</li></ol>
-      <p><button id="beginner">Load a Beginner Week into My Plan</button> <span class="mut">4 lb chicken thighs, rice, roasted veg, teriyaki bowls, oats</span></p></div>
-    <div class="card"><h2>1. Buy this equipment first (about $60-90)</h2><ul>
-      <li>2 metal <b>sheet pans</b> (half-size) and foil or parchment paper</li>
-      <li><b>Instant-read thermometer</b> (about $15). It tells you when meat is cooked and safe.</li>
-      <li>1 <b>chef's knife</b> (8 in) and a big <b>cutting board</b> (damp towel underneath so it doesn't slide)</li>
-      <li>1 <b>pot with a lid</b> (rice, soup) and 1 large <b>skillet</b></li>
-      <li>8-10 <b>food containers</b> with lids, measuring cups and spoons (a kitchen scale is a bonus)</li></ul></div>
-    <div class="card"><h2>2. Six safety rules</h2><ol>
-      <li><b>Chicken and turkey must reach 165°F</b> in the thickest part (dark meat tastes better at 175°F). Ground beef and pork 160°F. Steaks and pork chops 145°F.</li>
-      <li>Wash hands after touching raw meat. <b>Don't wash raw chicken.</b></li>
-      <li>Use a separate cutting board for raw meat, or wash it well.</li>
-      <li>Put cooked food in the fridge within <b>2 hours</b>.</li>
-      <li>Cooked food lasts <b>3-4 days</b> in the fridge. Freeze what you won't eat by then.</li>
-      <li>Thaw in the fridge overnight, never on the counter. Reheat leftovers to 165°F.</li></ol></div>
-    <div class="card"><h2>3. How to shop</h2><ol>
-      <li>Add recipes to My plan, then use <b>Copy shopping list</b>.</li>
-      <li>Meat is sold by the pound (<b>lb</b>). Family packs are cheapest; freeze what you won't cook this week.</li>
-      <li>Compare the unit price on the shelf tag (price per lb or oz), not the sticker price.</li>
-      <li>Store brands are fine for rice, oats, beans, canned tomatoes, frozen vegetables and milk.</li>
-      <li>Salt, spices and oil: buy once, they last months.</li></ol></div>
-    <div class="card"><h2>4. Words you'll see</h2><table>
-      <tr><td><b>Sheet pan</b></td><td>flat metal baking tray with a rim</td></tr>
-      <tr><td><b>Preheat</b></td><td>turn the oven on and wait 15-20 minutes before food goes in</td></tr>
-      <tr><td><b>Pat dry</b></td><td>press paper towels on meat so it browns instead of steaming</td></tr>
-      <tr><td><b>Dice / mince</b></td><td>cut into small cubes / very tiny pieces</td></tr>
-      <tr><td><b>Sear</b></td><td>cook on high heat until the outside is deep golden</td></tr>
-      <tr><td><b>Simmer</b></td><td>liquid barely bubbling, not a hard boil</td></tr>
-      <tr><td><b>Rest</b></td><td>let cooked meat sit 5-10 minutes before cutting so the juices stay in</td></tr>
-      <tr><td><b>Bone-in, skin-on</b></td><td>cheapest and juiciest. <b>Boneless skinless</b> is pre-trimmed and cooks faster.</td></tr>
-      <tr><td><b>Thigh / breast / drumstick</b></td><td>dark, juicy, cheap / lean, easy to overcook / the "leg" part</td></tr>
-      <tr><td><b>80/20 ground beef</b></td><td>80% lean, 20% fat</td></tr>
-      <tr><td><b>tsp / tbsp / cup</b></td><td>teaspoon / tablespoon (3 tsp) / 16 tablespoons</td></tr>
-      <tr><td><b>oz / lb</b></td><td>ounce / pound (16 oz)</td></tr>
-      <tr><td><b>Kosher salt</b></td><td>coarse cooking salt; with table salt use about half</td></tr>
-      <tr><td><b>Meal prep</b></td><td>cook big batches once, then portion into containers</td></tr></table></div>
-  </section>
-
-  <section id="book" class="on">
-    <div class="bar">
-      <input type="search" id="q" placeholder="Search recipes">
-      <select id="cat"></select>
-      <label class="mut"><input type="checkbox" id="easy"> Easy Only</label>
-      <label class="mut"><input type="checkbox" id="noref" checked> Hide Recipes Without Amounts</label>
-    </div>
-    <div class="mut" id="n"></div>
-    <table id="list"></table>
-    <div id="detail"></div>
-  </section>
-
-  <section id="plan">
-    <div class="bar"><button id="starter">Load Original Plan</button><button id="clear">Clear</button><button id="copy">Copy Shopping List</button></div>
-    <div class="card" id="totals"></div>
-    <div class="card"><h2>Recipes in Your Plan</h2><table id="sel"></table></div>
-    <div class="card"><h2>Shopping List</h2><div id="shop"></div></div>
-    <div class="card" id="prep" style="display:none"><h2>Made by Recipes in Your Plan</h2><div id="prepl" class="mut"></div></div>
-  </section>
-
-  <section id="guides"><div class="g"><div class="gnav" id="gnav"></div><div class="gbody md card" id="gbody">Pick a guide.</div></div></section>
-  <p class="mut" id="err"></p>
-</div>
+<a class="skip" href="#view">Skip to content</a>
+<header id="bar"><div class="in" id="barin"></div></header>
+<main id="view" tabindex="-1"></main>
+<nav id="nav" aria-label="Main"><div class="in" id="navin"></div></nav>
+<div id="sheet-bg"><div id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-title"></div></div>
+<div id="toast" role="status"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
+<script src="assets/core.js"></script>
 <script src="assets/app.js"></script>
 </body>
 </html>

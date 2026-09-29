@@ -1,0 +1,602 @@
+{
+    "templates":  [
+                      {
+                          "name":  "Chicken and Rice Week",
+                          "desc":  "Bone-in thighs and rice cooked once on day 1. Oats for breakfast, chicken rice bowls for lunch and dinner, a peanut butter shake for a snack. About 2,000 calories and 170 g protein a day.",
+                          "days":  [
+                                       {
+                                           "prep":  [
+                                                        {
+                                                            "r":  "batch-chicken-thighs",
+                                                            "s":  14
+                                                        },
+                                                        {
+                                                            "r":  "batch-rice",
+                                                            "s":  14
+                                                        }
+                                                    ],
+                                           "breakfast":  [
+                                                             {
+                                                                 "r":  "overnight-oats",
+                                                                 "s":  1
+                                                             }
+                                                         ],
+                                           "lunch":  [
+                                                         {
+                                                             "r":  "chicken-rice-bowl",
+                                                             "s":  1
+                                                         }
+                                                     ],
+                                           "dinner":  [
+                                                          {
+                                                              "r":  "chicken-rice-bowl",
+                                                              "s":  1
+                                                          }
+                                                      ],
+                                           "snacks":  [
+                                                          {
+                                                              "r":  "pb-banana-shake",
+                                                              "s":  1
+                                                          }
+                                                      ]
+                                       },
+                                       {
+                                           "breakfast":  [
+                                                             {
+                                                                 "r":  "overnight-oats",
+                                                                 "s":  1
+                                                             }
+                                                         ],
+                                           "lunch":  [
+                                                         {
+                                                             "r":  "chicken-rice-bowl",
+                                                             "s":  1
+                                                         }
+                                                     ],
+                                           "dinner":  [
+                                                          {
+                                                              "r":  "chicken-rice-bowl",
+                                                              "s":  1
+                                                          }
+                                                      ],
+                                           "snacks":  [
+                                                          {
+                                                              "r":  "pb-banana-shake",
+                                                              "s":  1
+                                                          }
+                                                      ]
+                                       },
+                                       {
+                                           "breakfast":  [
+                                                             {
+                                                                 "r":  "overnight-oats",
+                                                                 "s":  1
+                                                             }
+                                                         ],
+                                           "lunch":  [
+                                                         {
+                                                             "r":  "chicken-rice-bowl",
+                                                             "s":  1
+                                                         }
+                                                     ],
+                                           "dinner":  [
+                                                          {
+                                                              "r":  "chicken-rice-bowl",
+                                                              "s":  1
+                                                          }
+                                                      ],
+                                           "snacks":  [
+                                                          {
+                                                              "r":  "pb-banana-shake",
+                                                              "s":  1
+                                                          }
+                                                      ]
+                                       },
+                                       {
+                                           "breakfast":  [
+                                                             {
+                                                                 "r":  "overnight-oats",
+                                                                 "s":  1
+                                                             }
+                                                         ],
+                                           "lunch":  [
+                                                         {
+                                                             "r":  "chicken-rice-bowl",
+                                                             "s":  1
+                                                         }
+                                                     ],
+                                           "dinner":  [
+                                                          {
+                                                              "r":  "chicken-rice-bowl",
+                                                              "s":  1
+                                                          }
+                                                      ],
+                                           "snacks":  [
+                                                          {
+                                                              "r":  "pb-banana-shake",
+                                                              "s":  1
+                                                          }
+                                                      ]
+                                       },
+                                       {
+                                           "breakfast":  [
+                                                             {
+                                                                 "r":  "overnight-oats",
+                                                                 "s":  1
+                                                             }
+                                                         ],
+                                           "lunch":  [
+                                                         {
+                                                             "r":  "chicken-rice-bowl",
+                                                             "s":  1
+                                                         }
+                                                     ],
+                                           "dinner":  [
+                                                          {
+                                                              "r":  "chicken-rice-bowl",
+                                                              "s":  1
+                                                          }
+                                                      ],
+                                           "snacks":  [
+                                                          {
+                                                              "r":  "pb-banana-shake",
+                                                              "s":  1
+                                                          }
+                                                      ]
+                                       },
+                                       {
+                                           "breakfast":  [
+                                                             {
+                                                                 "r":  "overnight-oats",
+                                                                 "s":  1
+                                                             }
+                                                         ],
+                                           "lunch":  [
+                                                         {
+                                                             "r":  "chicken-rice-bowl",
+                                                             "s":  1
+                                                         }
+                                                     ],
+                                           "dinner":  [
+                                                          {
+                                                              "r":  "chicken-rice-bowl",
+                                                              "s":  1
+                                                          }
+                                                      ],
+                                           "snacks":  [
+                                                          {
+                                                              "r":  "pb-banana-shake",
+                                                              "s":  1
+                                                          }
+                                                      ]
+                                       },
+                                       {
+                                           "breakfast":  [
+                                                             {
+                                                                 "r":  "overnight-oats",
+                                                                 "s":  1
+                                                             }
+                                                         ],
+                                           "lunch":  [
+                                                         {
+                                                             "r":  "chicken-rice-bowl",
+                                                             "s":  1
+                                                         }
+                                                     ],
+                                           "dinner":  [
+                                                          {
+                                                              "r":  "chicken-rice-bowl",
+                                                              "s":  1
+                                                          }
+                                                      ],
+                                           "snacks":  [
+                                                          {
+                                                              "r":  "pb-banana-shake",
+                                                              "s":  1
+                                                          }
+                                                      ]
+                                       }
+                                   ]
+                      },
+                      {
+                          "name":  "Easy Beginner Week",
+                          "desc":  "Boneless thighs, rice and roasted vegetables on day 1, then teriyaki and Greek chicken bowls. Simple, forgiving, cheap.",
+                          "days":  [
+                                       {
+                                           "prep":  [
+                                                        {
+                                                            "r":  "batch-boneless-thighs",
+                                                            "s":  14
+                                                        },
+                                                        {
+                                                            "r":  "batch-rice",
+                                                            "s":  14
+                                                        },
+                                                        {
+                                                            "r":  "batch-roasted-vegetables",
+                                                            "s":  7
+                                                        }
+                                                    ],
+                                           "breakfast":  [
+                                                             {
+                                                                 "r":  "overnight-oats",
+                                                                 "s":  1
+                                                             }
+                                                         ],
+                                           "lunch":  [
+                                                         {
+                                                             "r":  "teriyaki-bowl",
+                                                             "s":  1
+                                                         }
+                                                     ],
+                                           "dinner":  [
+                                                          {
+                                                              "r":  "teriyaki-bowl",
+                                                              "s":  1
+                                                          }
+                                                      ],
+                                           "snacks":  [
+                                                          {
+                                                              "r":  "greek-yogurt-parfait",
+                                                              "s":  1
+                                                          }
+                                                      ]
+                                       },
+                                       {
+                                           "breakfast":  [
+                                                             {
+                                                                 "r":  "overnight-oats",
+                                                                 "s":  1
+                                                             }
+                                                         ],
+                                           "lunch":  [
+                                                         {
+                                                             "r":  "teriyaki-bowl",
+                                                             "s":  1
+                                                         }
+                                                     ],
+                                           "dinner":  [
+                                                          {
+                                                              "r":  "greek-chicken-bowl",
+                                                              "s":  1
+                                                          }
+                                                      ],
+                                           "snacks":  [
+                                                          {
+                                                              "r":  "greek-yogurt-parfait",
+                                                              "s":  1
+                                                          }
+                                                      ]
+                                       },
+                                       {
+                                           "breakfast":  [
+                                                             {
+                                                                 "r":  "overnight-oats",
+                                                                 "s":  1
+                                                             }
+                                                         ],
+                                           "lunch":  [
+                                                         {
+                                                             "r":  "teriyaki-bowl",
+                                                             "s":  1
+                                                         }
+                                                     ],
+                                           "dinner":  [
+                                                          {
+                                                              "r":  "teriyaki-bowl",
+                                                              "s":  1
+                                                          }
+                                                      ],
+                                           "snacks":  [
+                                                          {
+                                                              "r":  "greek-yogurt-parfait",
+                                                              "s":  1
+                                                          }
+                                                      ]
+                                       },
+                                       {
+                                           "breakfast":  [
+                                                             {
+                                                                 "r":  "overnight-oats",
+                                                                 "s":  1
+                                                             }
+                                                         ],
+                                           "lunch":  [
+                                                         {
+                                                             "r":  "teriyaki-bowl",
+                                                             "s":  1
+                                                         }
+                                                     ],
+                                           "dinner":  [
+                                                          {
+                                                              "r":  "greek-chicken-bowl",
+                                                              "s":  1
+                                                          }
+                                                      ],
+                                           "snacks":  [
+                                                          {
+                                                              "r":  "greek-yogurt-parfait",
+                                                              "s":  1
+                                                          }
+                                                      ]
+                                       },
+                                       {
+                                           "breakfast":  [
+                                                             {
+                                                                 "r":  "overnight-oats",
+                                                                 "s":  1
+                                                             }
+                                                         ],
+                                           "lunch":  [
+                                                         {
+                                                             "r":  "teriyaki-bowl",
+                                                             "s":  1
+                                                         }
+                                                     ],
+                                           "dinner":  [
+                                                          {
+                                                              "r":  "teriyaki-bowl",
+                                                              "s":  1
+                                                          }
+                                                      ],
+                                           "snacks":  [
+                                                          {
+                                                              "r":  "greek-yogurt-parfait",
+                                                              "s":  1
+                                                          }
+                                                      ]
+                                       },
+                                       {
+                                           "breakfast":  [
+                                                             {
+                                                                 "r":  "overnight-oats",
+                                                                 "s":  1
+                                                             }
+                                                         ],
+                                           "lunch":  [
+                                                         {
+                                                             "r":  "teriyaki-bowl",
+                                                             "s":  1
+                                                         }
+                                                     ],
+                                           "dinner":  [
+                                                          {
+                                                              "r":  "greek-chicken-bowl",
+                                                              "s":  1
+                                                          }
+                                                      ],
+                                           "snacks":  [
+                                                          {
+                                                              "r":  "greek-yogurt-parfait",
+                                                              "s":  1
+                                                          }
+                                                      ]
+                                       },
+                                       {
+                                           "breakfast":  [
+                                                             {
+                                                                 "r":  "overnight-oats",
+                                                                 "s":  1
+                                                             }
+                                                         ],
+                                           "lunch":  [
+                                                         {
+                                                             "r":  "teriyaki-bowl",
+                                                             "s":  1
+                                                         }
+                                                     ],
+                                           "dinner":  [
+                                                          {
+                                                              "r":  "teriyaki-bowl",
+                                                              "s":  1
+                                                          }
+                                                      ],
+                                           "snacks":  [
+                                                          {
+                                                              "r":  "greek-yogurt-parfait",
+                                                              "s":  1
+                                                          }
+                                                      ]
+                                       }
+                                   ]
+                      },
+                      {
+                          "name":  "Variety Week (beef, turkey, eggs)",
+                          "desc":  "Ground beef and rice batch on day 1, egg muffins for breakfast, Korean beef and southwest turkey bowls at dinner.",
+                          "days":  [
+                                       {
+                                           "prep":  [
+                                                        {
+                                                            "r":  "batch-ground-beef",
+                                                            "s":  8
+                                                        },
+                                                        {
+                                                            "r":  "batch-rice",
+                                                            "s":  10
+                                                        }
+                                                    ],
+                                           "breakfast":  [
+                                                             {
+                                                                 "r":  "egg-muffin-cups",
+                                                                 "s":  1
+                                                             }
+                                                         ],
+                                           "lunch":  [
+                                                         {
+                                                             "r":  "burrito-bowl",
+                                                             "s":  1
+                                                         }
+                                                     ],
+                                           "dinner":  [
+                                                          {
+                                                              "r":  "korean-beef-bowl",
+                                                              "s":  1
+                                                          }
+                                                      ],
+                                           "snacks":  [
+                                                          {
+                                                              "r":  "cottage-cheese-pineapple",
+                                                              "s":  1
+                                                          }
+                                                      ]
+                                       },
+                                       {
+                                           "breakfast":  [
+                                                             {
+                                                                 "r":  "egg-muffin-cups",
+                                                                 "s":  1
+                                                             }
+                                                         ],
+                                           "lunch":  [
+                                                         {
+                                                             "r":  "burrito-bowl",
+                                                             "s":  1
+                                                         }
+                                                     ],
+                                           "dinner":  [
+                                                          {
+                                                              "r":  "southwest-turkey-quinoa-bowl",
+                                                              "s":  1
+                                                          }
+                                                      ],
+                                           "snacks":  [
+                                                          {
+                                                              "r":  "cottage-cheese-pineapple",
+                                                              "s":  1
+                                                          }
+                                                      ]
+                                       },
+                                       {
+                                           "breakfast":  [
+                                                             {
+                                                                 "r":  "egg-muffin-cups",
+                                                                 "s":  1
+                                                             }
+                                                         ],
+                                           "lunch":  [
+                                                         {
+                                                             "r":  "burrito-bowl",
+                                                             "s":  1
+                                                         }
+                                                     ],
+                                           "dinner":  [
+                                                          {
+                                                              "r":  "korean-beef-bowl",
+                                                              "s":  1
+                                                          }
+                                                      ],
+                                           "snacks":  [
+                                                          {
+                                                              "r":  "cottage-cheese-pineapple",
+                                                              "s":  1
+                                                          }
+                                                      ]
+                                       },
+                                       {
+                                           "breakfast":  [
+                                                             {
+                                                                 "r":  "egg-muffin-cups",
+                                                                 "s":  1
+                                                             }
+                                                         ],
+                                           "lunch":  [
+                                                         {
+                                                             "r":  "burrito-bowl",
+                                                             "s":  1
+                                                         }
+                                                     ],
+                                           "dinner":  [
+                                                          {
+                                                              "r":  "southwest-turkey-quinoa-bowl",
+                                                              "s":  1
+                                                          }
+                                                      ],
+                                           "snacks":  [
+                                                          {
+                                                              "r":  "cottage-cheese-pineapple",
+                                                              "s":  1
+                                                          }
+                                                      ]
+                                       },
+                                       {
+                                           "breakfast":  [
+                                                             {
+                                                                 "r":  "egg-muffin-cups",
+                                                                 "s":  1
+                                                             }
+                                                         ],
+                                           "lunch":  [
+                                                         {
+                                                             "r":  "burrito-bowl",
+                                                             "s":  1
+                                                         }
+                                                     ],
+                                           "dinner":  [
+                                                          {
+                                                              "r":  "korean-beef-bowl",
+                                                              "s":  1
+                                                          }
+                                                      ],
+                                           "snacks":  [
+                                                          {
+                                                              "r":  "cottage-cheese-pineapple",
+                                                              "s":  1
+                                                          }
+                                                      ]
+                                       },
+                                       {
+                                           "breakfast":  [
+                                                             {
+                                                                 "r":  "egg-muffin-cups",
+                                                                 "s":  1
+                                                             }
+                                                         ],
+                                           "lunch":  [
+                                                         {
+                                                             "r":  "burrito-bowl",
+                                                             "s":  1
+                                                         }
+                                                     ],
+                                           "dinner":  [
+                                                          {
+                                                              "r":  "southwest-turkey-quinoa-bowl",
+                                                              "s":  1
+                                                          }
+                                                      ],
+                                           "snacks":  [
+                                                          {
+                                                              "r":  "cottage-cheese-pineapple",
+                                                              "s":  1
+                                                          }
+                                                      ]
+                                       },
+                                       {
+                                           "breakfast":  [
+                                                             {
+                                                                 "r":  "egg-muffin-cups",
+                                                                 "s":  1
+                                                             }
+                                                         ],
+                                           "lunch":  [
+                                                         {
+                                                             "r":  "burrito-bowl",
+                                                             "s":  1
+                                                         }
+                                                     ],
+                                           "dinner":  [
+                                                          {
+                                                              "r":  "korean-beef-bowl",
+                                                              "s":  1
+                                                          }
+                                                      ],
+                                           "snacks":  [
+                                                          {
+                                                              "r":  "cottage-cheese-pineapple",
+                                                              "s":  1
+                                                          }
+                                                      ]
+                                       }
+                                   ]
+                      }
+                  ]
+}

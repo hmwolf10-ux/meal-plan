@@ -1,56 +1,50 @@
-# Recipes, Meal Plan and Shopping List
+# Meal Diary: Recipes, Calories and Shopping List
 
-**Open the site:** https://hmwolf10-ux.github.io/meal-plan/
+**Open it:** https://hmwolf10-ux.github.io/meal-plan/
 
-One web page. You pick recipes, choose how many servings, and it gives you the calories, the protein, and one shopping list. There is nothing to install and nothing to edit.
+It works like a calorie-tracking app (diary, goals, food search), built around recipes you cook. Log what you eat, watch calories and macros against your goals, scale any recipe to the servings you need, and get a shopping list for the meals you planned. Nothing to install; your data stays on your device.
 
-## How to use it
+**On your phone:** open the link in Safari or Chrome and choose Add to Home Screen. It then opens like an app and works offline.
 
-The page has four tabs.
+## The five tabs
 
 | Tab | What it does |
 |---|---|
-| **Start Here** | First-time help: equipment to buy, six food-safety rules, how to shop, a glossary. The button **Load a beginner week** fills your plan with one easy week. |
-| **Recipes** | 173 recipes with amounts (plus 50 more without amounts, hidden by default). Search, pick a category, or tick **Easy Only**. **Tick the box** on a recipe to add it to your plan. **Click a recipe** to open it and change the servings with − / +. |
-| **My Plan** | Your ticked recipes with their servings, total calories and macros, and one shopping list. **Copy Shopping List** puts it on your clipboard. |
-| **Guides** | Reading: how to cook every cut of chicken, beef, pork, fish and eggs; rice, grains and vegetables; seasoning and sauces; shopping and budget; portions and scaling; meal-prep workflow; food safety and storage; sports nutrition; supplements; sources. |
+| **Diary** | Today at a glance: calories remaining (goal − food), carbs, protein and fat against your goals, and Breakfast, Lunch, Dinner and Snacks. Swipe days with the arrows or the week strip. Tap **Add Food** to search recipes (or **Quick Add** for anything else). Tap an entry to change servings or delete it. **Copy Yesterday** repeats a meal. Plan ahead by adding meals to future days. **Batch Prep** is for cooking-day recipes; it goes on the shopping list but is not counted as eaten. |
+| **Recipes** | 159 recipes. Search, filter by category, sort by protein, protein per calorie, calories or time, mark favorites. Open a recipe for nutrition per serving, a servings stepper that rescales every ingredient, steps, and **Add to Diary**. |
+| **Shop** | The shopping list for the meals in your Diary: next 7 days, today, this week or a custom range. Ingredients from all recipes are added together, shown as store packages ("1 half-gallon + 1 quart") with what the recipes use, sorted by store section, with checkboxes. Copy or share the list. No plan yet? Start with a ready-made week. |
+| **Learn** | Search box for cooking questions across all guides, quick answers (safe temperatures, storage times, measuring, rice), a kitchen setup checklist, and the guides: chicken, beef, pork, fish, eggs, rice and vegetables, seasoning, shopping, portions and scaling, meal prep, food safety, sports nutrition, supplements, sources. Each guide has an "On this page" list. |
+| **Me** | Your daily goals (with a calculator based on height, weight, age, activity and goal), backup and restore, erase data. |
 
-Your plan is saved in your browser, so it is still there next time.
+## How the numbers work
 
-## How the math works
+- **Calories and macros** are calculated from each recipe's ingredients using USDA values (`data/nutrition.json`), divided by servings. Every entry that maps to a single USDA food was checked against the USDA FoodData Central SR Legacy download. The calculation assumes you eat the skin on skin-on chicken. Bone-in cuts use the edible part only (working estimates).
+- **Calories remaining** = your goal − food eaten. Batch Prep entries are not counted.
+- **Scaling.** Amounts are multiplied by (servings you want) ÷ (servings the recipe makes) and turned into things you can measure (3 tsp becomes 1 tbsp). Salt and strong spices scale about 75% of the increase past double. Cooking time does not scale; use more pans.
+- **Shopping list.** Every recipe entry in the range is scaled to the servings you logged, ingredients are added together, and quantities are matched to store packages (`data/shopping.json`). Items made by another recipe in your plan ("cooked rice") are listed separately, not as shopping items.
+- **Goals calculator** uses the Mifflin-St Jeor estimate. It is a starting point, not medical advice.
 
-- **Scaling.** Every recipe has a base number of servings. Each amount is multiplied by (servings you want) ÷ (base servings). A recipe for 4 that needs 2 lb chicken needs 4 lb at 8 servings.
-- **Readable amounts.** Results are turned into something you can measure: 3 tsp becomes 1 tbsp, 4 tbsp becomes ¼ cup, 16 oz becomes 1 lb.
-- **Salt and strong spices** scale a bit less than everything else once you go past double, because they get too strong. Taste at the end.
-- **Cooking time does not scale.** Doubling a recipe does not double the oven time. Use a second pan instead of piling food on one.
-- **Shopping list.** All recipes in your plan are combined. The same ingredient is added up across recipes (2 cups milk + 1 cup milk = 3 cups milk) and sorted by store section. Where a store package exists, the list shows what to buy and what the recipes use, for example "Whole Milk — 1 half-gallon + 1 quart (recipes use 8 ¾ cups)" or "Eggs — 2 dozen". Package sizes are in `data/shopping.json`. Things like "salt to taste" go in a separate pantry line. Items made by another recipe in your plan (like "cooked rice") are not shopping items.
-- **Calories and macros.** The page calculates them from the ingredient amounts using USDA values (`data/nutrition.json`), divided by servings. Each entry that maps to a single USDA food was checked against the USDA FoodData Central SR Legacy download (92 checks; the mismatches were corrected). It assumes you eat the skin on skin-on chicken. Bone-in cuts use the edible part only (bone is removed). "Meal Prep" batch recipes are not counted in the plan totals, because the meals that use them already are.
-- **Raw vs cooked.** Meat loses weight when cooked. About 12 lb of bone-in thighs makes 14 portions of 5.5 oz cooked meat. See the Portions and Scaling guide.
+## Your data
 
-## Where the numbers come from
-
-- Chicken cuts and macros: USDA FoodData Central (ids in `data/reference/ingredients.json`). Other ingredients: standard USDA values.
-- Safe temperatures and leftovers (3-4 days in the fridge): USDA FSIS.
-- Sports nutrition and supplement doses: ISSN and IOC consensus papers.
-- Bone-in yields (bone left out of the edible weight: thigh 75%, drumstick 72%, wing 68%, whole chicken 68%) are working estimates, not USDA-published figures for every cut.
-- Prices are not included.
-- Full list, licenses and what was and wasn't copied: the Sources guide (`guides/sources.md`).
+Saved in your browser on this device (diary, goals, favorites, checkmarks). Use **Me → Download Backup** before clearing browser data or switching phones, and **Restore Backup** to load it.
 
 ## Folder layout
 
 ```
-index.html                 the page
+index.html                 the app shell
+assets/app.js              screens, navigation, storage
+assets/core.js             units and scaling, calories, shopping list, packages (no screen code)
 assets/style.css           look
-assets/app.js              all the logic (scaling, calories, shopping list, guides viewer)
+sw.js, manifest.webmanifest, icons/    install and offline support
 data/recipes/*.json        recipes, one file per group
-data/nutrition.json        ingredient nutrition used for calories and macros
-data/plans/*.json          the two ready-made plans (original, beginner)
-data/shopping.json         store package sizes (gallon, dozen, 5 lb bag, ...)
-data/reference/*.json      cuts, cooking methods, seasonings, supplements, fueling numbers
-guides/*.md                the guides shown in the Guides tab
+data/nutrition.json        ingredient nutrition
+data/shopping.json         store package sizes
+data/plans/templates.json  ready-made weeks
+data/reference/*.json      cuts, methods, seasonings, supplements, fueling numbers
+guides/*.md                the guides shown in Learn
 ```
 
-A recipe looks like this:
+A recipe:
 
 ```json
 { "id": "chicken-rice-bowl", "name": "Chicken Rice Bowl", "category": "bowls", "method": "assemble",
@@ -59,14 +53,16 @@ A recipe looks like this:
   "steps": ["..."], "notes": "..." }
 ```
 
-Each ingredient is `[amount, unit, item]`. Units are `tsp`, `tbsp`, `cup`, `oz`, `lb`, `g`, or empty for a count.
+Each ingredient is `[amount, unit, item]` (units: tsp, tbsp, cup, oz, lb, g, or empty for a count).
 
-## Running it on your own computer
-
-The page loads its data files, so it must be served, not opened by double-click. From this folder:
+## Run it locally
 
 ```
 python -m http.server 8000
 ```
 
-then open http://localhost:8000.
+then open http://localhost:8000 (the app loads data files, so it must be served, not opened by double-click).
+
+## Sources
+
+USDA FoodData Central and FSIS (nutrition, safe temperatures, storage), ISSN and IOC consensus papers (sports nutrition), and the open-source calorie trackers used as a design reference. Full list: `guides/sources.md`.

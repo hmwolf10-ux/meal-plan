@@ -25,7 +25,9 @@
 | [micahcochran/json-cookbook](https://github.com/micahcochran/json-cookbook) | per recipe CC/PD | 100 schema.org recipes | Reviewed; mostly cocktails and sides, not relevant |
 | [jakevdp/open-recipe-data](https://github.com/jakevdp/open-recipe-data) | CC BY 3.0 | Open Recipe Project dump (recipeitems.json.gz) | Reviewed; scraped web recipes, not adopted |
 | [dspray95/open-recipe](https://github.com/dspray95/open-recipe) | Unlicense | Scraper for BBC Good Food | Not used |
-| [Ovi/DummyJSON](https://github.com/Ovi/DummyJSON) | MIT | Sample recipe dataset | 50 recipes are imported unchanged (steps preserved) as "no amounts" reference recipes in `data/recipes/reference.json`; hidden by default because they cannot be scaled |
+| [Ovi/DummyJSON](https://github.com/Ovi/DummyJSON) | MIT | Sample recipe dataset | Reviewed. Its recipes list ingredients without amounts, so they cannot be scaled or shopped for and were left out |
+| [simonoppowa/OpenNutriTracker](https://github.com/simonoppowa/OpenNutriTracker) | GPL-3.0 | Free calorie tracker: diary split into Breakfast, Lunch, Dinner and Snacks, calories against a goal, data stored on the device, JSON backup | App layout and behavior reference only (no code copied) |
+| [pkirilin/food-diary](https://github.com/pkirilin/food-diary), [stogz/opsrccaltracker](https://github.com/stogz/opsrccaltracker) | see repos | Open-source food diary web apps | Diary structure reference only |
 | [jzarca01/awesome-food](https://github.com/jzarca01/awesome-food) | - | Curated food project list | Discovery |
 | [jrhizor/awesome-nutrition-tracking](https://github.com/jrhizor/awesome-nutrition-tracking) | - | List of nutrition databases and APIs | Discovery |
 

@@ -90,6 +90,8 @@
     { "m": "broccoli", "k": 34, "p": 2.8, "c": 7, "f": 0.4, "cup": 91 },
     { "m": "spinach", "k": 23, "p": 2.9, "c": 3.6, "f": 0.4, "cup": 30 },
     { "m": "kale", "k": 35, "p": 2.9, "c": 4.4, "f": 1.5, "cup": 67 },
+    { "m": "^tomatoes?, (diced|sliced|chopped)|^tomatoes?$", "k": 18, "p": 0.9, "c": 3.9, "f": 0.2, "each": 123, "cup": 180 },
+    { "m": "pitas?\\b", "k": 275, "p": 9, "c": 55.7, "f": 1.2, "each": 60 },
     { "m": "diced tomatoes", "k": 16, "p": 0.8, "c": 3.5, "f": 0.25, "cup": 240 },
     { "m": "crushed tomatoes|tomatoes", "k": 32, "p": 1.6, "c": 7.3, "f": 0.3, "cup": 240 },
     { "m": "tomato paste", "k": 82, "p": 4.3, "c": 19, "f": 0.5, "tbsp": 16 },
