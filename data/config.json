@@ -1,0 +1,123 @@
+{
+  "version": "1.0",
+  "system": {
+    "name": "Meal Plan & Batch Cooking System",
+    "version": "1.0.0"
+  },
+  "targets": {
+    "dailyProtein": {
+      "value": 170,
+      "unit": "g",
+      "description": "Daily protein target"
+    },
+    "dailyCarbs": {
+      "value": 245,
+      "unit": "g",
+      "description": "Daily carbohydrates target"
+    },
+    "dailyFat": {
+      "value": 66,
+      "unit": "g",
+      "description": "Daily fat target"
+    },
+    "dailyCalories": {
+      "value": 1904,
+      "unit": "kcal",
+      "description": "Daily calorie target"
+    }
+  },
+  "budget": {
+    "weeklyBudget": {
+      "value": 47.5,
+      "unit": "USD",
+      "description": "Target weekly grocery budget"
+    },
+    "dailyBudget": {
+      "value": 6.79,
+      "unit": "USD",
+      "description": "Average daily cost"
+    }
+  },
+  "timing": {
+    "batchCookFrequency": {
+      "value": 1,
+      "unit": "per week",
+      "description": "How often to batch cook"
+    },
+    "batchCookDuration": {
+      "value": 50,
+      "unit": "minutes",
+      "description": "Total time for batch cooking"
+    },
+    "dailyMealPrepTime": {
+      "value": 7,
+      "unit": "minutes",
+      "description": "Average time to assemble daily meals"
+    }
+  },
+  "storage": {
+    "refrigeratorDays": {
+      "value": 4,
+      "unit": "days",
+      "description": "How long cooked food lasts in fridge"
+    },
+    "freezerDays": {
+      "value": 90,
+      "unit": "days",
+      "description": "How long cooked food lasts in freezer"
+    }
+  },
+  "meals": {
+    "breakfast": {
+      "enabled": true,
+      "name": "Overnight Oats + PB + Whey",
+      "frequency": "daily",
+      "prepMethod": "batch",
+      "portionSize": 1,
+      "targetProtein": 38,
+      "targetCarbs": 60,
+      "targetFat": 18,
+      "targetCalories": 458
+    },
+    "lunch": {
+      "enabled": true,
+      "name": "Chicken Rice Bowl",
+      "frequency": "daily",
+      "prepMethod": "assemble",
+      "portionSize": 1,
+      "targetProtein": 50,
+      "targetCarbs": 65,
+      "targetFat": 16,
+      "targetCalories": 513
+    },
+    "dinner": {
+      "enabled": true,
+      "name": "Chicken Rice Bowl",
+      "frequency": "daily",
+      "prepMethod": "assemble",
+      "portionSize": 1,
+      "targetProtein": 50,
+      "targetCarbs": 65,
+      "targetFat": 16,
+      "targetCalories": 513
+    },
+    "snack": {
+      "enabled": true,
+      "name": "PB Banana Power Shake",
+      "frequency": "daily",
+      "prepMethod": "fresh",
+      "portionSize": 1,
+      "targetProtein": 32,
+      "targetCarbs": 55,
+      "targetFat": 16,
+      "targetCalories": 420
+    }
+  },
+  "customization": {
+    "allowVariations": true,
+    "allowDietaryRestrictions": true,
+    "allowAllergies": true,
+    "allowBudgetAdjustment": true,
+    "allowMacroAdjustment": true
+  }
+}
