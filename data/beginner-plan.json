@@ -1,0 +1,10 @@
+{
+  "name": "Beginner week (1 person, 8 bowls + 4 breakfasts)",
+  "items": [
+    { "id": "batch-boneless-thighs", "servings": 8 },
+    { "id": "batch-rice", "servings": 8 },
+    { "id": "batch-roasted-vegetables", "servings": 6 },
+    { "id": "teriyaki-bowl", "servings": 8 },
+    { "id": "overnight-oats", "servings": 4 }
+  ]
+}
