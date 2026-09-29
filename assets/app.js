@@ -1,7 +1,7 @@
 const FILES = ['chicken', 'beef-pork-turkey', 'fish-eggs-plant', 'meal-prep', 'snacks', 'more-meals', 'reference'];
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-let R = [], NUT = [], plan = {};                       // plan: { recipeId: servings }
+let R = [], NUT = [], SHOP = [], plan = {};                       // plan: { recipeId: servings }
 try { plan = JSON.parse(localStorage.getItem('plan') || '{}'); } catch (e) {}
 // ---------- display text ----------
 const SMALLW = new Set(['and', 'or', 'with', 'in', 'of', 'the', 'a', 'an', 'to', 'for', 'on', 'over', 'from', 'no', 'vs']);
@@ -12,7 +12,7 @@ const catLabel = c => CATS[c] || cap(c);
 const save = () => { try { localStorage.setItem('plan', JSON.stringify(plan)); } catch (e) {} };
 
 // ---------- units and quantities ----------
-const UNITS = { cups: 'cup', cup: 'cup', c: 'cup', tablespoon: 'tbsp', tablespoons: 'tbsp', tbsp: 'tbsp', teaspoon: 'tsp', teaspoons: 'tsp', tsp: 'tsp', ounce: 'oz', ounces: 'oz', oz: 'oz', pound: 'lb', pounds: 'lb', lb: 'lb', lbs: 'lb', gram: 'g', grams: 'g', g: 'g' };
+const UNITS = { cans: 'can', jars: 'jar', scoops: 'scoop', cups: 'cup', cup: 'cup', c: 'cup', tablespoon: 'tbsp', tablespoons: 'tbsp', tbsp: 'tbsp', teaspoon: 'tsp', teaspoons: 'tsp', tsp: 'tsp', ounce: 'oz', ounces: 'oz', oz: 'oz', pound: 'lb', pounds: 'lb', lb: 'lb', lbs: 'lb', gram: 'g', grams: 'g', g: 'g' };
 const normUnit = u => { u = String(u || '').trim().toLowerCase(); return u in UNITS ? UNITS[u] : u; };
 const VOL = { tsp: 1, tbsp: 3, cup: 48 }, WT = { oz: 1, lb: 16, g: 1 / 28.3495 };
 const unitType = u => u in VOL ? 'vol' : u in WT ? 'wt' : u === '' || u === 'pinch' ? 'count' : 'other';
@@ -35,12 +35,31 @@ function fmt(q, u) {
   if (q == null) return '';
   const t = unitType(u);
   if (t === 'vol') {
-    const tsp = q * VOL[u];
-    if (tsp >= 12) { const n = frac(Math.round(tsp / 48 * 8) / 8 || 0.125); return n + (SMALL.has(n) ? ' cup' : ' cups'); }
-    if (tsp >= 3) return frac(Math.round(tsp / 3 * 4) / 4) + ' tbsp';
+    const tsp = q * VOL[u], cups = tsp / 48;
+    if (tsp >= 12) {                                   // use cups only when it is accurate; otherwise cups + tbsp or plain tbsp
+      const near = Math.round(cups * 8) / 8, third = Math.round(cups * 3) / 3;
+      const pick = Math.abs(near - cups) <= Math.abs(third - cups) ? near : third;
+      if (Math.abs(pick - cups) / cups <= 0.05) { const n = frac(pick); return n + (SMALL.has(n) ? ' cup' : ' cups'); }
+      if (tsp < 48) return frac(Math.round(tsp / 3 * 2) / 2) + ' tbsp';
+      const w = Math.floor(cups + 1e-9), rest = Math.round((tsp - w * 48) / 3 * 2) / 2;
+      return w + (w === 1 ? ' cup' : ' cups') + (rest ? ' + ' + frac(rest) + ' tbsp' : '');
+    }
+    if (tsp >= 3) {                                    // whole tablespoons + a quarter-teaspoon remainder: accurate and easy to measure
+      let tb = Math.floor(tsp / 3 + 1e-9), rest = Math.round((tsp - tb * 3) * 4) / 4;
+      if (rest >= 3) { tb++; rest = 0; }
+      return tb + ' tbsp' + (rest ? ' + ' + frac(rest) + ' tsp' : '');
+    }
     return frac(Math.round(tsp * 8) / 8 || 0.125) + ' tsp';
   }
-  if (t === 'wt') { const oz = q * WT[u]; return oz >= 16 ? (Math.round(oz / 16 * 4) / 4) + ' lb' : (Math.round(oz * 2) / 2) + ' oz'; }
+  if (t === 'wt') {
+    let oz = q * WT[u];
+    if (oz >= 16) {
+      if (oz >= 48) oz = Math.round(oz / 4) * 4;       // 3 lb and up: nearest 4 oz is plenty for shopping
+      let lb = Math.floor(oz / 16 + 1e-9), rest = Math.round(oz - lb * 16); if (rest >= 16) { lb++; rest = 0; }
+      return lb + ' lb' + (rest ? ' ' + rest + ' oz' : '');
+    }
+    return oz < 4 ? frac(Math.round(oz * 4) / 4 || 0.25) + ' oz' : (Math.round(oz * 2) / 2) + ' oz';
+  }
   if (u === 'pinch') return frac(q) + ' pinch';
   if (t === 'other') { const n = Math.round(q * 4) / 4 || 0.25; return frac(n) + ' ' + (n > 1 && !u.endsWith('s') ? u + 's' : u); }
   return frac(q < 4 ? Math.round(q * 2) / 2 || 0.5 : Math.round(q));
@@ -81,6 +100,7 @@ function macrosOf(r) {                                 // per serving, computed 
 async function load() {
   try {
     NUT = (await (await fetch('data/nutrition.json')).json()).items.map(n => ({ ...n, re: new RegExp(n.m, 'i') }));
+    SHOP = (await (await fetch('data/shopping.json')).json()).rules.map(r => ({ ...r, re: new RegExp(r.match, 'i') }));
     for (const f of FILES) { const r = await fetch(`data/recipes/${f}.json`); if (!r.ok) throw new Error(f + ' ' + r.status); (await r.json()).recipes.forEach(x => R.push({ ...x, reference: f === 'reference' })); }
   } catch (e) { $('err').innerHTML = `<span class="err">Could not load data (${esc(e.message)}). Open this page from the website or a local web server; browsers block loading data files straight from disk.</span>`; return; }
   R.forEach(r => { r.mac = macrosOf(r); r.name = title(r.name); });
@@ -134,8 +154,36 @@ const AISLE = [
 ];
 const aisleOf = n => (AISLE.find(a => a[1].test(n)) || ['Other'])[0];
 const isMade = n => /^(cooked|poached|roasted|leftover|shredded|sliced|cold cooked)\b/i.test(n);
-const norm = n => n.toLowerCase().replace(/\(.*?\)/g, '').replace(/,.*$/, '').replace(/\b(optional|to taste|of choice|fresh|large|small|diced|sliced|chopped|minced|peeled)\b/g, '').replace(/\s+/g, ' ').trim();
+const norm = n => n.toLowerCase().replace(/\(.*?\)/g, '').replace(/,.*$/, '').replace(/\b(optional|to taste|of choice|fresh|large|small|diced|sliced|chopped|minced|peeled)\b/g, '').replace(/\s+/g, ' ').trim().replace(/^cans?\s+/, '');
 
+// ---------- store packages ----------
+function needIn(x, unit) {                             // recipe need converted to the package unit, or null if it doesn't fit
+  if (unit === 'cup') return x.t === 'vol' ? x.base / 48 : null;
+  if (unit === 'tbsp') return x.t === 'vol' ? x.base / 3 : null;
+  if (unit === 'oz') return x.t === 'wt' ? x.base : null;
+  if (unit === 'scoop') return x.t === 'other' && x.unit === 'scoop' ? x.base : null;
+  if (unit === 'count') return x.t === 'count' || (x.t === 'other' && (x.unit === 'can' || x.unit === 'jar')) ? x.base : null;
+  return null;
+}
+function bestPack(need, pk) {                          // fewest wasted units; small penalty for many packages
+  let best = null; const counts = [], maxN = pk.map(p => Math.ceil(need / p[2]) + 1);
+  (function rec(i, total) {
+    if (i === pk.length) {
+      if (total < need - 1e-6) return;
+      const n = counts.reduce((a, b) => a + b, 0), score = (total - need) + 0.25 * need * Math.max(0, n - 1);
+      if (!best || score < best.score - 1e-9) best = { counts: [...counts], score };
+      return;
+    }
+    for (let c = 0; c <= maxN[i]; c++) { counts[i] = c; rec(i + 1, total + c * pk[i][2]); }
+  })(0, 0);
+  return best;
+}
+function packagesFor(x) {
+  const rule = SHOP.find(r => r.re.test(x.name)); if (!rule) return null;
+  const need = needIn(x, rule.unit); if (need == null || need <= 0) return null;
+  const pk = [...rule.packages].sort((a, b) => b[2] - a[2]), b = bestPack(need, pk); if (!b) return null;
+  return b.counts.map((c, i) => c ? c + ' ' + (c === 1 ? pk[i][0] : pk[i][1]) : '').filter(Boolean).join(' + ');
+}
 function shopping() {
   const M = new Map(), made = new Map(), free = new Set();
   for (const [id, s] of Object.entries(plan)) {
@@ -149,13 +197,13 @@ function shopping() {
       const cur = target.get(key) || { name, t, base: 0, unit: u }; cur.base += base; target.set(key, cur);
     }
   }
-  const out = m => [...m.values()].map(x => {
+  const out = (m, buy) => [...m.values()].map(x => {
     let txt;
     if (x.t === 'vol') { const u = x.base >= 12 ? 'cup' : x.base >= 3 ? 'tbsp' : 'tsp'; txt = fmt(x.base / VOL[u], u); }
     else if (x.t === 'wt') txt = fmt(x.base, 'oz'); else if (x.t === 'other') txt = fmt(x.base, x.unit); else txt = fmt(x.base, '');
-    return { name: x.name, txt };
+    return { name: x.name, txt, pkg: buy ? packagesFor(x) : null };
   });
-  const list = out(M);
+  const list = out(M, true);
   return { list, made: out(made), free: [...free].filter(n => !list.some(x => x.name === n)) };
 }
 
@@ -167,7 +215,7 @@ function drawPlan() {
   $('totals').innerHTML = `<div class="row"><div class="stat"><b>${Math.round(T.kcal)}</b>kcal</div><div class="stat"><b>${Math.round(T.protein)} g</b>protein</div><div class="stat"><b>${Math.round(T.carbs)} g</b>carbs</div><div class="stat"><b>${Math.round(T.fat)} g</b>fat</div></div><div class="mut">Total for every serving in the plan. Divide by the number of days to get a daily amount. "Meal prep" batch recipes are not counted because the meals that use them already are${miss ? '; ' + miss + ' recipe(s) without amounts are not counted' : ''}.</div>`;
   const S = shopping(), g = {};
   S.list.forEach(x => (g[aisleOf(x.name)] = g[aisleOf(x.name)] || []).push(x));
-  $('shop').innerHTML = ids.length ? ['Meat and fish', 'Produce', 'Dairy and eggs', 'Pantry and canned', 'Spices', 'Other'].filter(a => g[a]).map(a => `<div class="aisle">${a}</div><ul>${g[a].sort((x, y) => x.name.localeCompare(y.name)).map(x => `<li>${esc(title(x.name))} <span class="mut">— ${esc(x.txt)}</span></li>`).join('')}</ul>`).join('') + (S.free.length ? `<div class="aisle">To taste / pantry</div><div class="mut">${esc(S.free.map(cap).join(', '))}</div>` : '') : '<div class="mut">Empty</div>';
+  $('shop').innerHTML = ids.length ? ['Meat and fish', 'Produce', 'Dairy and eggs', 'Pantry and canned', 'Spices', 'Other'].filter(a => g[a]).map(a => `<div class="aisle">${a}</div><ul>${g[a].sort((x, y) => x.name.localeCompare(y.name)).map(x => `<li>${esc(title(x.name))} — ${x.pkg ? `<b>${esc(x.pkg)}</b> <span class="mut">(recipes use ${esc(x.txt)})</span>` : `<span class="mut">${esc(x.txt)}${a === 'Spices' ? ' · pantry item' : ''}</span>`}</li>`).join('')}</ul>`).join('') + (S.free.length ? `<div class="aisle">To taste / pantry</div><div class="mut">${esc(S.free.map(cap).join(', '))}</div>` : '') : '<div class="mut">Empty</div>';
   $('prep').style.display = S.made.length ? 'block' : 'none';
   $('prepl').innerHTML = S.made.map(x => `${esc(title(x.name))} — ${esc(x.txt)}`).join(' · ') + '<br>These come from the batch recipes in your plan (or cook them fresh). They are not shopping items.';
 }
@@ -179,7 +227,7 @@ $('sel').onclick = e => {
 };
 $('sel').onchange = e => { const id = e.target.dataset.pv; if (id) { plan[id] = Math.max(1, Math.round(+e.target.value) || 1); save(); drawPlan(); } };
 $('clear').onclick = () => { plan = {}; save(); drawBook(); drawPlan(); };
-$('copy').onclick = () => { navigator.clipboard?.writeText($('shop').innerText); $('copy').textContent = 'Copied'; setTimeout(() => $('copy').textContent = 'Copy shopping list', 1200); };
+$('copy').onclick = () => { navigator.clipboard?.writeText($('shop').innerText); $('copy').textContent = 'Copied'; setTimeout(() => $('copy').textContent = 'Copy Shopping List', 1200); };
 async function loadPlan(name, then) {
   try { const s = await (await fetch(`data/plans/${name}.json`)).json(); plan = {}; s.items.forEach(i => { if (byId(i.id)) plan[i.id] = i.servings; }); save(); drawBook(); drawPlan(); if (then) show(then); }
   catch (e) { $('err').textContent = 'Could not load that plan.'; }

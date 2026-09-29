@@ -23,8 +23,8 @@ Your plan is saved in your browser, so it is still there next time.
 - **Readable amounts.** Results are turned into something you can measure: 3 tsp becomes 1 tbsp, 4 tbsp becomes ¼ cup, 16 oz becomes 1 lb.
 - **Salt and strong spices** scale a bit less than everything else once you go past double, because they get too strong. Taste at the end.
 - **Cooking time does not scale.** Doubling a recipe does not double the oven time. Use a second pan instead of piling food on one.
-- **Shopping list.** All recipes in your plan are combined. The same ingredient is added up across recipes (2 cups milk + 1 cup milk = 3 cups milk) and sorted by store section. Things like "salt to taste" go in a separate pantry line. Items made by another recipe in your plan (like "cooked rice") are not shopping items.
-- **Calories and macros.** The page calculates them from the ingredient amounts using standard USDA values (`data/nutrition.json`), divided by servings. It assumes you eat the skin on skin-on chicken. Bone-in cuts use the edible part only (bone is removed). "Meal Prep" batch recipes are not counted in the plan totals, because the meals that use them already are.
+- **Shopping list.** All recipes in your plan are combined. The same ingredient is added up across recipes (2 cups milk + 1 cup milk = 3 cups milk) and sorted by store section. Where a store package exists, the list shows what to buy and what the recipes use, for example "Whole Milk — 1 half-gallon + 1 quart (recipes use 8 ¾ cups)" or "Eggs — 2 dozen". Package sizes are in `data/shopping.json`. Things like "salt to taste" go in a separate pantry line. Items made by another recipe in your plan (like "cooked rice") are not shopping items.
+- **Calories and macros.** The page calculates them from the ingredient amounts using USDA values (`data/nutrition.json`), divided by servings. Each entry that maps to a single USDA food was checked against the USDA FoodData Central SR Legacy download (92 checks; the mismatches were corrected). It assumes you eat the skin on skin-on chicken. Bone-in cuts use the edible part only (bone is removed). "Meal Prep" batch recipes are not counted in the plan totals, because the meals that use them already are.
 - **Raw vs cooked.** Meat loses weight when cooked. About 12 lb of bone-in thighs makes 14 portions of 5.5 oz cooked meat. See the Portions and Scaling guide.
 
 ## Where the numbers come from
@@ -32,7 +32,8 @@ Your plan is saved in your browser, so it is still there next time.
 - Chicken cuts and macros: USDA FoodData Central (ids in `data/reference/ingredients.json`). Other ingredients: standard USDA values.
 - Safe temperatures and leftovers (3-4 days in the fridge): USDA FSIS.
 - Sports nutrition and supplement doses: ISSN and IOC consensus papers.
-- Prices are examples; your store will differ.
+- Bone-in yields (bone left out of the edible weight: thigh 75%, drumstick 72%, wing 68%, whole chicken 68%) are working estimates, not USDA-published figures for every cut.
+- Prices are not included.
 - Full list, licenses and what was and wasn't copied: the Sources guide (`guides/sources.md`).
 
 ## Folder layout
@@ -44,6 +45,7 @@ assets/app.js              all the logic (scaling, calories, shopping list, guid
 data/recipes/*.json        recipes, one file per group
 data/nutrition.json        ingredient nutrition used for calories and macros
 data/plans/*.json          the two ready-made plans (original, beginner)
+data/shopping.json         store package sizes (gallon, dozen, 5 lb bag, ...)
 data/reference/*.json      cuts, cooking methods, seasonings, supplements, fueling numbers
 guides/*.md                the guides shown in the Guides tab
 ```
