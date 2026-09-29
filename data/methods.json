@@ -1,0 +1,32 @@
+{
+  "version": "1.0",
+  "description": "Cooking methods by cut. Temps are oven/pan settings; internal temps are USDA minimum (165F poultry) or quality targets from America's Test Kitchen style guidance. Times are approximate; always confirm with a thermometer.",
+  "safety": {
+    "poultryMinInternalF": 165,
+    "groundMeatMinInternalF": 160,
+    "wholeCutsBeefPorkMinInternalF": 145,
+    "restMinutesWholeCuts": 3,
+    "refrigeratorMaxF": 40,
+    "cooledWithinHours": 2,
+    "leftoversFridgeDays": "3-4",
+    "leftoversFreezerMonths": "3-4 for best quality",
+    "reheatToF": 165
+  },
+  "methods": [
+    { "id": "sheet-pan-roast", "name": "Sheet-pan roast", "ovenF": 425, "cuts": { "thigh-bone-in-skin-on": "40-45 min to 175F", "thigh-boneless-skinless": "20-25 min to 175F", "breast-boneless-skinless": "18-25 min to 160-165F", "breast-bone-in-skin-on": "40-50 min to 165F", "drumstick": "35-45 min to 175F", "leg-quarter": "45-55 min to 175F" }, "tips": ["Pat dry; do not crowd the pan", "Skin side up on a rack or parchment for crisp skin", "Use two pans for a batch; swap racks halfway"] },
+    { "id": "pan-sear-then-roast", "name": "Pan-sear then oven finish", "ovenF": 450, "cuts": { "thigh-bone-in-skin-on": "Sear skin-down about 5 min, flip 5 min, then roast about 15 min to 175F" }, "tips": ["Start skin-down in a cold or moderate pan to render fat", "Best crisp skin, but not a batch method"] },
+    { "id": "air-fryer", "name": "Air fryer", "tempF": 380, "cuts": { "thigh-bone-in-skin-on": "22-28 min, flip once", "drumstick": "20-25 min", "wing": "20-25 min at 400F", "breast-boneless-skinless": "12-16 min" }, "tips": ["Limited capacity, so it does not scale to weekly batch prep"] },
+    { "id": "slow-cooker", "name": "Slow cooker", "settings": "LOW 6-8 h or HIGH 3-4 h", "cuts": { "thigh-boneless-skinless": "LOW 4-5 h", "breast-boneless-skinless": "LOW 2.5-3.5 h, then shred", "chuck-roast": "LOW 8-10 h", "pork-shoulder-butt": "LOW 8-10 h" }, "tips": ["Skin will not crisp", "Breast overcooks easily; check at the low end"] },
+    { "id": "instant-pot-shred", "name": "Pressure cook and shred", "cuts": { "breast-boneless-skinless": "10 min high pressure + natural release", "thigh-bone-in-skin-on": "12-15 min high pressure", "pork-shoulder-butt": "60-90 min high pressure", "chuck-roast": "60-75 min high pressure" }, "tips": ["Fast way to make shreddable protein for burrito bowls"] },
+    { "id": "poach", "name": "Poach", "cuts": { "breast-boneless-skinless": "Cover with cold salted water, bring to a bare simmer, cover and turn off heat 15-18 min, or until 165F" }, "tips": ["Gentle heat keeps lean breast juicy", "Reserve the broth"] },
+    { "id": "braise", "name": "Braise", "ovenF": 325, "cuts": { "thigh-bone-in-skin-on": "Brown, then simmer partly submerged 35-45 min", "drumstick": "35-45 min", "chuck-roast": "2.5-3.5 h", "pork-shoulder-butt": "3-4 h" }, "tips": ["Dark meat and tough cuts improve with longer cooking"] },
+    { "id": "grill", "name": "Grill", "cuts": { "thigh-boneless-skinless": "Medium-high, about 5-6 min per side", "breast-boneless-skinless": "Pound to even thickness, 5-7 min per side", "drumstick": "Indirect heat first, then sear, 30-40 min", "flank-skirt": "High heat, 3-5 min per side" } },
+    { "id": "skillet-crumble", "name": "Skillet crumble (ground meat)", "cuts": { "ground-beef-80-20": "Medium-high, 8-10 min; drain fat", "ground-beef-90-10": "Medium-high, 7-9 min; add a splash of water or broth", "ground-turkey-93-7": "Medium-high, 8-10 min; add oil or broth", "ground-chicken": "Medium-high, 7-9 min" }, "tips": ["Leave undisturbed 1-2 min to brown before breaking up", "Cook to 160F"] },
+    { "id": "hard-boil", "name": "Hard-boil eggs", "cuts": { "egg-whole": "Lower into boiling water 11-12 min, then ice bath; keeps 7 days refrigerated" } },
+    { "id": "sous-vide", "name": "Sous vide", "cuts": { "breast-boneless-skinless": "145F for 1.5-3 h (pasteurized), then sear or chill" }, "tips": ["Only if you own a circulator"] }
+  ],
+  "brine": {
+    "quick": "1 tbsp kosher salt per cup water, 30-60 min for breasts and chops. Skip for thighs.",
+    "dry": "1/2 tsp kosher salt per lb, refrigerated uncovered 1-24 h for crisper skin"
+  }
+}

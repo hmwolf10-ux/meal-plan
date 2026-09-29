@@ -1,0 +1,36 @@
+{
+  "version": "1.0",
+  "disclaimer": "Informational, not medical advice. Check interactions and conditions with a clinician. Dose ranges are from the cited consensus documents. Anything tiered 'weak' or 'skip' is listed only so you know why it is not recommended.",
+  "gradingNote": "Tiers follow the IOC 2018 consensus statement (good/strong evidence: caffeine, creatine, nitrate, bicarbonate, beta-alanine). Huberman Lab Wiki items are AI-generated summaries of podcast episodes and are graded by the underlying evidence, not by the podcast's claim.",
+  "tiers": {
+    "A-strong": [
+      { "id": "creatine-monohydrate", "name": "Creatine monohydrate", "dose": "3-5 g/day, any time; no loading needed", "goal": "strength, power, lean mass, recovery; possible cognitive benefit", "costPerMonthUSD": 8, "notes": "Most studied performance supplement. Choose plain monohydrate; expect 1-2 kg water weight gain.", "sources": ["IOC 2018 consensus (PMC5867441)", "Huberman Lab Wiki: supplementation.md"] },
+      { "id": "caffeine", "name": "Caffeine", "dose": "3-6 mg/kg body weight, 30-60 min pre-session; keep under 9 mg/kg", "goal": "endurance and strength performance, alertness", "costPerMonthUSD": 3, "notes": "Coffee counts. Delaying first caffeine 90-120 min after waking is a Huberman protocol with limited direct trials. Cut off 8-10 h before sleep. For a 75 kg person 3-6 mg/kg is 225-450 mg.", "sources": ["IOC 2018", "Huberman Lab Wiki: caffeine-science.md"] },
+      { "id": "carbohydrate-intra-exercise", "name": "Sports drink / gels (carbohydrate)", "dose": "30-60 g/h for 1-2.5 h sessions; up to 90 g/h for over 2.5 h (glucose:fructose mix)", "goal": "endurance fueling", "notes": "See data/fueling.json", "sources": ["ISSN nutrient timing position stand (PMC5596471)"] }
+    ],
+    "B-good": [
+      { "id": "sodium-bicarbonate", "name": "Sodium bicarbonate", "dose": "0.2-0.3 g/kg 60-150 min pre-event", "goal": "high-intensity efforts of 1-10 min", "notes": "GI distress is common and can cancel the benefit. Trial in training first.", "sources": ["IOC 2018"] },
+      { "id": "beta-alanine", "name": "Beta-alanine", "dose": "3.2-6.4 g/day split doses for 4+ weeks", "goal": "efforts of 1-4 min", "notes": "Harmless tingling. Little benefit for steady endurance.", "sources": ["IOC 2018"] },
+      { "id": "nitrate-beetroot", "name": "Dietary nitrate (beet juice)", "dose": "about 6-8 mmol (roughly 400-500 mg) nitrate 2-3 h pre-event", "goal": "endurance efficiency", "notes": "Effect is smaller in highly trained athletes.", "sources": ["IOC 2018"] },
+      { "id": "whey-protein", "name": "Whey or other protein powder", "dose": "20-40 g per feeding, 1.4-2.0 g/kg/day total protein for exercisers", "goal": "convenience protein to hit daily targets", "costPerMonthUSD": 25, "notes": "A food, not a performance drug. Only worth it if cheaper per gram than eggs or chicken; it is not.", "sources": ["ISSN protein and exercise position stand (Springer 10.1186/s12970-017-0177-8)"] }
+    ],
+    "C-situational": [
+      { "id": "vitamin-d3", "name": "Vitamin D3", "dose": "1,000-2,000 IU/day typical; test 25(OH)D first", "goal": "correct deficiency", "notes": "Huberman Wiki cites 2,000-4,000 IU. Blood-test rather than guess.", "sources": ["Huberman Lab Wiki: supplementation.md"] },
+      { "id": "omega-3", "name": "Fish oil (EPA+DHA)", "dose": "1-3 g EPA+DHA/day if you rarely eat fish", "goal": "general health, triglycerides, inflammation", "notes": "Skip if you eat oily fish 2x/week.", "sources": ["Huberman Lab Wiki: diet-and-nutrition.md"] },
+      { "id": "magnesium", "name": "Magnesium glycinate", "dose": "200-400 mg evening", "goal": "sleep, cramps if intake is low", "notes": "Modest evidence; diet (oats, beans, rice) already provides some.", "sources": ["Huberman Lab Wiki: supplementation.md"] },
+      { "id": "electrolytes", "name": "Sodium / electrolyte mix", "dose": "300-700 mg sodium per hour in hot or long sessions", "goal": "prevent hyponatremia and cramping in long endurance", "notes": "Only needed for sessions over about 60-90 min or heavy sweating.", "sources": ["ISSN ultra-marathon position stand (PMC6839090)"] },
+      { "id": "iron", "name": "Iron", "dose": "only if ferritin is low", "goal": "endurance athletes, especially menstruating women", "notes": "Get bloodwork before supplementing." }
+    ],
+    "D-weak-or-skip": [
+      { "id": "nmn-nr", "name": "NMN / NR", "notes": "Human performance evidence is thin; expensive." },
+      { "id": "bpc-157", "name": "BPC-157", "notes": "Not approved, minimal human data, and banned in tested sport (WADA). Do not use." },
+      { "id": "ashwagandha", "name": "Ashwagandha", "notes": "Some small stress trials; quality control is poor; drug interactions exist." },
+      { "id": "bcaa", "name": "BCAAs", "notes": "Redundant if total protein is adequate." }
+    ]
+  },
+  "budgetStack": "Creatine (3-5 g) + coffee + cheap real food covers the high-evidence tier for under $15/month. Add vitamin D only after a blood test.",
+  "repos": [
+    { "name": "erinheit451/verified-supplement-evidence", "url": "https://github.com/erinheit451/verified-supplement-evidence", "license": "CC BY 4.0", "use": "CSV of evidence-graded supplement products with PMIDs; product/brand-centric, so used only as a cross-reference." },
+    { "name": "PatrykWajs/Huberman-Lab-Wiki", "url": "https://github.com/PatrykWajs/Huberman-Lab-Wiki", "license": "MIT", "use": "AI-generated summaries of Huberman Lab episodes. Used as a source of protocols, then graded against consensus statements." }
+  ]
+}

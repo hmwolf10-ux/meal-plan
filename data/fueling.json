@@ -1,0 +1,64 @@
+{
+  "version": "1.0",
+  "description": "Nutrition targets for training and endurance events (marathon and similar) plus science-backed daily habits. Numbers come from the ISSN position stands and IOC consensus; Huberman Lab Wiki items are labeled as such.",
+  "dailyTargets": {
+    "protein": { "value": "1.4-2.0 g/kg/day", "source": "ISSN protein and exercise position stand", "perMeal": "0.3-0.4 g/kg (about 20-40 g) across 3-5 feedings" },
+    "carbsByTrainingLoad": [
+      { "load": "light (about 1 h/day)", "gPerKg": "3-5" },
+      { "load": "moderate (about 1 h/day)", "gPerKg": "5-7" },
+      { "load": "high (1-3 h/day)", "gPerKg": "6-10" },
+      { "load": "very high (over 4 h/day) or marathon carb-load", "gPerKg": "8-12" }
+    ],
+    "fat": "20-35% of energy, do not go below 20%",
+    "hydration": [
+      "Baseline: about 0.5 oz per lb body weight per day (Huberman Wiki).",
+      "During exercise, roughly body weight (lb) divided by 30 = ounces every 15-20 min (Galpin equation, per Huberman Wiki). Sweat rates vary a lot, so weigh before and after a session: 1 lb lost is about 16-24 oz fluid to replace.",
+      "2% body-mass dehydration measurably impairs performance."
+    ]
+  },
+  "marathonPlan": {
+    "carbLoad": "8-12 g/kg/day for the 36-48 h before the race (ISSN). Choose low-fiber carbs: white rice, pasta, potatoes, bread, oats, bananas.",
+    "preRace": "1-4 g/kg carbs 1-4 h before, low fat and fiber, familiar foods only.",
+    "duringRace": { "under60min": "not required, mouth-rinse optional", "60to150min": "30-60 g carbs/h", "over150min": "up to 90 g/h using glucose:fructose (2:1) sources; train the gut to tolerate it", "sodium": "300-700 mg/h, more in heat", "fluid": "drink to thirst; avoid over-drinking (hyponatremia risk)" },
+    "recovery": "1.0-1.2 g/kg carbs/h for the first 4 h if another hard session is within 8 h, plus 20-40 g protein. Otherwise normal meals are fine.",
+    "gutTraining": "Practise the exact race-day carb dose in long runs for 4-8 weeks before the event.",
+    "sources": [
+      "ISSN nutrient timing position stand: https://pmc.ncbi.nlm.nih.gov/articles/PMC5596471/",
+      "ISSN ultra-marathon position stand: https://pmc.ncbi.nlm.nih.gov/articles/PMC6839090/"
+    ]
+  },
+  "strengthTraining": {
+    "protein": "1.6-2.2 g/kg/day for hypertrophy",
+    "timing": "Total daily intake matters far more than the 'anabolic window'. A protein-containing meal within a few hours either side of training is sufficient.",
+    "sources": ["ISSN protein and exercise position stand"]
+  },
+  "hubermanProtocols": {
+    "note": "Source: PatrykWajs/Huberman-Lab-Wiki (AI summaries). Claims graded below.",
+    "items": [
+      { "claim": "Wait 90-120 min after waking before caffeine", "evidence": "plausible, little direct trial evidence; low cost to try" },
+      { "claim": "Protein has a higher thermic effect (about 20-30% of its calories) than carbs (5-10%) or fat (0-3%)", "evidence": "well supported" },
+      { "claim": "Higher fiber intake associated with more deep sleep", "evidence": "observational and small trials" },
+      { "claim": "6-8 h eating window raises growth hormone", "evidence": "weak for outcomes; adherence and total protein matter more" },
+      { "claim": "When calories and protein match, diet style has similar fat-loss results; adherence predicts success", "evidence": "well supported by meta-analyses" },
+      { "claim": "Finish eating 2-3 h before bed", "evidence": "reasonable; helps sleep quality for many people" }
+    ]
+  },
+  "budgetNutrition": {
+    "proteinPerDollarApprox": [
+      { "food": "Eggs", "gramsProteinPerDollar": 24 },
+      { "food": "Dry lentils", "gramsProteinPerDollar": 22 },
+      { "food": "Canned tuna (water)", "gramsProteinPerDollar": 15 },
+      { "food": "Bone-in chicken thighs", "gramsProteinPerDollar": 12 },
+      { "food": "Whole chicken", "gramsProteinPerDollar": 11 }
+    ],
+    "note": "Figures are rounded from published 2026 price roundups and vary by store; recompute with local prices and the edible-yield figures in data/ingredients.json (bone-in cuts lose 50-60% of purchase weight to bone, skin and cook loss).",
+    "levers": [
+      "Buy leg quarters, drumsticks or family-pack thighs, then freeze what will not be eaten in 3-4 days.",
+      "Replace 2-4 meals per week with lentil chili, egg-and-rice, or tuna-rice bowls.",
+      "Buy oats, rice, lentils and beans in 5-25 lb bags.",
+      "Frozen vegetables cost less and lose few nutrients.",
+      "Use whey only if you already own it; eggs, Greek yogurt and milk cost less per gram of protein."
+    ],
+    "repos": [{ "name": "rbrents3000/bulk.recipes", "url": "https://github.com/rbrents3000/bulk.recipes", "use": "Costco-focused recipes with cost breakdowns; a model for cost-per-serving tracking" }]
+  }
+}

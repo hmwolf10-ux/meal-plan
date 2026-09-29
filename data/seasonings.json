@@ -1,0 +1,28 @@
+{
+  "version": "1.0",
+  "description": "Rubs, marinades and sauces so the same batch protein does not taste identical all week. Rub amounts are per 5 lb (2.3 kg) of bone-in chicken or per 2 lb ground meat unless stated.",
+  "salting": "Use about 3/4 tsp Diamond Crystal kosher salt (or 1/2 tsp Morton) per lb of raw meat. The old 3 tbsp per 5 lb was over 2x too salty.",
+  "rubs": [
+    { "id": "all-purpose", "name": "All-purpose savory", "perFiveLb": { "kosher salt": "1 tbsp + 1 tsp", "black pepper": "2 tsp", "garlic powder": "2 tbsp", "smoked paprika": "1 tbsp", "onion powder": "1 tbsp" } },
+    { "id": "cajun", "name": "Cajun", "perFiveLb": { "kosher salt": "1 tbsp", "paprika": "2 tbsp", "garlic powder": "1 tbsp", "onion powder": "1 tbsp", "cayenne": "1-2 tsp", "dried thyme": "2 tsp", "dried oregano": "2 tsp", "black pepper": "2 tsp" } },
+    { "id": "mexican-taco", "name": "Taco / fajita", "perFiveLb": { "kosher salt": "1 tbsp", "chili powder": "3 tbsp", "cumin": "1 tbsp", "smoked paprika": "1 tbsp", "garlic powder": "2 tsp", "oregano": "2 tsp", "lime juice": "finish with 3 tbsp after cooking" } },
+    { "id": "jerk", "name": "Jerk-style", "perFiveLb": { "kosher salt": "1 tbsp", "allspice": "1 tbsp", "dried thyme": "1 tbsp", "cayenne": "1-2 tsp", "brown sugar": "1 tbsp", "garlic powder": "1 tbsp", "cinnamon": "1/2 tsp", "black pepper": "2 tsp" } },
+    { "id": "greek-lemon-oregano", "name": "Greek lemon-oregano", "perFiveLb": { "kosher salt": "1 tbsp", "dried oregano": "2 tbsp", "garlic powder": "1 tbsp", "lemon zest": "2 lemons", "olive oil": "3 tbsp", "black pepper": "2 tsp" } },
+    { "id": "curry", "name": "Curry-style", "perFiveLb": { "kosher salt": "1 tbsp", "curry powder": "3 tbsp", "cumin": "1 tbsp", "turmeric": "2 tsp", "garlic powder": "1 tbsp", "ginger powder": "2 tsp" } },
+    { "id": "italian-herb", "name": "Italian herb", "perFiveLb": { "kosher salt": "1 tbsp", "dried Italian seasoning": "3 tbsp", "garlic powder": "1 tbsp", "red pepper flakes": "1 tsp", "black pepper": "2 tsp" } }
+  ],
+  "marinades": [
+    { "id": "teriyaki-ish", "name": "Soy-honey-ginger", "ingredients": "1/2 cup soy sauce, 1/4 cup honey, 2 tbsp rice vinegar, 1 tbsp grated ginger, 4 cloves garlic; for 3-4 lb; 2-8 h", "bestFor": ["thigh-boneless-skinless", "drumstick", "breast-boneless-skinless"] },
+    { "id": "yogurt-tandoori", "name": "Yogurt marinade", "ingredients": "1 cup plain Greek yogurt, 2 tbsp lemon juice, 1 tbsp curry or garam masala, 1 tsp salt, 3 cloves garlic; 4-12 h", "bestFor": ["thigh-bone-in-skin-on", "thigh-boneless-skinless", "breast-boneless-skinless"], "note": "Acid and dairy tenderize lean breast. Do not marinate over 24 h." },
+    { "id": "lime-cilantro", "name": "Lime-cilantro", "ingredients": "1/3 cup lime juice, 1/4 cup oil, 1/2 cup cilantro, 4 cloves garlic, 1 tsp cumin, 1 tsp salt; 2-6 h", "bestFor": ["thigh-boneless-skinless", "breast-boneless-skinless", "flank-skirt"] },
+    { "id": "balsamic-garlic", "name": "Balsamic-garlic", "ingredients": "1/3 cup balsamic, 1/4 cup olive oil, 4 cloves garlic, 1 tbsp Dijon, 1 tsp salt; 2-8 h", "bestFor": ["thigh-bone-in-skin-on", "drumstick", "breast-bone-in-skin-on"] }
+  ],
+  "sauces": [
+    { "id": "soy-honey", "name": "Soy + honey (current bowl sauce)", "ingredients": "2.5 tsp soy sauce + 2 tsp honey per bowl", "kcal": 51 },
+    { "id": "peanut", "name": "Peanut sauce", "ingredients": "2 tbsp peanut butter, 1 tbsp soy, 1 tbsp lime juice, 1 tsp sriracha, water to thin" },
+    { "id": "tzatziki-ish", "name": "Yogurt-garlic sauce", "ingredients": "1/2 cup Greek yogurt, 1 grated garlic clove, lemon juice, salt, dill or cucumber" },
+    { "id": "buffalo", "name": "Buffalo", "ingredients": "1/2 cup hot sauce + 2 tbsp melted butter or oil" },
+    { "id": "salsa-verde", "name": "Green salsa", "ingredients": "Store-bought tomatillo salsa; about 10 kcal per 2 tbsp" }
+  ],
+  "spiceBudgetNote": "Cheapest way to stock a rotating spice rack is the bulk or international aisle: cumin, chili powder, smoked paprika, garlic powder, oregano and curry powder cover 6 of 7 rubs above."
+}

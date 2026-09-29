@@ -1,0 +1,164 @@
+{
+  "version": "1.0",
+  "description": "Ingredient catalog with cut/form variants. Macros are per 100 g. 'verified' entries were pulled from the USDA FoodData Central API (SR Legacy) with the FDC id shown; 'reference' entries are standard USDA SR Legacy values transcribed by hand and should be re-checked against FDC before being relied on.",
+  "units": { "macros": "per 100 g", "yield": "percent of purchased weight" },
+  "categories": {
+    "chicken": {
+      "overview": "Cut choice changes macros, cost, cook time and how well it holds up for meal prep more than any other decision. Dark meat (thigh, drumstick) has more fat and connective tissue, so it survives 4 days of reheating; breast is leanest but dries out fast.",
+      "cuts": [
+        {
+          "id": "thigh-bone-in-skin-on",
+          "name": "Chicken thigh, bone-in, skin-on",
+          "priceTier": "cheapest (family pack)",
+          "estCostPerLb": 1.25,
+          "cookedMeatYieldPct": { "value": 40, "note": "approx. cooked skinless meat as % of raw purchased weight (bone ~25%, skin ~8%, then ~20-25% cook loss). Range 38-45. Not from a single USDA table." },
+          "raw": { "kcal": 221, "protein": 16.5, "fat": 16.6, "carbs": 0.25, "fdcId": 172385, "status": "verified" },
+          "cookedRoastedMeatAndSkin": { "kcal": 232, "protein": 23.3, "fat": 14.7, "carbs": 0, "fdcId": 173625, "status": "verified" },
+          "cookedRoastedMeatOnly": { "kcal": 179, "protein": 24.8, "fat": 8.15, "carbs": 0, "fdcId": 172388, "status": "verified" },
+          "bestMethods": ["sheet-pan-roast", "pan-sear-then-roast", "braise", "slow-cooker", "air-fryer", "grill"],
+          "mealPrep": "Best all-round batch protein. Stays juicy on day 4. Pull the skin off before portioning if you need to hit a fat target; skin does not stay crisp in the fridge.",
+          "targetTemp": "175F (thigh connective tissue needs >165F to be tender; 165F is the safe minimum)"
+        },
+        {
+          "id": "thigh-boneless-skinless",
+          "name": "Chicken thigh, boneless, skinless",
+          "priceTier": "mid (about 2x bone-in per lb, but ~100% edible)",
+          "estCostPerLb": 3.0,
+          "cookedMeatYieldPct": { "value": 75, "note": "approx. cook loss only, no bone or skin" },
+          "raw": { "kcal": 121, "protein": 19.7, "fat": 4.12, "carbs": 0, "fdcId": 173627, "status": "verified" },
+          "cookedRoastedMeatOnly": { "kcal": 179, "protein": 24.8, "fat": 8.15, "carbs": 0, "fdcId": 172388, "status": "verified" },
+          "bestMethods": ["sheet-pan-roast", "skillet-sear", "grill", "air-fryer", "slow-cooker", "stir-fry", "braise"],
+          "mealPrep": "Fastest dark-meat option (about half the oven time of bone-in). Dries out if pushed past ~175F.",
+          "targetTemp": "175F"
+        },
+        {
+          "id": "breast-boneless-skinless",
+          "name": "Chicken breast, boneless, skinless",
+          "priceTier": "mid to high",
+          "estCostPerLb": 2.5,
+          "cookedMeatYieldPct": { "value": 75, "note": "approx. cook loss only" },
+          "raw": { "kcal": 120, "protein": 22.5, "fat": 2.62, "carbs": 0, "fdcId": 171077, "status": "verified" },
+          "cookedRoastedMeatOnly": { "kcal": 165, "protein": 31.0, "fat": 3.57, "carbs": 0, "fdcId": 171477, "status": "verified" },
+          "bestMethods": ["sheet-pan-roast", "poach", "sous-vide", "slow-cooker-shred", "grill", "instant-pot-shred"],
+          "mealPrep": "Highest protein per calorie but the least forgiving. Pull at 160-165F and rest; poaching or shredding in sauce holds moisture best across 4 days.",
+          "targetTemp": "165F (pull at 160F and rest to carry over)"
+        },
+        {
+          "id": "breast-bone-in-skin-on",
+          "name": "Chicken breast, bone-in, skin-on (split breast)",
+          "priceTier": "cheap when on sale",
+          "estCostPerLb": 1.6,
+          "cookedMeatYieldPct": { "value": 50, "note": "approx.; bone-in breast is juicier than boneless but takes 40-55 min at 375-400F vs 25-30 min boneless" },
+          "raw": { "kcal": 172, "protein": 20.8, "fat": 9.25, "carbs": 0, "fdcId": 171474, "status": "verified" },
+          "cookedRoastedMeatAndSkin": { "kcal": 197, "protein": 29.8, "fat": 7.78, "carbs": 0, "fdcId": 171075, "status": "verified" },
+          "bestMethods": ["roast", "grill", "air-fryer"],
+          "mealPrep": "Good middle ground: leaner than thigh, juicier than boneless breast. Remove skin for portions.",
+          "targetTemp": "165F"
+        },
+        {
+          "id": "drumstick",
+          "name": "Chicken drumstick, bone-in, skin-on",
+          "priceTier": "cheapest per gram of protein when on sale",
+          "estCostPerLb": 1.0,
+          "cookedMeatYieldPct": { "value": 45, "note": "approx.; USDA institutional standard yield for bulk drums lists drum meat 57% + skin 8% of raw weight before cook loss" },
+          "raw": { "kcal": 161, "protein": 18.1, "fat": 9.2, "carbs": 0.11, "fdcId": 172373, "status": "verified" },
+          "cookedRoastedMeatAndSkin": { "kcal": 191, "protein": 23.4, "fat": 10.2, "carbs": 0, "fdcId": 173612, "status": "verified" },
+          "bestMethods": ["sheet-pan-roast", "air-fryer", "grill", "braise", "slow-cooker"],
+          "mealPrep": "Very forgiving, needs no trimming, and reheats well. Tendons make the meat a little fiddly to strip for bowls.",
+          "targetTemp": "175F"
+        },
+        {
+          "id": "wing",
+          "name": "Chicken wing, skin-on",
+          "priceTier": "expensive per usable gram (mostly skin and bone)",
+          "estCostPerLb": 3.0,
+          "raw": { "kcal": 191, "protein": 17.5, "fat": 12.8, "carbs": 0, "fdcId": 172390, "status": "verified" },
+          "rawMeatOnly": { "kcal": 126, "protein": 22.0, "fat": 3.54, "carbs": 0, "fdcId": 173632, "status": "verified" },
+          "bestMethods": ["roast-high", "air-fryer", "grill"],
+          "mealPrep": "Not a macro-efficient batch protein. Treat as an occasional meal, not a staple.",
+          "targetTemp": "175F"
+        },
+        {
+          "id": "leg-quarter",
+          "name": "Chicken leg quarter (thigh + drumstick, bone-in, skin-on)",
+          "priceTier": "usually the cheapest chicken in the store",
+          "estCostPerLb": 0.9,
+          "raw": { "kcal": 214, "protein": 16.4, "fat": 16.0, "carbs": 0.17, "fdcId": 172378, "status": "verified" },
+          "cookedRoastedMeatAndSkin": { "kcal": 184, "protein": 24.0, "fat": 8.99, "carbs": 0, "fdcId": 173617, "status": "verified" },
+          "bestMethods": ["sheet-pan-roast", "braise", "slow-cooker", "grill"],
+          "mealPrep": "Budget-floor option. Roast whole at 425F, or split at the joint for even cooking.",
+          "targetTemp": "175F"
+        },
+        {
+          "id": "whole-chicken",
+          "name": "Whole chicken (roasting or fryer)",
+          "priceTier": "cheap; also yields carcass for stock",
+          "estCostPerLb": 1.3,
+          "raw": { "kcal": 215, "protein": 18.6, "fat": 15.1, "carbs": 0, "fdcId": 171447, "status": "verified" },
+          "cookedRoastedMeatAndSkin": { "kcal": 239, "protein": 27.3, "fat": 13.6, "carbs": 0, "fdcId": 171450, "status": "verified" },
+          "bestMethods": ["roast", "spatchcock-roast", "slow-cooker", "rotisserie-store-bought"],
+          "mealPrep": "Best value if you also make stock. Spatchcocking cooks it evenly in about 45-50 min at 450F.",
+          "targetTemp": "165F in the breast, 175F in the thigh"
+        },
+        {
+          "id": "ground-chicken",
+          "name": "Ground chicken",
+          "priceTier": "mid",
+          "estCostPerLb": 3.0,
+          "raw": { "kcal": 143, "protein": 17.4, "fat": 8.1, "carbs": 0.04, "status": "reference" },
+          "bestMethods": ["skillet-crumble", "meatballs", "patties"],
+          "mealPrep": "Very lean and mild; needs sauce, egg or breadcrumb binder. Cook to 165F.",
+          "targetTemp": "165F"
+        }
+      ]
+    },
+    "beef": {
+      "overview": "Ground beef ratio (lean/fat) drives everything. Fat renders out during cooking, so cooked macros depend on whether you drain.",
+      "cuts": [
+        { "id": "ground-beef-73-27", "name": "Ground beef 73/27", "estCostPerLb": 4.5, "raw": { "kcal": 332, "protein": 14.5, "fat": 28.0, "carbs": 0, "status": "reference" }, "bestMethods": ["burgers-griddled"], "mealPrep": "Too fatty for bowls; drain heavily or skip." },
+        { "id": "ground-beef-80-20", "name": "Ground beef 80/20 (chuck)", "estCostPerLb": 5.5, "raw": { "kcal": 254, "protein": 17.2, "fat": 20.0, "carbs": 0, "status": "reference" }, "bestMethods": ["burgers", "meatballs", "skillet-crumble"], "mealPrep": "Best flavor and juiciness; drain about half the fat for bowls." },
+        { "id": "ground-beef-85-15", "name": "Ground beef 85/15 (round or chuck blend)", "estCostPerLb": 6.0, "raw": { "kcal": 215, "protein": 18.6, "fat": 15.0, "carbs": 0, "status": "reference" }, "bestMethods": ["meatloaf", "meatballs", "stuffed-peppers"], "mealPrep": "Good compromise where egg or breadcrumbs already add moisture." },
+        { "id": "ground-beef-90-10", "name": "Ground beef 90/10 (sirloin)", "estCostPerLb": 7.0, "raw": { "kcal": 176, "protein": 20.0, "fat": 10.0, "carbs": 0, "status": "reference" }, "bestMethods": ["tacos-in-sauce", "chili", "pasta-sauce"], "mealPrep": "Dry on its own; use in sauce, chili or with added moisture." },
+        { "id": "ground-beef-93-7", "name": "Ground beef 93/7", "estCostPerLb": 7.5, "raw": { "kcal": 152, "protein": 21.4, "fat": 7.0, "carbs": 0, "status": "reference" }, "bestMethods": ["chili", "sauces"], "mealPrep": "Only in sauce-heavy dishes; makes dry, dense burgers." },
+        { "id": "chuck-roast", "name": "Chuck roast", "estCostPerLb": 6.5, "bestMethods": ["braise", "slow-cooker", "pressure-cook"], "mealPrep": "Tough cut that becomes tender and shreddable after 3-4 h at low heat. Freezes very well." },
+        { "id": "flank-skirt", "name": "Flank / skirt steak", "estCostPerLb": 9.0, "bestMethods": ["marinate-and-grill", "sear-slice-against-grain"], "mealPrep": "Slice thin against the grain; reheats fine if not overcooked." }
+      ]
+    },
+    "turkey": {
+      "overview": "Ground turkey lean labels reflect how much dark meat and skin is in the blend. 99% is almost all breast.",
+      "cuts": [
+        { "id": "ground-turkey-99", "name": "Ground turkey 99% lean", "estCostPerLb": 5.5, "bestMethods": ["in-sauce", "chili"], "mealPrep": "Dries out quickly. Only use in sauce-based dishes." },
+        { "id": "ground-turkey-93-7", "name": "Ground turkey 93/7", "estCostPerLb": 4.0, "raw": { "kcal": 150, "protein": 18.7, "fat": 8.3, "carbs": 0, "status": "reference" }, "bestMethods": ["skillet-crumble", "meatballs", "chili"], "mealPrep": "Most useful all-round blend." },
+        { "id": "ground-turkey-85-15", "name": "Ground turkey 85/15", "estCostPerLb": 3.75, "bestMethods": ["burgers", "meatballs"], "mealPrep": "Juicier and more forgiving." }
+      ]
+    },
+    "pork": {
+      "cuts": [
+        { "id": "pork-shoulder-butt", "name": "Pork shoulder / Boston butt", "estCostPerLb": 2.5, "bestMethods": ["slow-cooker", "braise", "smoke"], "mealPrep": "One of the best cost-per-portion proteins. 8-10 h low-and-slow or about 90 min pressure cook; shreds and freezes well." },
+        { "id": "pork-loin", "name": "Pork loin (boneless)", "estCostPerLb": 3.0, "bestMethods": ["roast", "slice-and-sear"], "mealPrep": "Lean; cook to 145F and rest 3 min. Dries out if overcooked." },
+        { "id": "pork-chop-bone-in", "name": "Pork chop, bone-in", "estCostPerLb": 3.5, "bestMethods": ["pan-sear", "grill", "bake"], "mealPrep": "Brine 30 min for juiciness. 145F + 3 min rest." }
+      ]
+    },
+    "eggs-and-dairy": {
+      "cuts": [
+        { "id": "egg-whole", "name": "Eggs, whole", "estCostPerDozen": 3.0, "raw": { "kcal": 143, "protein": 12.6, "fat": 9.5, "carbs": 0.7, "status": "reference" }, "bestMethods": ["hard-boil", "scramble", "bake-egg-muffins"], "mealPrep": "About 6 g protein per large egg. Hard-boiled keep 7 days in the shell, per USDA." },
+        { "id": "greek-yogurt-plain", "name": "Greek yogurt, plain non-fat", "estCostPer32oz": 4.5, "raw": { "kcal": 59, "protein": 10.2, "fat": 0.4, "carbs": 3.6, "status": "reference" }, "mealPrep": "Cheap protein for oats, sauces and marinades." },
+        { "id": "cottage-cheese", "name": "Cottage cheese, low-fat", "estCostPer16oz": 3.0, "raw": { "kcal": 72, "protein": 12.4, "fat": 1.0, "carbs": 2.7, "status": "reference" }, "mealPrep": "About 12 g protein per 100 g; blends into scrambled eggs and sauces." }
+      ]
+    },
+    "fish-and-plant-protein": {
+      "cuts": [
+        { "id": "tuna-canned-water", "name": "Tuna, light, canned in water, drained", "estCostPerCan": 1.25, "raw": { "kcal": 116, "protein": 25.5, "fat": 0.8, "carbs": 0, "status": "reference" }, "mealPrep": "Zero-cook fallback. Light tuna has lower mercury than albacore." },
+        { "id": "lentils-dry", "name": "Lentils, dry", "estCostPerLb": 1.6, "raw": { "kcal": 352, "protein": 24.6, "fat": 1.06, "carbs": 63.4, "status": "reference" }, "mealPrep": "Cheapest protein per dollar. Lower protein quality (incomplete amino acid profile) than animal sources; pairs with rice." },
+        { "id": "black-beans-dry", "name": "Black beans, dry", "estCostPerLb": 1.6, "raw": { "kcal": 341, "protein": 21.6, "fat": 1.4, "carbs": 62.4, "status": "reference" }, "mealPrep": "Cook a big pot or pressure-cook 25-30 min unsoaked." }
+      ]
+    }
+  },
+  "carbs": [
+    { "id": "rice-white-long-grain", "name": "White rice, long-grain", "raw": { "kcal": 365, "protein": 7.1, "fat": 0.7, "carbs": 80.0, "status": "reference" }, "cooked": { "kcal": 130, "protein": 2.7, "fat": 0.3, "carbs": 28.2, "status": "reference" }, "note": "1 cup cooked is about 158 g. Cool within 2 h and refrigerate; reheat to 165F." },
+    { "id": "rice-brown", "name": "Brown rice", "cooked": { "kcal": 123, "protein": 2.7, "fat": 1.0, "carbs": 25.6, "status": "reference" }, "note": "More fiber, longer cook (about 40-45 min). White rice digests faster, which is preferable close to and during endurance sessions." },
+    { "id": "oats-rolled", "name": "Rolled oats, dry", "raw": { "kcal": 389, "protein": 16.9, "fat": 6.9, "carbs": 66.3, "status": "reference" } },
+    { "id": "potato-russet", "name": "Russet potato, raw", "raw": { "kcal": 79, "protein": 2.1, "fat": 0.1, "carbs": 18.1, "status": "reference" }, "note": "Cheap carb; roasts well in batch." },
+    { "id": "pasta-dry", "name": "Pasta / orzo, dry", "raw": { "kcal": 371, "protein": 13.0, "fat": 1.5, "carbs": 74.7, "status": "reference" } }
+  ]
+}
