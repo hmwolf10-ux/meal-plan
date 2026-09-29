@@ -56,7 +56,7 @@
       "ing": [["28","oz","crushed tomatoes"],["1","","bell pepper, diced"],["1","","onion, diced"],["3","","garlic cloves"],["1","tsp","cumin"],["1","tsp","paprika"],["6","","eggs"],["1/4","cup","crumbled feta"],["1","tsp","kosher salt"]],
       "steps": ["Sauté onion and pepper; add garlic, spices, tomatoes and salt; simmer 10 min.","Make wells and crack in eggs; cover 6-8 min until whites set.","Top with feta."],
       "notes": "Serve with bread or rice." },
-    { "id": "egg-fried-rice", "name": "Egg Fried Rice", "category": "eggs", "method": "stir-fry", "cuisine": "chinese", "servings": 1, "time": 10, "macros": { "kcal": 600, "protein": 27, "carbs": 74, "fat": 19.5, "basis": "3 eggs + 1.5 cups rice + 1/2 cup veg + oil + soy" },
+    { "id": "egg-fried-rice", "name": "Egg Fried Rice", "category": "eggs", "method": "stir-fry", "cuisine": "chinese", "servings": 1, "time": 10,
       "ing": [["3","","eggs"],["1.5","cup","cold cooked rice"],["1/2","cup","frozen mixed vegetables"],["1","tsp","oil"],["1","tbsp","soy sauce"]],
       "steps": ["Scramble eggs in the oil and push aside.","Add vegetables then rice; fry 3-4 min until hot.","Stir in soy sauce and eggs."],
       "notes": "Day-old rice works best." },

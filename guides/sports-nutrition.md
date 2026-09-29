@@ -40,7 +40,7 @@ This repo's example: 160 g protein, 245 g carbs, 68 g fat, about 1,904 kcal.
 
 **Gut training:** rehearse race-day fueling in long runs for 4–8 weeks; the gut adapts.
 **Sample fuel items:** gels (~20–25 g carb), chews, sports drink (6–8% carbohydrate, about 14–19 g per 8 oz), bananas, rice cakes, dates, pretzels, honey packets.
-**Pre-race meal:** see recipe `pre-race-carb-bowl` in `data/cookbook/meal-prep.json`.
+**Pre-race meal:** see the "Pre-Race / Long-Run Carb Bowl" recipe (Recipes tab, category Bowls).
 
 ## 4. Hydration
 - Baseline: about 0.5 oz per lb body weight per day (Huberman Wiki heuristic); add for sweat.

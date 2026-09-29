@@ -1,6 +1,6 @@
 {
   "name": "Original weekly plan (1 person, 7 days)",
-  "targets": { "kcal": 1904, "protein": 160, "carbs": 245, "fat": 68 },
+  "targets": { "kcal": 2000, "protein": 170 },
   "items": [
     { "id": "batch-chicken-thighs", "servings": 14 },
     { "id": "batch-rice", "servings": 15 },

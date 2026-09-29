@@ -73,4 +73,4 @@ Salt-and-pepper (coarse), garlic, cumin, chili powder, smoked paprika, coffee-ch
 - Do not reheat steak in a microwave; slice cold onto a bowl or briefly warm in a hot pan.
 
 ## Recipes using beef
-Recipes: `data/cookbook/beef-pork-turkey.json`, or the Recipe Book in `index.html`.
+Find beef recipes on the Recipes tab (category Beef).

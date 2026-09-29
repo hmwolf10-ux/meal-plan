@@ -25,6 +25,7 @@
 | [micahcochran/json-cookbook](https://github.com/micahcochran/json-cookbook) | per recipe CC/PD | 100 schema.org recipes | Reviewed; mostly cocktails and sides, not relevant |
 | [jakevdp/open-recipe-data](https://github.com/jakevdp/open-recipe-data) | CC BY 3.0 | Open Recipe Project dump (recipeitems.json.gz) | Reviewed; scraped web recipes, not adopted |
 | [dspray95/open-recipe](https://github.com/dspray95/open-recipe) | Unlicense | Scraper for BBC Good Food | Not used |
+| [Ovi/DummyJSON](https://github.com/Ovi/DummyJSON) | MIT | Sample recipe dataset | 50 recipes are imported unchanged (steps preserved) as "no amounts" reference recipes in `data/recipes/reference.json`; hidden by default because they cannot be scaled |
 | [jzarca01/awesome-food](https://github.com/jzarca01/awesome-food) | - | Curated food project list | Discovery |
 | [jrhizor/awesome-nutrition-tracking](https://github.com/jrhizor/awesome-nutrition-tracking) | - | List of nutrition databases and APIs | Discovery |
 

@@ -137,4 +137,4 @@ Meat, rice (dry), oats, beans, vegetables, noodles, milk, eggs: multiply exactly
 Digital scale, 1-cup measure, 1/2 cup, 1 tbsp, 1 tsp, ice-cream scoop (about 1/4 cup), deli containers, freezer bags labeled by date.
 
 ## 8. Recipe scaler
-Multiply every quantity by **target servings ÷ recipe servings**, then apply the non-linear rules above. Every recipe in `data/cookbook/` has numeric quantities; the Recipe Book in `index.html` scales them by servings and applies the rules above (salt and strong spices scale about 75% past 2x).
+Multiply every quantity by **target servings ÷ recipe servings**, then apply the non-linear rules above. The Recipes tab does this for you: open a recipe and change servings, and it applies the rules above (salt and strong spices scale about 75% past 2x).

@@ -49,7 +49,7 @@ Total hands-on time is about 45–60 min; the rest is waiting.
 ## 4. Assemble, don't cook, on weekdays
 
 Bowl formula: **protein + starch + vegetable + sauce**.
-- 5.5 oz protein, 1 cup rice, 1/2 cup vegetables, 1 tbsp sauce = about 565 kcal, 45 g protein (chicken bowl, recipe `chicken-rice-bowl` in `data/cookbook/meal-prep.json`).
+- 5.5 oz protein, 1 cup rice, 1/2 cup vegetables, 1 tbsp sauce = about 580 kcal, 46 g protein (the "Chicken Rice Bowl" recipe on the Recipes tab; the app calculates it from the ingredients).
 - Change the sauce, not the process: teriyaki, buffalo, chimichurri, peanut, curry, salsa.
 
 ## 5. Containers and layout
