@@ -230,41 +230,26 @@ const Core = (() => {
     const ids = l => l.map(byId).filter(r => has(r) && r.mac.g <= cap).map(r => item([r]));
     return { m: [...composed, ...complete], b: ids(BREAKFASTS), s: ids(SNACKS) };
   }
-  const SESSIONS = [[0, 3], [3, 7]];   // cook Sunday for Sun-Tue, cook Wednesday for Wed-Sat
+  // One week of batch cooking: one breakfast, one lunch, one dinner and one snack, cooked once and packed into containers.
   function assemble(st, goals) {
-    const days = Array.from({ length: 7 }, () => ({})), prep = SESSIONS.map(() => new Map()), addPrep = (si, id, s) => prep[si].set(id, (prep[si].get(id) || 0) + s);
-    SESSIONS.forEach(([from, to], si) => {
-      const n = to - from, b = st.b[si], l = st.l[si], d = st.d[si], sn = st.s[si], base = b.kcal + l.kcal + d.kcal + sn.kcal, sc = goals.kcal - base > sn.kcal * 0.6 ? 2 : 1;
-      const slots = [['breakfast', b, 1], ['lunch', l, 1], ['dinner', d, 1], ['snacks', sn, sc]];
-      for (let day = from; day < to; day++) slots.forEach(([slot, it, cnt]) => (days[day][slot] = days[day][slot] || []).push({ p: it.parts.map(r => r.id), s: cnt, ns: true }));
-      slots.forEach(([, it, cnt]) => it.parts.forEach(r => { addPrep(si, r.id, n * cnt); const rc = riceCups(r, n * cnt); if (rc) addPrep(si, 'batch-rice', Math.ceil(rc)); }));
-    });
-    SESSIONS.forEach(([from, to], si) => {
-      days[from].prep = [...prep[si]].map(([r, s]) => ({ r, s: Math.max(1, Math.ceil(s)) }));
-      const bn = Object.fromEntries(days[from].prep.map(e => [e.r, e.s]));
-      for (let day = from; day < to; day++) ['breakfast', 'lunch', 'dinner', 'snacks'].forEach(k => (days[day][k] || []).forEach(e => { e.bn = Object.fromEntries(e.p.map(id => [id, bn[id]])); }));
-    });
-    return days;
+    const parts = new Map(), add = (id, s, counted = true) => { const p = parts.get(id) || { s: 0, c: 0 }; p.s += s; if (counted) p.c += s; parts.set(id, p); }, sc = goals.kcal - (st.b.kcal + st.l.kcal + st.d.kcal + st.s.kcal) > st.s.kcal * 0.6 ? 2 : 1;
+    [[st.b, 1], [st.l, 1], [st.d, 1], [st.s, sc]].forEach(([it, cnt]) => it.parts.forEach(r => { add(r.id, 7 * cnt); const rc = riceCups(r, 7 * cnt); if (rc) add('batch-rice', Math.ceil(rc), false); }));
+    return { items: [...parts].map(([r, p]) => { const s = Math.max(1, Math.ceil(p.s)); return p.c >= p.s ? { r, s } : { r, s, c: Math.ceil(p.c) }; }), sc };
   }
   function evalPlan(st, goals, budget) {
-    const days = assemble(st, goals), entries = days.flatMap(d => Object.entries(d).flatMap(([k, L]) => k === 'prep' ? L : L.filter(e => !e.ns))).map(e => ({ r: e.r, s: e.s })), c = planCost(entries);
-    const tot = days.map(d => dayTotals(d)), avg = k => tot.reduce((a, t) => a + t[k], 0) / 7, kcal = avg('kcal'), protein = avg('protein');
-    const same = (x, y) => x.parts.some(p => y.parts.some(q => p.id === q.id)), dup = (same(st.l[0], st.d[0]) ? 1 : 0) + (same(st.l[1], st.d[1]) ? 1 : 0) + (same(st.l[0], st.l[1]) ? 1 : 0) + (same(st.d[0], st.d[1]) ? 1 : 0) + (same(st.l[0], st.d[1]) ? 1 : 0) + (same(st.l[1], st.d[0]) ? 1 : 0);
-    const rep = (st.b[0].key === st.b[1].key ? 1 : 0) + (st.s[0].key === st.s[1].key ? 1 : 0), score = dup * 12 + rep * 4 + Math.max(0, c.weekly - budget) * 8 + Math.max(0, budget - c.weekly) * 0.1 + Math.abs(kcal - goals.kcal) / goals.kcal * 60 + Math.max(0, goals.protein * 0.9 - protein) / Math.max(1, goals.protein) * 60 + c.unknown * 5;
-    const containers = days.reduce((a, d) => a + ['breakfast', 'lunch', 'dinner', 'snacks'].reduce((b, k) => { const L = d[k] || []; return b + (L.length ? L[0].s : 0); }, 0), 0);
-    return { days, cost: c, kcal, protein, score, fits: c.weekly <= budget, containers };
+    const { items, sc } = assemble(st, goals), c = planCost(items), kcal = st.b.kcal + st.l.kcal + st.d.kcal + sc * st.s.kcal, protein = st.b.protein + st.l.protein + st.d.protein + sc * st.s.protein;
+    const same = (x, y) => x.parts.some(p => y.parts.some(q => p.id === q.id));
+    const score = (same(st.l, st.d) ? 12 : 0) + Math.max(0, c.weekly - budget) * 8 + Math.max(0, budget - c.weekly) * 0.1 + Math.abs(kcal - goals.kcal) / goals.kcal * 60 + Math.max(0, goals.protein * 0.9 - protein) / Math.max(1, goals.protein) * 60 + c.unknown * 5;
+    const name = it => it.parts.map(r => r.id);
+    return { items, cost: c, kcal, protein, score, fits: c.weekly <= budget, containers: 7 * (3 + sc), meals: { breakfast: name(st.b), lunch: name(st.l), dinner: name(st.d), snacks: name(st.s) } };
   }
-  // Finds a 7-day batch plan near the weekly budget and the calorie/protein goals. Different seeds give different plans.
+  // Finds a one-week batch plan near the weekly budget and the calorie/protein goals. Different seeds give different plans.
   function buildPlan(budget, goals, seed = Date.now(), container = 22) {
-    const rnd = mulberry(seed), pick = a => a[Math.floor(rnd() * a.length)], P = pools(container);
-    const two = a => [pick(a), pick(a)], rand = () => ({ b: two(P.b), l: two(P.m), d: two(P.m), s: two(P.s) }), pl = { b: P.b, l: P.m, d: P.m, s: P.s };
+    const rnd = mulberry(seed), pick = a => a[Math.floor(rnd() * a.length)], P = pools(container), pl = { b: P.b, l: P.m, d: P.m, s: P.s };
     let best = null;
-    for (let r = 0; r < 14; r++) {
-      let st = rand(), cur = evalPlan(st, goals, budget);
-      for (let i = 0; i < 40; i++) {
-        const key = pick(['b', 'l', 'd', 's']), idx = Math.floor(rnd() * 2), cand = { ...st, [key]: st[key].map((x, j) => j === idx ? pick(pl[key]) : x) }, e = evalPlan(cand, goals, budget);
-        if (e.score < cur.score) { st = cand; cur = e; }
-      }
+    for (let r = 0; r < 20; r++) {
+      let st = { b: pick(P.b), l: pick(P.m), d: pick(P.m), s: pick(P.s) }, cur = evalPlan(st, goals, budget);
+      for (let i = 0; i < 40; i++) { const key = pick(['b', 'l', 'd', 's']), cand = { ...st, [key]: pick(pl[key]) }, e = evalPlan(cand, goals, budget); if (e.score < cur.score) { st = cand; cur = e; } }
       if (!best || cur.score < best.score) best = cur;
     }
     return best;
