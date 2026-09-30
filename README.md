@@ -16,6 +16,10 @@ It works like a calorie-tracking app (daily plan, goals, food search), built aro
 | **Learn** | Search box for cooking questions across all guides, quick answers (safe temperatures, storage times, measuring, rice), a kitchen setup checklist, and the guides: chicken, beef, pork, fish, eggs, rice and vegetables, seasoning, shopping, portions and scaling, meal prep, food safety, sports nutrition, supplements, sources. Each guide has an "On this page" list. |
 | **Settings** | Grouped like a phone settings screen: Daily Goals (calories and macros, saved as you type), Work Out My Goals (sex, age, height, weight, activity and goal give a live suggestion you can apply), Shopping (weekly budget), Appearance (Light or Dark), Your Data (backup, restore, erase) and About. |
 
+## Batch weeks
+
+The planner assumes you batch cook and pack everything in deli containers (16 or 22 oz, set in Settings). **Build My Week** picks a budget-sized week as two cook days (day 1 feeds days 1-4, day 5 feeds days 5-7). A lunch or dinner container is either a complete batch dish (chili, curry, a rice bowl) or a protein dish packed with batch rice or potatoes and roasted vegetables, so it is always a full meal. Breakfasts and snacks are only things that batch and travel (oatmeal cups, burritos, energy bites, snack boxes). Shopping is built from what you cook in each session, and meals that do not fit your container size are left out.
+
 ## How the numbers work
 
 - **Calories and macros** are calculated from each recipe's ingredients using USDA values (`data/nutrition.json`), divided by servings. Every entry that maps to a single USDA food was checked against the USDA FoodData Central SR Legacy download. The calculation assumes you eat the skin on skin-on chicken. Bone-in cuts use the edible part only (working estimates).
