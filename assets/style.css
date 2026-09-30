@@ -148,3 +148,4 @@ ul.ings { list-style:none; padding:0; } ul.ings li { padding:9px 0; border-botto
 .entry.done .nm > a, .entry.done .kc { color:var(--mut); } .entry.done .nm > a { text-decoration:line-through; text-decoration-color:var(--line); }
 .entry .icon-btn { flex:none; color:var(--mut); width:40px; height:40px; }
 .week .dot.plan { background:var(--track); box-shadow:inset 0 0 0 1.5px var(--mut); }
+.shop-item .price { flex:none; font-weight:600; font-size:14.5px; } .shop-item.done .price { color:var(--faint); text-decoration:line-through; }

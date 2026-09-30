@@ -11,15 +11,15 @@ It works like a calorie-tracking app (daily plan, goals, food search), built aro
 | Tab | What it does |
 |---|---|
 | **Meal Plan** | Your plan for each day: Breakfast, Lunch, Dinner, Snacks. Tick the checkbox when you actually eat a meal; calories remaining, carbs, protein and fat count only what you have checked off (the card also shows what is planned). Tap a meal name or **How to make it** to open the recipe. Swipe days with the arrows or the week strip. **+ Add Food** searches recipes or **Quick Add** for anything else (a snack, a restaurant meal); adding food to today or a past day is marked eaten, future days are planned. **Ready-Made Weeks** fills a whole week. **Batch Prep** is for cooking-day recipes; it goes on the shopping list but is not counted as eaten. |
-| **Recipes** | 159 recipes. Search, filter by category, sort by protein, protein per calorie, calories or time, mark favorites. Open a recipe for nutrition per serving, a servings stepper that rescales every ingredient, steps, and **Add to Meal Plan**. |
-| **Shop** | The shopping list for the meals in your Meal Plan: next 7 days, today, this week or a custom range. Ingredients from all recipes are added together, shown as store packages ("1 half-gallon + 1 quart") with what the recipes use, sorted by store section, with checkboxes. Copy or share the list. No plan yet? Start with a ready-made week. |
+| **Recipes** | 179 recipes, including Basic Foods (banana, apple, peanut butter, yogurt and more) that say exactly what one serving is. Search, filter by category, sort by protein, protein per calorie, calories or time, mark favorites. Open a recipe for nutrition per serving, a servings stepper that rescales every ingredient, steps, and **Add to Meal Plan**. |
+| **Shop** | The shopping list for the meals in your Meal Plan: next 7 days, today, this week or a custom range. Ingredients from all recipes are added together and turned into one kind of package per item (a gallon of milk, a 32 oz tub of yogurt, not "a half-gallon plus a quart"). Fresh items are listed by store section; pantry staples that last weeks (rice, oats, oil, spices) sit in a separate **Pantry Stock** section with how many weeks a package lasts, so you buy them only when you run out. A rough cost per week is shown (typical US prices, a ballpark only). Copy or share the list. **Ready-Made Weeks** includes a Budget Week that comes to about $50. |
 | **Learn** | Search box for cooking questions across all guides, quick answers (safe temperatures, storage times, measuring, rice), a kitchen setup checklist, and the guides: chicken, beef, pork, fish, eggs, rice and vegetables, seasoning, shopping, portions and scaling, meal prep, food safety, sports nutrition, supplements, sources. Each guide has an "On this page" list. |
 | **Settings** | Your daily goals (with a calculator based on height, weight, age, activity and goal), backup and restore, erase data. |
 
 ## How the numbers work
 
 - **Calories and macros** are calculated from each recipe's ingredients using USDA values (`data/nutrition.json`), divided by servings. Every entry that maps to a single USDA food was checked against the USDA FoodData Central SR Legacy download. The calculation assumes you eat the skin on skin-on chicken. Bone-in cuts use the edible part only (working estimates).
-- **Calories remaining** = your goal − meals you have checked off. Batch Prep entries are not counted.
+- **Plan first: the top card shows what is planned against your goal. Checking meals off is optional and shows what you have eaten so far. Batch Prep entries are not counted.
 - **Scaling.** Amounts are multiplied by (servings you want) ÷ (servings the recipe makes) and turned into things you can measure (3 tsp becomes 1 tbsp). Salt and strong spices scale about 75% of the increase past double. Cooking time does not scale; use more pans.
 - **Shopping list.** Every recipe entry in the range is scaled to the servings you logged, ingredients are added together, and quantities are matched to store packages (`data/shopping.json`). Items made by another recipe in your plan ("cooked rice") are listed separately, not as shopping items.
 - **Goals calculator** uses the Mifflin-St Jeor estimate. It is a starting point, not medical advice.
@@ -36,9 +36,9 @@ assets/app.js              screens, navigation, storage
 assets/core.js             units and scaling, calories, shopping list, packages (no screen code)
 assets/style.css           look
 sw.js, manifest.webmanifest, icons/    install and offline support
-data/recipes/*.json        recipes, one file per group
+data/recipes/*.json        recipes, one file per group (basics.json = single foods)
 data/nutrition.json        ingredient nutrition
-data/shopping.json         store package sizes
+data/shopping.json         store package sizes, rough prices, pantry-stock flags
 data/plans/templates.json  ready-made weeks
 data/reference/*.json      cuts, methods, seasonings, supplements, fueling numbers
 guides/*.md                the guides shown in Learn

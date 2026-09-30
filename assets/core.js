@@ -1,14 +1,14 @@
 /* Core logic: units and scaling, nutrition, shopping list, store packages. No DOM here. */
 const Core = (() => {
-  const FILES = ['chicken', 'beef-pork-turkey', 'fish-eggs-plant', 'meal-prep', 'meals', 'snacks'];
-  let R = [], NUT = [], SHOP = [];
+  const FILES = ['basics', 'chicken', 'beef-pork-turkey', 'fish-eggs-plant', 'meal-prep', 'meals', 'snacks'];
+  let R = [], NUT = [], SHOP = [], FIXED = [], LOOSE = [], FALLBACK = [];
 
   // ---------- text ----------
   const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   const SMALLW = new Set(['and', 'or', 'with', 'in', 'of', 'the', 'a', 'an', 'to', 'for', 'on', 'over', 'from', 'no', 'vs']);
   const cap = s => { s = String(s || ''); return s.charAt(0).toUpperCase() + s.slice(1); };
   const title = s => String(s || '').split(' ').map((w, i) => { const m = w.match(/^(\W*)([a-z][\w'-]*)(\W*)$/); if (!m || (i > 0 && SMALLW.has(m[2]))) return w; return m[1] + m[2].charAt(0).toUpperCase() + m[2].slice(1) + m[3]; }).join(' ');
-  const CATS = { 'meal prep': 'Batch Prep', plant: 'Beans and Plant Protein', fish: 'Fish and Seafood', 'soups and stews': 'Soups and Stews', dinner: 'Dinners', bowls: 'Bowls' };
+  const CATS = { 'meal prep': 'Batch Prep', basics: 'Basic Foods', plant: 'Beans and Plant Protein', fish: 'Fish and Seafood', 'soups and stews': 'Soups and Stews', dinner: 'Dinners', bowls: 'Bowls' };
   const catLabel = c => CATS[c] || cap(c);
 
   // ---------- units and quantities ----------
@@ -113,35 +113,41 @@ const Core = (() => {
   const AISLE_ORDER = ['Produce', 'Meat and Fish', 'Dairy and Eggs', 'Pantry and Canned', 'Spices', 'Other'];
   const isMade = n => /^(cooked|poached|roasted|leftover|shredded|sliced|cold cooked)\b/i.test(n);
   const norm = n => n.toLowerCase().replace(/\(.*?\)/g, '').replace(/,.*$/, '').replace(/\b(optional|to taste|of choice|fresh|large|small|diced|sliced|chopped|minced|peeled)\b/g, '').replace(/\s+/g, ' ').trim().replace(/^cans?\s+/, '');
-  function needIn(x, unit) {
+  function needIn(x, rule) {
+    const unit = rule.unit;
     if (unit === 'cup') return x.t === 'vol' ? x.base / 48 : null;
     if (unit === 'tbsp') return x.t === 'vol' ? x.base / 3 : null;
     if (unit === 'oz') return x.t === 'wt' ? x.base : null;
     if (unit === 'scoop') return x.t === 'other' && x.unit === 'scoop' ? x.base : null;
-    if (unit === 'count') return x.t === 'count' || (x.t === 'other' && (x.unit === 'can' || x.unit === 'jar')) ? x.base : null;
+    if (unit === 'count') {
+      if (x.t === 'count' || (x.t === 'other' && (x.unit === 'can' || x.unit === 'jar'))) return x.base;
+      return x.t === 'vol' && rule.cupPer ? x.base / 48 / rule.cupPer : null;
+    }
     return null;
   }
-  function bestPack(need, pk) {
-    let best = null; const counts = [], maxN = pk.map(p => Math.ceil(need / p[2]) + 1);
-    (function rec(i, total) {
-      if (i === pk.length) {
-        if (total < need - 1e-6) return;
-        const n = counts.reduce((a, b) => a + b, 0), score = (total - need) + 0.25 * need * Math.max(0, n - 1);
-        if (!best || score < best.score - 1e-9) best = { counts: [...counts], score };
-        return;
-      }
-      for (let c = 0; c <= maxN[i]; c++) { counts[i] = c; rec(i + 1, total + c * pk[i][2]); }
-    })(0, 0);
-    return best;
+  const plural = (n, p) => n + ' ' + (n === 1 ? p[0] : p[1]);
+  // One kind of package per item: fewest packages, then least left over. Pantry staples get the biggest
+  // package that is still used up within about six weeks at this plan's pace.
+  function choosePackage(rule, need, days, stock) {
+    const pk = [...rule.packages].sort((a, b) => a[2] - b[2]), perWeek = need / Math.max(1, days / 7);
+    let best = null;
+    for (const p of pk) { const n = Math.ceil(need / p[2] - 1e-9), total = n * p[2]; if (!best || n < best.n || (n === best.n && total < best.total)) best = { p, n, total }; }
+    if (stock) { const big = pk.filter(p => p[2] <= perWeek * 6).pop(); if (big && big[2] > best.p[2]) { const n = Math.ceil(need / big[2] - 1e-9); best = { p: big, n, total: n * big[2] }; } }
+    const wk = best.total / perWeek;
+    return { pkg: plural(best.n, best.p), cost: best.n * best.p[3], stock, share: stock ? Math.min(1, need / best.total) : 1, weeks: stock && wk >= 2 ? Math.floor(wk) : 0 };
   }
-  function packagesFor(x) {
-    const rule = SHOP.find(r => r.re.test(x.name)); if (!rule) return null;
-    const need = needIn(x, rule.unit); if (need == null || need <= 0) return null;
-    const pk = [...rule.packages].sort((a, b) => b[2] - a[2]), b = bestPack(need, pk); if (!b) return null;
-    return b.counts.map((c, i) => c ? c + ' ' + (c === 1 ? pk[i][0] : pk[i][1]) : '').filter(Boolean).join(' + ');
+  function priceItem(x, days) {
+    const rule = SHOP.find(r => r.re.test(x.name));
+    if (rule) { const need = needIn(x, rule); if (need > 0) return choosePackage(rule, need, days, !!rule.stock); }
+    const fx = FIXED.find(r => r.re.test(x.name)); if (fx) return { pkg: fx.pkg, cost: fx.price, stock: !!fx.stock, share: fx.stock ? 0.08 : 1, weeks: 0 };
+    const lo = LOOSE.find(r => r.re.test(x.name));
+    if (lo) { const cost = x.t === 'wt' && lo.lb ? x.base / 16 * lo.lb : x.t === 'count' && lo.each ? x.base * lo.each : null; if (cost != null) return { pkg: null, cost, stock: false, share: 1, weeks: 0 }; }
+    const fb = FALLBACK.find(r => r.re.test(x.name)); if (fb) return { pkg: fb.pkg, cost: fb.price, stock: !!fb.stock, share: fb.stock ? 0.2 : 1, weeks: 0 };
+    return null;
   }
-  // entries: [{ r: recipeId, s: servings }]; returns { list, made, free }
-  function shopping(entries) {
+  // entries: [{ r: recipeId, s: servings }], days: length of the shopping range.
+  // returns { list, made, free }; list items carry pkg, cost (or null), stock, weeks
+  function shopping(entries, days = 7) {
     const M = new Map(), made = new Map(), free = new Set();
     for (const { r: id, s } of entries) {
       const r = byId(id); if (!r) continue; const f = s / r.servings;
@@ -158,7 +164,8 @@ const Core = (() => {
       let txt;
       if (x.t === 'vol') { const u = x.base >= 12 ? 'cup' : x.base >= 3 ? 'tbsp' : 'tsp'; txt = fmt(x.base / VOL[u], u); }
       else if (x.t === 'wt') txt = fmt(x.base, 'oz'); else if (x.t === 'other') txt = fmt(x.base, x.unit); else txt = fmt(x.base, '');
-      return { name: x.name, txt, pkg: buy ? packagesFor(x) : null, aisle: aisleOf(x.name) };
+      const info = buy ? priceItem(x, days) : null, aisle = aisleOf(x.name);
+      return { name: x.name, txt, pkg: info && info.pkg, cost: info ? info.cost : null, share: info ? info.share : 1, stock: info ? info.stock : aisle === 'Spices', weeks: info ? info.weeks : 0, aisle };
     });
     const list = out(M, true);
     return { list, made: out(made), free: [...free].filter(n => !list.some(x => x.name === n)) };
@@ -194,11 +201,12 @@ const Core = (() => {
 
   async function init() {
     NUT = (await (await fetch('data/nutrition.json')).json()).items.map(n => ({ ...n, re: new RegExp(n.m, 'i') }));
-    SHOP = (await (await fetch('data/shopping.json')).json()).rules.map(r => ({ ...r, re: new RegExp(r.match, 'i') }));
+    const sj = await (await fetch('data/shopping.json')).json(), rx = r => ({ ...r, re: new RegExp(r.match, 'i') });
+    SHOP = sj.rules.map(rx); FIXED = sj.fixed.map(rx); LOOSE = sj.loose.map(rx); FALLBACK = sj.fallback.map(rx);
     R = [];
     for (const f of FILES) { const r = await fetch(`data/recipes/${f}.json`); if (!r.ok) throw new Error(f + ' ' + r.status); (await r.json()).recipes.forEach(x => R.push(x)); }
     R.forEach(r => { r.mac = macrosOf(r); r.name = title(r.name); r.easy = isEasy(r); });
     return R;
   }
-  return { init, get recipes() { return R; }, byId, esc, cap, title, catLabel, num, fmt, ingText, normUnit, unitType, scaleFactor, VOL, WT, macrosOf, shopping, packagesFor, aisleOf, AISLE_ORDER, isMade, norm, entryMac, eaten, sumMeal, dayTotals, MEALS, ymd, parseYmd, addDays, calcGoals, isEasy };
+  return { init, get recipes() { return R; }, byId, esc, cap, title, catLabel, num, fmt, ingText, normUnit, unitType, scaleFactor, VOL, WT, macrosOf, shopping, priceItem, aisleOf, AISLE_ORDER, isMade, norm, entryMac, eaten, sumMeal, dayTotals, MEALS, ymd, parseYmd, addDays, calcGoals, isEasy };
 })();
