@@ -1,8 +1,8 @@
 {
-  "name": "Meal Diary: Recipes, Calories and Shopping List",
-  "short_name": "Meal Diary",
-  "description": "Log meals, track calories and macros, scale recipes, and build a shopping list.",
-  "start_url": "./#/diary",
+  "name": "Meal Plan: Recipes, Calories and Shopping List",
+  "short_name": "Meal Plan",
+  "description": "Plan meals, check them off, track calories and macros, scale recipes, and build a shopping list.",
+  "start_url": "./#/plan",
   "scope": "./",
   "display": "standalone",
   "background_color": "#f3f5f9",

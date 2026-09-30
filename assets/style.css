@@ -140,3 +140,11 @@ ul.ings { list-style:none; padding:0; } ul.ings li { padding:9px 0; border-botto
 @media (max-width:420px) { .summary { grid-template-columns:120px 1fr; gap:10px; } .ring { width:120px; height:120px; } .ring svg { width:120px; height:120px; } .ring .mid b { font-size:25px; } }
 @media (prefers-reduced-motion:reduce) { * { animation:none !important; transition:none !important; } }
 @media print { #bar, #nav, .btn, button { display:none !important; } main { padding:0; } }
+
+/* meal plan: check-off entries */
+.entry { cursor:default; } .entry:hover { background:none; }
+.entry .nm a { color:var(--fg); } .entry .nm a:hover { color:var(--blue); }
+.entry .sub a { color:var(--blue); }
+.entry.done .nm > a, .entry.done .kc { color:var(--mut); } .entry.done .nm > a { text-decoration:line-through; text-decoration-color:var(--line); }
+.entry .icon-btn { flex:none; color:var(--mut); width:40px; height:40px; }
+.week .dot.plan { background:var(--track); box-shadow:inset 0 0 0 1.5px var(--mut); }

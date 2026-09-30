@@ -172,8 +172,9 @@ const Core = (() => {
     return { kcal: r.mac.kcal * e.s, protein: r.mac.protein * e.s, carbs: r.mac.carbs * e.s, fat: r.mac.fat * e.s };
   }
   const MEALS = [['breakfast', 'Breakfast'], ['lunch', 'Lunch'], ['dinner', 'Dinner'], ['snacks', 'Snacks']];
-  function sumMeal(list) { const T = ZERO(); (list || []).forEach(e => { const m = entryMac(e); T.kcal += m.kcal; T.protein += m.protein; T.carbs += m.carbs; T.fat += m.fat; }); return T; }
-  function dayTotals(day) { const T = ZERO(); MEALS.forEach(([k]) => { const m = sumMeal(day && day[k]); T.kcal += m.kcal; T.protein += m.protein; T.carbs += m.carbs; T.fat += m.fat; }); return T; }
+  const eaten = e => e.done !== false;
+  function sumMeal(list, eatenOnly) { const T = ZERO(); (list || []).forEach(e => { if (eatenOnly && !eaten(e)) return; const m = entryMac(e); T.kcal += m.kcal; T.protein += m.protein; T.carbs += m.carbs; T.fat += m.fat; }); return T; }
+  function dayTotals(day, eatenOnly) { const T = ZERO(); MEALS.forEach(([k]) => { const m = sumMeal(day && day[k], eatenOnly); T.kcal += m.kcal; T.protein += m.protein; T.carbs += m.carbs; T.fat += m.fat; }); return T; }
 
   // ---------- dates ----------
   const ymd = d => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
@@ -199,5 +200,5 @@ const Core = (() => {
     R.forEach(r => { r.mac = macrosOf(r); r.name = title(r.name); r.easy = isEasy(r); });
     return R;
   }
-  return { init, get recipes() { return R; }, byId, esc, cap, title, catLabel, num, fmt, ingText, normUnit, unitType, scaleFactor, VOL, WT, macrosOf, shopping, packagesFor, aisleOf, AISLE_ORDER, isMade, norm, entryMac, sumMeal, dayTotals, MEALS, ymd, parseYmd, addDays, calcGoals, isEasy };
+  return { init, get recipes() { return R; }, byId, esc, cap, title, catLabel, num, fmt, ingText, normUnit, unitType, scaleFactor, VOL, WT, macrosOf, shopping, packagesFor, aisleOf, AISLE_ORDER, isMade, norm, entryMac, eaten, sumMeal, dayTotals, MEALS, ymd, parseYmd, addDays, calcGoals, isEasy };
 })();

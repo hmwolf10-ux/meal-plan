@@ -1,5 +1,5 @@
 'use strict';
-/* Meal Diary app: screens, routing, storage. Logic lives in core.js. */
+/* Meal Plan app: screens, routing, storage. Logic lives in core.js. */
 const { esc, cap, catLabel, fmt, ingText, MEALS, ymd, parseYmd, addDays } = Core;
 const $ = s => document.querySelector(s);
 
@@ -9,13 +9,14 @@ const ICON = {
   back: svg('<path d="M15 18l-6-6 6-6"/>'), next: svg('<path d="M9 18l6-6-6-6"/>'), cal: svg('<rect x="3" y="4.5" width="18" height="17" rx="3"/><path d="M8 2.5v4M16 2.5v4M3 10h18"/>'),
   heart: svg('<path d="M12 20.5s-7.5-4.7-9.6-9.3C.9 7.900 3 4.500 6.500 4.500c2 0 3.500 1 5.500 3 2-2 3.500-3 5.500-3 3.500 0 5.600 3.400 4.100 6.700-2.100 4.600-9.600 9.300-9.600 9.300z"/>'),
   copy: svg('<rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/>'), share: svg('<path d="M12 3v12M7 8l5-5 5 5M5 14v5a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-5"/>'),
-  diary: svg('<path d="M4 4.500A1.500 1.500 0 0 1 5.500 3H20v16H5.500A1.500 1.500 0 0 0 4 20.500zM4 20.500A1.500 1.500 0 0 0 5.500 22H20v-3M9 8h7M9 12h5"/>'),
+  edit: svg('<path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/>'),
+  plan: svg('<rect x="4" y="3" width="16" height="18" rx="3"/><path d="M8 8.5l1.5 1.500L12.500 7M8 15.500l1.500 1.500 3-3M15 9h2M15 16h2"/>'),
   recipes: svg('<path d="M7 3v8a2 2 0 0 0 2 2v8M11 3v8a2 2 0 0 1-2 2M9 3v6M17 3c-2 1.500-3 4-3 7 0 1.500 1 2.500 3 3v8"/>'),
   shop: svg('<circle cx="9" cy="20" r="1.500"/><circle cx="18" cy="20" r="1.500"/><path d="M2.500 3h3l2.500 12.500h11L21 7H6.500"/>'),
   learn: svg('<path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.500 10.900c.6.500 1 1.200 1 2V16h5v-.1c0-.8.4-1.500 1-2A6 6 0 0 0 12 3z"/>'),
   me: svg('<circle cx="12" cy="12" r="3"/><path d="M19.400 15a1.700 1.700 0 0 0 .3 1.800l.1.1a2 2 0 1 1-2.800 2.800l-.1-.1a1.700 1.700 0 0 0-1.800-.3 1.700 1.700 0 0 0-1 1.500V21a2 2 0 1 1-4 0v-.1a1.700 1.700 0 0 0-1.100-1.500 1.700 1.700 0 0 0-1.800.3l-.1.1a2 2 0 1 1-2.800-2.800l.1-.1a1.700 1.700 0 0 0 .3-1.800 1.700 1.700 0 0 0-1.500-1H3a2 2 0 1 1 0-4h.1a1.700 1.700 0 0 0 1.500-1.100 1.700 1.700 0 0 0-.3-1.800l-.1-.1a2 2 0 1 1 2.800-2.800l.1.1a1.700 1.700 0 0 0 1.800.3h0a1.700 1.700 0 0 0 1-1.500V3a2 2 0 1 1 4 0v.1a1.700 1.700 0 0 0 1 1.500h0a1.700 1.700 0 0 0 1.800-.3l.1-.1a2 2 0 1 1 2.800 2.800l-.1.1a1.700 1.700 0 0 0-.3 1.800v0a1.700 1.700 0 0 0 1.500 1H21a2 2 0 1 1 0 4h-.1a1.700 1.700 0 0 0-1.500 1z"/>'), x: svg('<path d="M6 6l12 12M18 6L6 18"/>')
 };
-const NAV = [['diary', 'Diary', ICON.diary], ['recipes', 'Recipes', ICON.recipes], ['shop', 'Shop', ICON.shop], ['learn', 'Learn', ICON.learn], ['me', 'Settings', ICON.me]];
+const NAV = [['plan', 'Meal Plan', ICON.plan], ['recipes', 'Recipes', ICON.recipes], ['shop', 'Shop', ICON.shop], ['learn', 'Learn', ICON.learn], ['me', 'Settings', ICON.me]];
 
 // ---------- storage ----------
 const store = { get(k, d) { try { const v = JSON.parse(localStorage.getItem('cb.' + k)); return v ?? d; } catch (e) { return d; } }, set(k, v) { try { localStorage.setItem('cb.' + k, JSON.stringify(v)); } catch (e) {} } };
@@ -29,8 +30,9 @@ const ALLMEALS = [...MEALS, ['prep', 'Batch Prep']];
 const mealName = k => (ALLMEALS.find(m => m[0] === k) || [0, cap(k)])[1];
 function dayOf(date) { const d = diary[date] = diary[date] || {}; ALLMEALS.forEach(([k]) => d[k] = d[k] || []); return d; }
 function tidy(date) { const d = diary[date]; if (d && ALLMEALS.every(([k]) => !(d[k] || []).length)) delete diary[date]; }
+const defDone = date => date <= today();
 function addEntry(date, meal, e) {
-  const en = { id: uid(), s: e.s }; if (e.r) en.r = e.r; if (e.q) en.q = e.q;
+  const en = { id: uid(), s: e.s, done: !!e.done }; if (e.r) en.r = e.r; if (e.q) en.q = e.q;
   dayOf(date)[meal].push(en); saveDiary();
   if (e.r) { recent = [e.r, ...recent.filter(x => x !== e.r)].slice(0, 20); store.set('recent', recent); }
   return en.id;
@@ -46,7 +48,7 @@ const r0 = n => Math.round(n);
 function setBar({ title, back, right = '' }) {
   $('#bar').hidden = !back;
   $('#barin').innerHTML = (back ? `<a class="icon-btn back" href="${back}" aria-label="Back">${ICON.back}</a>` : '') + `<h1>${esc(title)}</h1>${right}`;
-  document.title = title + ' · Meal Diary';
+  document.title = title === 'Meal Plan' ? title : title + ' · Meal Plan';
 }
 function setNav(root) {
   $('#navin').innerHTML = NAV.map(([k, l, ic]) => `<a href="#/${k}" ${k === root ? 'aria-current="page"' : ''}>${ic}<span>${l}</span></a>`).join('');
@@ -86,19 +88,22 @@ function macroRow(name, have, goal) {
   const pct = goal ? Math.min(100, have / goal * 100) : 0, over = name !== 'Protein' && goal && have > goal * 1.02;
   return `<div class="macro"><div class="top"><span>${name}</span><span>${r0(have)} / ${goal} g</span></div><div class="pbar ${over ? 'over' : ''}" role="img" aria-label="${name} ${r0(have)} of ${goal} grams"><i style="width:${pct}%"></i></div></div>`;
 }
-function viewDiary(date) {
+function viewPlan(date) {
   if (date && /^\d{4}-\d{2}-\d{2}$/.test(date)) selDate = date;
-  const day = diary[selDate] || {}, T = Core.dayTotals(day), rem = goals.kcal - T.kcal, over = rem < 0;
-  setBar({ title: 'Diary' });
+  const day = diary[selDate] || {}, P = Core.dayTotals(day), T = Core.dayTotals(day, true), rem = goals.kcal - T.kcal, over = rem < 0;
+  setBar({ title: 'Meal Plan' });
   const dow = parseYmd(selDate).getDay(), start = addDays(selDate, -dow);
-  const week = Array.from({ length: 7 }, (_, i) => { const d = addDays(start, i), t = Core.dayTotals(diary[d]), has = t.kcal > 0 || ALLMEALS.some(([k]) => (diary[d] && diary[d][k] || []).length);
-    return `<button data-a="goto" data-d="${d}" ${d === selDate ? 'aria-current="date"' : ''} aria-label="${dayLabel(d)}">${['S', 'M', 'T', 'W', 'T', 'F', 'S'][i]}<b>${parseYmd(d).getDate()}</b><span class="dot ${has ? (t.kcal > goals.kcal * 1.05 ? 'over' : 'on') : ''}"></span></button>`; }).join('');
+  const listOf = d => ALLMEALS.flatMap(([k]) => (diary[d] && diary[d][k]) || []);
+  const week = Array.from({ length: 7 }, (_, i) => { const d = addDays(start, i), L = listOf(d), t = Core.dayTotals(diary[d], true), cls = !L.length ? '' : t.kcal > goals.kcal * 1.05 ? 'over' : L.every(Core.eaten) ? 'on' : 'plan';
+    return `<button data-a="goto" data-d="${d}" ${d === selDate ? 'aria-current="date"' : ''} aria-label="${dayLabel(d)}">${['S', 'M', 'T', 'W', 'T', 'F', 'S'][i]}<b>${parseYmd(d).getDate()}</b><span class="dot ${cls}"></span></button>`; }).join('');
+  const all = listOf(selDate), doneN = all.filter(Core.eaten).length;
   const meals = ALLMEALS.map(([k, label]) => {
     const list = day[k] || [], t = Core.sumMeal(list), isPrep = k === 'prep';
     const y = diary[addDays(selDate, -1)];
     const canCopy = !list.length && y && (y[k] || []).length;
     return `<section class="card flush meal" aria-label="${label}"><div class="meal-h"><h3>${label}</h3><span>${isPrep ? '<span class="muted small">not counted</span>' : r0(t.kcal)}</span></div>
-      ${list.length ? list.map(e => { const m = Core.entryMac(e); return `<button class="entry" data-a="edit" data-m="${k}" data-id="${e.id}"><span class="nm">${esc(entryName(e))}<span class="sub">${svText(e.s)}${isPrep ? '' : ' · ' + r0(m.protein) + ' g protein'}</span></span>${isPrep ? '' : `<span class="kc">${r0(m.kcal)}</span>`}</button>`; }).join('') : `<div class="empty">${isPrep ? 'Plan cooking day here (chicken, rice, and so on). It goes on your shopping list.' : 'Nothing logged yet'}</div>`}
+      ${list.length ? list.map(e => { const m = Core.entryMac(e), ok = Core.eaten(e), r = e.r && rec(e.r), nm = esc(entryName(e));
+        return `<div class="entry ${ok ? 'done' : ''}"><input type="checkbox" data-a="eat" data-m="${k}" data-id="${e.id}" ${ok ? 'checked' : ''} aria-label="${isPrep ? 'Cooked' : 'Ate'} ${nm}"><span class="nm">${r ? `<a href="#/recipe/${r.id}/plan">${nm}</a>` : nm}<span class="sub">${svText(e.s)}${isPrep ? '' : ' · ' + r0(m.protein) + ' g protein'}${r ? ' · <a href="#/recipe/' + r.id + '/plan">How to make it</a>' : ''}</span></span>${isPrep ? '' : `<span class="kc">${r0(m.kcal)}</span>`}<button class="icon-btn" data-a="edit" data-m="${k}" data-id="${e.id}" aria-label="Edit ${nm}">${ICON.edit}</button></div>`; }).join('') : `<div class="empty">${isPrep ? 'Plan cooking day here (chicken, rice, and so on). It goes on your shopping list.' : 'Nothing planned yet'}</div>`}
       <div class="meal-f"><a class="btn link" href="#/add/${k}/${selDate}">+ Add ${isPrep ? 'Batch Recipe' : 'Food'}</a>${canCopy ? `<button class="btn link" data-a="copyprev" data-m="${k}">Copy Yesterday</button>` : ''}</div></section>`;
   }).join('');
   $('#view').innerHTML = `
@@ -107,9 +112,11 @@ function viewDiary(date) {
     <div class="card"><h2 class="tiny muted" style="text-transform:uppercase;letter-spacing:.04em;margin-bottom:10px">Calories Remaining</h2>
       <div class="summary"><div class="ring">${ring(goals.kcal ? T.kcal / goals.kcal : 0, over)}<div class="mid"><b>${over ? '+' + r0(-rem) : r0(rem)}</b><span>${over ? 'Over' : 'Remaining'}</span></div></div>
       <div>${macroRow('Carbs', T.carbs, goals.carbs)}${macroRow('Protein', T.protein, goals.protein)}${macroRow('Fat', T.fat, goals.fat)}</div></div>
-      <div class="eq"><div><b>${goals.kcal}</b><span>Goal</span></div><div>−</div><div><b>${r0(T.kcal)}</b><span>Food</span></div><div>=</div><div><b>${r0(rem)}</b><span>Remaining</span></div></div></div>
+      <div class="eq"><div><b>${goals.kcal}</b><span>Goal</span></div><div>−</div><div><b>${r0(T.kcal)}</b><span>Eaten</span></div><div>=</div><div><b>${r0(rem)}</b><span>Remaining</span></div></div>
+      ${all.length ? `<div class="row" style="justify-content:space-between;margin-top:14px"><b>${doneN} of ${all.length} done</b><span class="small muted">Planned ${r0(P.kcal)} kcal</span></div><div class="progress" role="img" aria-label="${doneN} of ${all.length} checked off"><i style="width:${doneN / all.length * 100}%"></i></div>` : ''}</div>
     ${meals}
-    <p class="tiny muted" style="margin:6px 8px">Calories and macros are estimated from recipe ingredients. Set your goals in <a href="#/me">Settings</a>.</p>`;
+    <div class="row wrap" style="margin:4px 0 8px"><button class="btn sm" data-a="templates">Ready-Made Weeks</button><a class="btn sm" href="#/shop">Shopping List</a><a class="btn sm" href="#/recipes">Browse Recipes</a></div>
+    <p class="tiny muted" style="margin:6px 8px">Check a meal off when you eat it. Calories and macros count only what you have checked off, and are estimated from recipe ingredients. Set your goals in <a href="#/me">Settings</a>.</p>`;
 }
 
 function editSheet(date, meal, id) {
@@ -142,7 +149,7 @@ function addList(meal) {
 }
 function viewAdd(meal, date) {
   meal = ALLMEALS.some(m => m[0] === meal) ? meal : 'lunch'; if (date) selDate = date;
-  setBar({ title: 'Add to ' + mealName(meal), back: `#/diary/${selDate}` });
+  setBar({ title: 'Add to ' + mealName(meal), back: `#/plan/${selDate}` });
   const tabs = [['all', 'All'], ['recent', 'Recent'], ['fav', 'Favorites'], ['quick', 'Quick Add']];
   $('#view').innerHTML = `<div class="card" style="margin-top:0"><label class="f" for="aq" style="margin-top:0">Search recipes</label><input type="search" id="aq" placeholder="chicken, rice, salmon…" value="${esc(addQuery)}" autocomplete="off"></div>
     <div class="chips" role="group" aria-label="Show">${tabs.map(([k, l]) => `<button class="chip" data-a="addtab" data-t="${k}" aria-pressed="${addTab === k}">${l}</button>`).join('')}</div>
@@ -154,7 +161,7 @@ function viewAdd(meal, date) {
         <div class="row wrap"><div class="grow"><label class="f" for="qk">Calories</label><input type="number" id="qk" min="0" inputmode="numeric" required></div><div class="grow"><label class="f" for="qp">Protein g</label><input type="number" id="qp" min="0" inputmode="numeric"></div></div>
         <div class="row wrap"><div class="grow"><label class="f" for="qc">Carbs g</label><input type="number" id="qc" min="0" inputmode="numeric"></div><div class="grow"><label class="f" for="qf2">Fat g</label><input type="number" id="qf2" min="0" inputmode="numeric"></div></div>
         <button class="btn primary block" style="margin-top:14px" type="submit">Add to ${mealName(meal)}</button></form>`;
-      $('#qf').onsubmit = ev => { ev.preventDefault(); addEntry(selDate, meal, { s: 1, q: { name: $('#qn').value.trim() || 'Quick add', kcal: +$('#qk').value || 0, protein: +$('#qp').value || 0, carbs: +$('#qc').value || 0, fat: +$('#qf2').value || 0 } }); location.hash = `#/diary/${selDate}`; };
+      $('#qf').onsubmit = ev => { ev.preventDefault(); addEntry(selDate, meal, { s: 1, done: defDone(selDate), q: { name: $('#qn').value.trim() || 'Quick add', kcal: +$('#qk').value || 0, protein: +$('#qp').value || 0, carbs: +$('#qc').value || 0, fat: +$('#qf2').value || 0 } }); location.hash = `#/plan/${selDate}`; };
     } else $('#alist').innerHTML = `<div class="card flush">${addList(meal)}</div>`;
   };
   draw();
@@ -168,9 +175,11 @@ function logSheet(id, meal, date) {
     <div class="row" style="margin:14px 0">${stepper('sv', val, step, step)}<div class="grow small muted" id="pv"></div></div>
     <label class="f" for="mv">Meal</label><select id="mv">${mealOptions(meal)}</select>
     <label class="f" for="dv">Date</label><input type="date" id="dv" value="${date || selDate}">
-    <button class="btn primary block" style="margin-top:16px" data-a="dolog" data-id="${id}">Add to Diary</button>`);
+    ${prep ? '' : `<div class="check" style="border:0;margin-top:8px"><input type="checkbox" id="ev" ${defDone(date || selDate) ? 'checked' : ''}><label for="ev">I already ate this</label></div>`}
+    <button class="btn primary block" style="margin-top:16px" data-a="dolog" data-id="${id}">Add to Meal Plan</button>`);
   const upd = () => { const s = parseFloat($('#sv').value) || 0; $('#pv').innerHTML = prep ? `Makes ${r0(s)} servings` : m ? `<b>${r0(m.kcal * s)}</b> kcal` : ''; };
   $('#sv').oninput = upd; upd();
+  if ($('#ev')) $('#dv').onchange = () => { $('#ev').checked = defDone($('#dv').value); };
 }
 
 // ---------- RECIPES ----------
@@ -179,7 +188,7 @@ function recipeCard(r) {
   const m = r.mac, fav = favs.includes(r.id);
   return `<article class="rcard"><h3><a href="#/recipe/${r.id}">${esc(r.name)}</a></h3><p class="meta">${esc(catLabel(r.category))} · ${r.time} min · ${r.easy ? 'Easy' : 'Medium'}</p>
     <div class="mac">${m ? `<span><b>${m.kcal}</b> kcal</span><span><b>${m.protein}</b> g protein</span>` : '<span class="muted">No nutrition data</span>'}</div>
-    <div class="act"><button class="btn primary sm grow" data-a="log" data-id="${r.id}">+ Add to Diary</button><button class="btn sm fav" data-a="fav" data-id="${r.id}" aria-pressed="${fav}" aria-label="${fav ? 'Remove from' : 'Add to'} favorites">${ICON.heart}</button></div></article>`;
+    <div class="act"><button class="btn primary sm grow" data-a="log" data-id="${r.id}">+ Add to Meal Plan</button><button class="btn sm fav" data-a="fav" data-id="${r.id}" aria-pressed="${fav}" aria-label="${fav ? 'Remove from' : 'Add to'} favorites">${ICON.heart}</button></div></article>`;
 }
 function recipeList() {
   const q = rq.trim().toLowerCase();
@@ -202,14 +211,15 @@ function viewRecipes() {
 }
 
 let rvServ = null, rvId = null;
-function viewRecipe(id) {
-  const r = rec(id); if (!r) { $('#view').innerHTML = '<div class="card">Recipe not found. <a href="#/recipes">Back to recipes</a></div>'; setBar({ title: 'Recipe', back: '#/recipes' }); return; }
+function viewRecipe(id, from) {
+  const back = from === 'plan' ? '#/plan/' + selDate : '#/recipes';
+  const r = rec(id); if (!r) { $('#view').innerHTML = '<div class="card">Recipe not found. <a href="#/recipes">Back to recipes</a></div>'; setBar({ title: 'Recipe', back }); return; }
   if (rvId !== id) { rvId = id; rvServ = r.servings; }
   const f = rvServ / r.servings, m = r.mac, fav = favs.includes(id);
-  setBar({ title: r.name, back: '#/recipes', right: `<button class="icon-btn fav" data-a="fav" data-id="${id}" aria-pressed="${fav}" aria-label="${fav ? 'Remove from' : 'Add to'} favorites">${ICON.heart}</button>` });
+  setBar({ title: r.name, back, right: `<button class="icon-btn fav" data-a="fav" data-id="${id}" aria-pressed="${fav}" aria-label="${fav ? 'Remove from' : 'Add to'} favorites">${ICON.heart}</button>` });
   $('#view').innerHTML = `<div class="card hero"><h2>${esc(r.name)}</h2><p class="muted small">${esc(catLabel(r.category))}${r.method ? ' · ' + esc(cap(r.method)) : ''}${r.cuisine && r.cuisine !== 'basic' ? ' · ' + esc(cap(r.cuisine)) : ''} · ${r.time} min · ${r.easy ? 'Easy' : 'Medium'}</p>
       ${m ? `<div class="nutri" role="group" aria-label="Per serving"><div><b>${m.kcal}</b><span>kcal</span></div><div><b>${m.protein} g</b><span>Protein</span></div><div><b>${m.carbs} g</b><span>Carbs</span></div><div><b>${m.fat} g</b><span>Fat</span></div></div><p class="tiny muted" style="margin-top:6px">Per serving, estimated from the ingredients.</p>` : ''}
-      <button class="btn primary block" style="margin-top:14px" data-a="log" data-id="${id}">+ Add to Diary</button></div>
+      <button class="btn primary block" style="margin-top:14px" data-a="log" data-id="${id}">+ Add to Meal Plan</button></div>
     <div class="card"><div class="row wrap" style="justify-content:space-between"><div><h3 style="font-size:18px">Ingredients</h3><p class="small muted">Makes ${rvServ} ${rvServ === 1 ? 'serving' : 'servings'}${f !== 1 ? ' (recipe as written: ' + r.servings + ')' : ''}</p></div>${stepper('rs', rvServ)}</div>
       <ul class="ings" style="margin-top:8px">${r.ing.map(i => `<li>${esc(ingText(i, f))}</li>`).join('')}</ul>${f > 3 || f < 0.5 ? '<p class="small muted">Big change in size: cooking times stay about the same. Use more pans instead of a bigger pan, and taste the seasoning at the end.</p>' : ''}</div>
     <div class="card"><h3 style="font-size:18px">Steps</h3><ol class="steps">${r.steps.map(s => `<li><span>${esc(s)}</span></li>`).join('')}</ol>${r.notes ? `<p class="small muted">${esc(r.notes)}</p>` : ''}</div>`;
@@ -237,7 +247,7 @@ function viewShop() {
   const opts = [['7', 'Next 7 days'], ['today', 'Today'], ['week', 'This week'], ['custom', 'Custom']];
   const c = store.get('shopCustom', { from: today(), to: addDays(today(), 6) });
   const recipesUsed = [...new Set(entries.map(e => e.r))].map(rec).filter(Boolean);
-  $('#view').innerHTML = `<div class="card"><label class="f" for="sr" style="margin-top:0">Shop for meals planned in the Diary</label><select id="sr">${opts.map(([k, l]) => `<option value="${k}" ${k === shopRange ? 'selected' : ''}>${l}</option>`).join('')}</select>
+  $('#view').innerHTML = `<div class="card"><label class="f" for="sr" style="margin-top:0">Shop for meals planned in your Meal Plan</label><select id="sr">${opts.map(([k, l]) => `<option value="${k}" ${k === shopRange ? 'selected' : ''}>${l}</option>`).join('')}</select>
       ${shopRange === 'custom' ? `<div class="row wrap"><div class="grow"><label class="f" for="sf">From</label><input type="date" id="sf" value="${c.from}"></div><div class="grow"><label class="f" for="st">To</label><input type="date" id="st" value="${c.to}"></div></div>` : ''}
       <p class="small muted" style="margin-top:8px">${entries.length ? `${recipesUsed.length} recipes · ${rangeDates().length} ${rangeDates().length === 1 ? 'day' : 'days'}` : 'Nothing planned in this range.'}</p></div>
     ${total ? `<div class="card flush"><div style="padding:14px 16px"><div class="row" style="justify-content:space-between"><b>${done} of ${total} items</b><span class="row"><button class="btn sm" data-a="copyshop">${ICON.copy} Copy</button>${navigator.share ? `<button class="btn sm" data-a="shareshop">${ICON.share} Share</button>` : ''}</span></div><div class="progress" role="img" aria-label="${done} of ${total} checked"><i style="width:${total ? done / total * 100 : 0}%"></i></div></div></div>
@@ -245,7 +255,7 @@ function viewShop() {
       ${S.free.length ? `<h2 class="sec">Pantry Check</h2><div class="card small muted">${esc(S.free.map(Core.title).join(', '))}</div>` : ''}
       ${S.made.length ? `<h2 class="sec">Made by Your Batch Recipes</h2><div class="card small muted">${esc(S.made.map(x => Core.title(x.name) + ' (' + x.txt + ')').join(' · '))}<br>These are not shopping items.</div>` : ''}
       <button class="btn block" data-a="clearchecks" style="margin-top:8px">Clear Checkmarks</button>`
-    : `<div class="card"><h2 style="font-size:18px">Plan a week, then shop</h2><p class="muted" style="margin:6px 0 14px">Add recipes to meals in your Diary (today or upcoming days) and the shopping list builds itself. Or start from a ready-made week.</p><div class="row wrap"><button class="btn primary" data-a="templates">Start with a Ready-Made Week</button><a class="btn" href="#/recipes">Browse Recipes</a></div></div>`}`;
+    : `<div class="card"><h2 style="font-size:18px">Plan a week, then shop</h2><p class="muted" style="margin:6px 0 14px">Add recipes to meals in your Meal Plan (today or upcoming days) and the shopping list builds itself. Or start from a ready-made week.</p><div class="row wrap"><button class="btn primary" data-a="templates">Start with a Ready-Made Week</button><a class="btn" href="#/recipes">Browse Recipes</a></div></div>`}`;
 }
 
 // ---------- TEMPLATES ----------
@@ -253,11 +263,11 @@ let TPL = null;
 async function loadTpl() { if (!TPL) TPL = (await (await fetch('data/plans/templates.json')).json()).templates; return TPL; }
 async function templateSheet() {
   const T = await loadTpl();
-  openSheet(`<h2 id="sheet-title">Ready-Made Weeks</h2><p class="muted small">Adds the meals to your Diary for 7 days, including the batch-cooking day. You can change anything after.</p>
+  openSheet(`<h2 id="sheet-title">Ready-Made Weeks</h2><p class="muted small">Adds the meals to your Meal Plan for 7 days, including the batch-cooking day. You can change anything after.</p>
     ${T.map((t, i) => `<div class="card" style="margin:10px 0"><b>${esc(t.name)}</b><p class="small muted">${esc(t.desc)}</p></div>`).join('')}
     <label class="f" for="tp">Plan</label><select id="tp">${T.map((t, i) => `<option value="${i}">${esc(t.name)}</option>`).join('')}</select>
     <label class="f" for="td">First day (batch-cooking day)</label><input type="date" id="td" value="${today()}">
-    <button class="btn primary block" style="margin-top:16px" data-a="applytpl">Add to My Diary</button>`);
+    <button class="btn primary block" style="margin-top:16px" data-a="applytpl">Add to My Meal Plan</button>`);
 }
 function applyTemplate(idx, start) {
   const t = TPL[idx]; let n = 0;
@@ -355,15 +365,16 @@ function viewMe() {
       <div class="row wrap" style="margin-top:10px"><button class="btn" data-a="export">Download Backup</button><label class="btn" for="imp" style="cursor:pointer">Restore Backup</label><input type="file" id="imp" accept="application/json" style="display:none"></div>
       <button class="btn danger block" style="margin-top:10px" data-a="reset">Erase All My Data</button></div>
     <div class="card"><h2 style="font-size:18px">About</h2><p class="small muted">Recipe calories and macros are calculated from the ingredients using USDA values. See <a href="#/learn/sources">Sources</a>. Install this page from your browser menu (Add to Home Screen) to use it like an app, even offline.</p></div>`;
-  $('#imp').onchange = async e => { const f = e.target.files[0]; if (!f) return; try { const d = JSON.parse(await f.text()); if (d.diary) diary = d.diary; if (d.goals) goals = d.goals; if (d.favs) favs = d.favs; store.set('diary', diary); store.set('goals', goals); store.set('favs', favs); toast('Backup restored'); viewMe(); } catch (er) { toast('That file is not a valid backup'); } };
+  $('#imp').onchange = async e => { const f = e.target.files[0]; if (!f) return; try { const d = JSON.parse(await f.text()); if (d.diary) diary = d.diary; if (d.goals) goals = d.goals; if (d.favs) favs = d.favs; if (d.recent) recent = d.recent; if (d.checked) checked = d.checked; if (d.profile) store.set('profile', d.profile); store.set('diary', diary); store.set('goals', goals); store.set('favs', favs); store.set('recent', recent); store.set('checked', checked); toast('Backup restored'); viewMe(); } catch (er) { toast('That file is not a valid backup'); } };
 }
 
 // ---------- events ----------
 const A = {
-  goto: t => { location.hash = '#/diary/' + t.dataset.d; },
+  goto: t => { location.hash = '#/plan/' + t.dataset.d; },
+  eat: t => { const e = (diary[selDate] && diary[selDate][t.dataset.m] || []).find(x => x.id === t.dataset.id); if (!e) return; e.done = t.checked; saveDiary(); const y = scrollY; viewPlan(); scrollTo(0, y); },
   pickdate: () => openSheet(`<h2 id="sheet-title">Go to Date</h2><label class="f" for="pd">Date</label><input type="date" id="pd" value="${selDate}"><div class="row" style="margin-top:14px"><button class="btn primary grow" data-a="godate">Go</button><button class="btn" data-a="gotoday">Today</button></div>`),
-  godate: () => { const v = $('#pd').value; closeSheet(); if (v) location.hash = '#/diary/' + v; },
-  gotoday: () => { closeSheet(); location.hash = '#/diary/' + today(); },
+  godate: () => { const v = $('#pd').value; closeSheet(); if (v) location.hash = '#/plan/' + v; },
+  gotoday: () => { closeSheet(); location.hash = '#/plan/' + today(); },
   edit: t => editSheet(selDate, t.dataset.m, t.dataset.id),
   saveedit: t => {
     const { date, m, id } = t.dataset, e = diary[date][m].find(x => x.id === id), s = parseFloat($('#sv').value); if (!(s > 0)) return toast('Enter a servings amount above 0');
@@ -373,12 +384,12 @@ const A = {
   copyprev: t => { const m = t.dataset.m, y = diary[addDays(selDate, -1)]; (y[m] || []).forEach(e => addEntry(selDate, m, { r: e.r, q: e.q, s: e.s })); render(); toast('Copied from yesterday'); },
   addtab: t => { addTab = t.dataset.t; viewAdd($('#view').dataset.meal, selDate); },
   pick: t => logSheet(t.dataset.id, t.dataset.m, selDate),
-  quick1: t => { const r = rec(t.dataset.id), prep = r.category === 'meal prep', m = prep ? 'prep' : t.dataset.m; const id = addEntry(selDate, m, { r: r.id, s: prep ? r.servings : 1 }); toast('Added to ' + mealName(m), () => { removeEntry(selDate, m, id); render(); }); },
+  quick1: t => { const r = rec(t.dataset.id), prep = r.category === 'meal prep', m = prep ? 'prep' : t.dataset.m; const id = addEntry(selDate, m, { r: r.id, s: prep ? r.servings : 1, done: !prep && defDone(selDate) }); toast('Added to ' + mealName(m), () => { removeEntry(selDate, m, id); render(); }); },
   log: t => logSheet(t.dataset.id, null, selDate),
   dolog: t => {
     const r = rec(t.dataset.id), s = parseFloat($('#sv').value), m = $('#mv').value, d = $('#dv').value || selDate; if (!(s > 0)) return toast('Enter a servings amount above 0');
-    const id = addEntry(d, m, { r: r.id, s }); closeSheet(); selDate = d;
-    toast('Added to ' + mealName(m) + ' · ' + dayLabel(d), () => { removeEntry(d, m, id); render(); }); if (location.hash.startsWith('#/add')) location.hash = '#/diary/' + d;
+    const id = addEntry(d, m, { r: r.id, s, done: $('#ev') ? $('#ev').checked : false }); closeSheet(); selDate = d;
+    toast('Added to ' + mealName(m) + ' · ' + dayLabel(d), () => { removeEntry(d, m, id); render(); }); if (location.hash.startsWith('#/add')) location.hash = '#/plan/' + d;
   },
   fav: t => { const id = t.dataset.id; favs = favs.includes(id) ? favs.filter(x => x !== id) : [...favs, id]; store.set('favs', favs); render(); },
   rcat: t => { rcat = t.dataset.c; viewRecipes(); }, reasy: () => { reasy = !reasy; viewRecipes(); }, rfav: () => { rfav = !rfav; viewRecipes(); },
@@ -387,7 +398,7 @@ const A = {
   copyshop: () => { const txt = shopText(Core.shopping(entriesInRange())); (navigator.clipboard ? navigator.clipboard.writeText(txt) : Promise.reject()).then(() => toast('Shopping list copied'), () => toast('Could not copy')); },
   shareshop: () => navigator.share({ title: 'Shopping list', text: shopText(Core.shopping(entriesInRange())) }).catch(() => {}),
   templates: () => templateSheet(),
-  applytpl: () => { const n = applyTemplate(+$('#tp').value, $('#td').value || today()); const d = $('#td').value || today(); closeSheet(); toast('Added ' + n + ' items to your Diary'); selDate = d; location.hash = '#/diary/' + d; },
+  applytpl: () => { const n = applyTemplate(+$('#tp').value, $('#td').value || today()); const d = $('#td').value || today(); closeSheet(); toast('Added ' + n + ' items to your Meal Plan'); selDate = d; location.hash = '#/plan/' + d; },
   equip: t => { const e = store.get('equip', {}); e[t.dataset.i] = t.checked; store.set('equip', e); },
   savegoals: () => { goals = { kcal: +$('#gk').value || 2000, protein: +$('#gp').value || 0, carbs: +$('#gc').value || 0, fat: +$('#gf').value || 0 }; store.set('goals', goals); toast('Goals saved'); },
   calcgoals: () => {
@@ -396,8 +407,8 @@ const A = {
   },
   usegoals: t => { goals = { kcal: +t.dataset.k, protein: +t.dataset.p, carbs: +t.dataset.c, fat: +t.dataset.f }; store.set('goals', goals); viewMe(); toast('Goals updated'); },
   theme: t => { const v = t.dataset.v; store.set('theme', v); document.documentElement.dataset.theme = v; document.querySelector('meta[name=theme-color]').content = v === 'dark' ? '#0e131b' : '#f3f5f9'; viewMe(); },
-  export: () => download('meal-diary-backup-' + today() + '.json', JSON.stringify({ app: 'meal-diary', diary, goals, favs, exported: new Date().toISOString() }, null, 1)),
-  reset: () => { if (confirm('Erase your diary, goals and favorites on this device? This cannot be undone.')) { ['diary', 'goals', 'checked', 'favs', 'recent', 'equip', 'profile'].forEach(k => { try { localStorage.removeItem('cb.' + k); } catch (e) {} }); diary = {}; goals = { kcal: 2000, protein: 150, carbs: 225, fat: 65 }; checked = {}; favs = []; recent = []; render(); toast('All data erased'); } }
+  export: () => download('meal-plan-backup-' + today() + '.json', JSON.stringify({ app: 'meal-plan', diary, goals, favs, recent, checked, profile: store.get('profile', null), exported: new Date().toISOString() }, null, 1)),
+  reset: () => { if (confirm('Erase your meal plan, goals and favorites on this device? This cannot be undone.')) { ['diary', 'goals', 'checked', 'favs', 'recent', 'equip', 'profile'].forEach(k => { try { localStorage.removeItem('cb.' + k); } catch (e) {} }); diary = {}; goals = { kcal: 2000, protein: 150, carbs: 225, fat: 65 }; checked = {}; favs = []; recent = []; render(); toast('All data erased'); } }
 };
 document.addEventListener('click', e => {
   const st = e.target.closest('[data-step]');
@@ -409,6 +420,7 @@ document.addEventListener('change', e => {
   const t = e.target;
   if (t.dataset && t.dataset.a === 'tick') return A.tick(t);
   if (t.dataset && t.dataset.a === 'equip') return A.equip(t);
+  if (t.dataset && t.dataset.a === 'eat') return A.eat(t);
   if (t.id === 'rs') { rvServ = Math.max(1, Math.round(parseFloat(t.value)) || 1); const y = scrollY; viewRecipe(rvId); scrollTo(0, y); }
   if (t.id === 'sr') { shopRange = t.value; store.set('shopRange', shopRange); viewShop(); }
   if (t.id === 'sf' || t.id === 'st') { const c = { from: $('#sf').value, to: $('#st').value }; if (c.from && c.to && c.from <= c.to) { store.set('shopCustom', c); viewShop(); } }
@@ -416,10 +428,11 @@ document.addEventListener('change', e => {
 
 // ---------- router ----------
 function render() {
-  const p = (location.hash || '#/diary').replace(/^#\/?/, '').split('/').map(decodeURIComponent), root = p[0] || 'diary';
-  const map = { diary: () => viewDiary(p[1]), recipes: viewRecipes, recipe: () => viewRecipe(p[1]), add: () => viewAdd(p[1], p[2]), shop: viewShop, learn: () => viewLearn(p[1], p[2]), me: viewMe };
-  const navRoot = { recipe: 'recipes', add: 'diary' }[root] || root;
-  if (!map[root]) { location.hash = '#/diary'; return; }
+  const p = (location.hash || '#/plan').replace(/^#\/?/, '').split('/').map(decodeURIComponent), root = p[0] || 'plan';
+  if (root === 'diary') { location.replace('#/plan' + (p[1] ? '/' + p[1] : '')); return; }
+  const map = { plan: () => viewPlan(p[1]), recipes: viewRecipes, recipe: () => viewRecipe(p[1], p[2]), add: () => viewAdd(p[1], p[2]), shop: viewShop, learn: () => viewLearn(p[1], p[2]), me: viewMe };
+  const navRoot = { recipe: p[2] === 'plan' ? 'plan' : 'recipes', add: 'plan' }[root] || root;
+  if (!map[root]) { location.hash = '#/plan'; return; }
   setNav(navRoot); map[root]();
   if (!(root === 'learn' && p[2])) { /* guides scroll themselves */ }
 }
@@ -430,7 +443,7 @@ window.addEventListener('hashchange', () => {
 });
 
 (async function start() {
-  setNav('diary'); $('#view').innerHTML = '<div class="card muted">Loading…</div>';
+  setNav('plan'); $('#view').innerHTML = '<div class="card muted">Loading…</div>';
   try { await Core.init(); } catch (e) { $('#view').innerHTML = `<div class="card err">Could not load data (${esc(e.message)}). Open this page from the website or a local web server; browsers block loading data files straight from disk.</div>`; return; }
   lastHash = location.hash; render();
   if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) navigator.serviceWorker.register('sw.js').catch(() => {});
