@@ -269,16 +269,18 @@ function viewShop() {
       ${S.free.length ? `<h2 class="sec">Check You Have</h2><div class="card small muted">${esc(S.free.map(Core.title).join(', '))}</div>` : ''}
       ${S.made.length ? `<h2 class="sec">Made by Your Batch Recipes</h2><div class="card small muted">${esc(S.made.map(x => Core.title(x.name) + ' (' + x.txt + ')').join(' · '))}<br>These are not shopping items.</div>` : ''}
       <button class="btn block" data-a="clearchecks" style="margin-top:8px">Clear Checkmarks</button>`
-    : `<div class="card"><h2 style="font-size:18px">Plan a week, then shop</h2><p class="muted" style="margin:6px 0 14px">Add recipes to meals in your Meal Plan (today or upcoming days) and the shopping list builds itself. Or start from a ready-made week.</p><div class="row wrap"><button class="btn primary" data-a="templates">Start with a Ready-Made Week</button><a class="btn" href="#/recipes">Browse Recipes</a></div></div>`}`;
+    : `<div class="card"><h2 style="font-size:18px">Plan a week, then shop</h2><p class="muted" style="margin:6px 0 14px">Add recipes to meals in your Meal Plan (today or upcoming days) and the shopping list builds itself. Or start from a ready-made week.</p><div class="row wrap"><button class="btn primary" data-a="templates">Start with a Ready-Made Week</button><a class="btn" href="#/recipes">Browse Recipes</a></div></div><div id="tplcosts"></div>`}`;
+  if (!S.list.length) loadTpl().then(T => { const el = $("#tplcosts"); if (el) el.innerHTML = `<h2 class="sec">What a Week Costs</h2><div class="card flush">${T.map(t => `<div style="padding:12px 16px;border-top:1px solid var(--line)"><b>${esc(t.name)}</b><p class="small muted">${tplCost(t)}</p></div>`).join("")}</div><p class="tiny muted" style="margin:6px 8px">Rough guesses at typical US grocery prices.</p>`; });
 }
 
 // ---------- TEMPLATES ----------
 let TPL = null;
 async function loadTpl() { if (!TPL) TPL = (await (await fetch('data/plans/templates.json')).json()).templates; return TPL; }
+function tplCost(t) { const E = []; t.days.forEach(d => Object.values(d).forEach(L => L.forEach(e => E.push({ r: e.r, s: e.s })))); const T = shopTotal(Core.shopping(E, 7)); return `About ${money(Math.round(T.groceries / 5) * 5)} a week for groceries` + (T.pantry ? `, plus about ${money(Math.round(T.pantry / 5) * 5)} of pantry items the first time` : ""); }
 async function templateSheet() {
   const T = await loadTpl();
   openSheet(`<h2 id="sheet-title">Ready-Made Weeks</h2><p class="muted small">Adds the meals to your Meal Plan for 7 days, including the batch-cooking day. You can change anything after.</p>
-    ${T.map((t, i) => `<div class="card" style="margin:10px 0"><b>${esc(t.name)}</b><p class="small muted">${esc(t.desc)}</p></div>`).join('')}
+    ${T.map((t, i) => `<div class="card" style="margin:10px 0"><b>${esc(t.name)}</b><p class="small muted">${esc(t.desc)}</p><p class="small" style="margin-top:6px"><b>${tplCost(t)}</b></p></div>`).join('')}
     <label class="f" for="tp">Plan</label><select id="tp">${T.map((t, i) => `<option value="${i}">${esc(t.name)}</option>`).join('')}</select>
     <label class="f" for="td">First day (batch-cooking day)</label><input type="date" id="td" value="${today()}">
     <button class="btn primary block" style="margin-top:16px" data-a="applytpl">Add to My Meal Plan</button>`);
