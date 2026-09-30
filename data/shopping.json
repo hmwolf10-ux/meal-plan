@@ -1,10 +1,11 @@
 {
   "description": "How recipe amounts turn into things you buy, with rough US grocery prices (2025-26 averages, will vary by store and city). 'rules': packaged items; each package is [singular, plural, size in the rule's unit, price]. The app picks ONE kind of package per item (fewest packages, least left over); 'stock': true means a pantry staple that lasts weeks, so it gets the biggest package you would use up in about six weeks. 'cupPer' converts cups to cans. 'fixed': items bought as one thing whatever the amount (a jar of cumin, a bunch of cilantro). 'loose': items priced per lb or each.",
   "rules": [
-    { "match": "^(whole |2% |skim )?milk$", "unit": "cup", "packages": [["gallon", "gallons", 16, 3.99], ["half-gallon", "half-gallons", 8, 2.69], ["quart", "quarts", 4, 1.89]] },
+    { "match": "^frozen vegetable mix$", "unit": "oz", "packages": [["bag (16 oz)", "bags (16 oz)", 16, 2], ["bag (32 oz)", "bags (32 oz)", 32, 4]] },
+    { "match": "^(whole |2% |skim )?milk$", "unit": "cup", "packages": [["gallon", "gallons", 16, 4.19], ["half-gallon", "half-gallons", 8, 2.79], ["quart", "quarts", 4, 1.99]] },
     { "match": "greek yogurt|^yogurt", "unit": "cup", "packages": [["tub (32 oz)", "tubs (32 oz)", 4, 5.49], ["tub (16 oz)", "tubs (16 oz)", 2, 3.29]] },
     { "match": "cottage cheese", "unit": "cup", "packages": [["tub (24 oz)", "tubs (24 oz)", 3, 3.99], ["tub (16 oz)", "tubs (16 oz)", 2, 2.99]] },
-    { "match": "^eggs?$", "unit": "count", "packages": [["dozen", "dozen", 12, 3.49], ["18-count", "18-counts", 18, 4.99]] },
+    { "match": "^eggs?$", "unit": "count", "packages": [["dozen", "dozen", 12, 3.59], ["18-count", "18-counts", 18, 5.49]] },
     { "match": "^butter( or oil)?$", "unit": "tbsp", "packages": [["box (1 lb, 4 sticks)", "boxes (1 lb, 4 sticks each)", 32, 4.99]] },
     { "match": "shredded cheese|^cheese$", "unit": "cup", "packages": [["bag (16 oz)", "bags (16 oz)", 4, 5.49], ["bag (8 oz)", "bags (8 oz)", 2, 2.99]] },
     { "match": "rolled oats|^oats", "unit": "cup", "stock": true, "packages": [["bag (5 lb)", "bags (5 lb)", 25, 6.99], ["canister (42 oz)", "canisters (42 oz)", 13, 5.49], ["canister (18 oz)", "canisters (18 oz)", 5.5, 3.49]] },
@@ -66,7 +67,7 @@
     { "match": "firm tofu|^tofu", "pkg": "1 block (14 oz)", "price": 2.49 },
     { "match": "mushrooms", "pkg": "1 package (8 oz)", "price": 2.49 },
     { "match": "deli turkey", "pkg": "1 pack (8 oz)", "price": 4.99 },
-    { "match": "bacon", "pkg": "1 pack", "price": 5.99 },
+    { "match": "bacon", "pkg": "1 pack", "price": 7 },
     { "match": "sausage links|breakfast sausage|smoked sausage|^sausage", "pkg": "1 pack", "price": 4.99 },
     { "match": "raw vegetables|^vegetables|^berries|^mixed vegetables", "pkg": "1 bag", "price": 2.99 }
   ],
@@ -83,7 +84,7 @@
     { "match": "corn|grapes|pears?$|cheese|popcorn|dark chocolate", "pkg": "1 package", "price": 3.0 }
   ],
   "loose": [
-    { "match": "boneless.*(thigh|breast|chicken)|(thigh|breast|cutlet).*boneless|chicken (breast|cutlet)|^boneless|breast", "lb": 3.49, "each": 1.75, "eachLb": 0.5 },
+    { "match": "boneless.*(thigh|breast|chicken)|(thigh|breast|cutlet).*boneless|chicken (breast|cutlet)|^boneless|breast", "lb": 4.25, "each": 1.75, "eachLb": 0.5 },
     { "match": "whole chicken", "lb": 1.79, "each": 7.0 },
     { "match": "chicken|thigh|drumstick|leg quarter|wing|carcass", "lb": 1.99, "each": 0.7, "eachLb": 0.4 },
     { "match": "ground beef|beef|chuck|flank|sirloin|steak|ribeye|stew meat", "lb": 6.49, "each": 6.0 },

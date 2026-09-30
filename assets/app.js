@@ -109,11 +109,11 @@ function viewPlan(date) {
   $('#view').innerHTML = `
     <div class="datebar"><button class="icon-btn" data-a="goto" data-d="${addDays(selDate, -1)}" aria-label="Previous day">${ICON.back}</button><button class="label" data-a="pickdate">${dayLabel(selDate)}</button><button class="icon-btn" data-a="goto" data-d="${addDays(selDate, 1)}" aria-label="Next day">${ICON.next}</button></div>
     <div class="week" role="group" aria-label="This week">${week}</div>
+    <div class="row wrap" style="margin:0 0 12px"><button class="btn sm" data-a="templates">Plan a Week</button><a class="btn sm" href="#/add/prep/${selDate}">+ Batch Recipe</a><a class="btn sm" href="#/shop">Shopping List</a><button class="btn sm danger" data-a="clearplan">Clear Meal Plan</button></div>
     <div class="card" style="padding:12px 16px"><div class="row" style="justify-content:space-between"><b>${r0(T.kcal).toLocaleString()} <span class="muted" style="font-weight:400">of ${goals.kcal.toLocaleString()} cal</span></b><span class="small" style="color:${over ? 'var(--orange)' : 'var(--mut)'}">${over ? r0(-rem).toLocaleString() + ' over' : r0(rem).toLocaleString() + ' left'}</span></div>
       <div class="pbar ${over ? 'over' : ''}" style="margin:8px 0" role="img" aria-label="${r0(T.kcal)} of ${goals.kcal} calories"><i style="width:${goals.kcal ? Math.min(100, T.kcal / goals.kcal * 100) : 0}%"></i></div>
       <span class="tiny muted">Protein ${r0(T.protein)}/${goals.protein} g · Carbs ${r0(T.carbs)}/${goals.carbs} g · Fat ${r0(T.fat)}/${goals.fat} g</span></div>
     ${meals}
-    <div class="row wrap" style="margin:4px 0 8px"><button class="btn sm" data-a="templates">Plan a Week</button><a class="btn sm" href="#/add/prep/${selDate}">+ Batch Recipe</a><a class="btn sm" href="#/shop">Shopping List</a><button class="btn sm danger" data-a="clearplan">Clear Meal Plan</button></div>
     <p class="tiny muted" style="margin:6px 8px">A blue dot marks a cooking day. Tap a meal's recipe to see how to batch cook it. Numbers are estimated. Set your goals in <a href="#/me">Settings</a>.</p>`;
 }
 
@@ -238,7 +238,7 @@ function rangeDates() {
   return Array.from({ length: 7 }, (_, i) => addDays(t, i));
 }
 function entriesInRange() { const out = []; rangeDates().forEach(d => ALLMEALS.forEach(([k]) => ((diary[d] || {})[k] || []).forEach(e => { if (e.ns) return; (e.p || [e.r]).forEach(id => { if (id && rec(id)) out.push({ r: id, s: e.s }); }); }))); return out; }
-const money = x => '$' + (x >= 100 ? Math.round(x) : x.toFixed(2).replace(/\.00$/, ''));
+const money = x => '$' + Math.round(x), money5 = x => '$' + Math.max(5, Math.round(x / 5) * 5);
 function shopGroups(S) { return { buy: S.list.filter(x => !x.stock), stock: S.list.filter(x => x.stock) }; }
 function shopTotal(S, days = 7) { const sum = L => L.reduce((a, x) => a + (x.cost || 0), 0); return { groceries: sum(S.list.filter(x => !x.stock)), pantry: sum(S.list.filter(x => x.stock)), weekly: S.list.reduce((a, x) => a + (x.cost || 0) * (x.stock ? x.share : 1), 0) * 7 / Math.max(1, days) }; }
 function shopText(S) {
@@ -250,7 +250,7 @@ function shopText(S) {
 }
 function shopRow(x, isStock) {
   const id = 'i' + x.name.replace(/\W/g, '_'), on = isStock ? have[x.name] : checked[x.name];
-  return `<label class="shop-item ${on ? 'done' : ''}" for="${id}"><input type="checkbox" id="${id}" data-a="${isStock ? 'have' : 'tick'}" data-n="${esc(x.name)}" ${on ? 'checked' : ''} aria-label="${isStock ? 'I have' : 'Got'} ${esc(Core.title(x.name))}"><span class="nm"><b>${esc(Core.title(x.name))}</b><span class="need">${x.loose ? esc(x.pkg) : x.pkg ? esc(x.pkg) + ' <span class="muted">· recipes use ' + esc(x.txt) + '</span>' : esc(x.txt)}${isStock && x.weeks ? ' <span class="muted">· lasts about ' + x.weeks + ' weeks</span>' : ''}</span></span>${x.cost != null ? `<span class="price">${x.pkg ? '' : '~'}${money(x.cost)}</span>` : ''}</label>`;
+  return `<label class="shop-item ${on ? 'done' : ''}" for="${id}"><input type="checkbox" id="${id}" data-a="${isStock ? 'have' : 'tick'}" data-n="${esc(x.name)}" ${on ? 'checked' : ''} aria-label="${isStock ? 'I have' : 'Got'} ${esc(Core.title(x.name))}"><span class="nm"><b>${esc(Core.title(x.name))}</b><span class="need">${esc(x.pkg || x.txt)}${x.covers ? " <span class=\"muted\">· covers " + esc(x.covers.map(Core.title).join(", ")) + ". Fresh works too.</span>" : ""}${isStock && x.weeks ? " <span class=\"muted\">· lasts about " + x.weeks + " weeks</span>" : ""}</span></span>${x.cost != null ? `<span class="price">~${money(x.cost)}</span>` : ''}</label>`;
 }
 function viewShop() {
   setBar({ title: 'Shopping List' });
@@ -260,9 +260,9 @@ function viewShop() {
   const opts = [['plan', 'All planned meals'], ['today', 'Today'], ['week', 'This week'], ['custom', 'Custom']];
   const c = store.get('shopCustom', { from: today(), to: addDays(today(), 6) });
 
-  const over = T.weekly > budget, hasCost = S.list.length > 0;
+  const over = T.weekly > budget + 2, hasCost = S.list.length > 0;
   $('#view').innerHTML = `<div class="card"><div class="row" style="justify-content:space-between"><b>Weekly budget</b><span class="row" style="gap:4px"><span class="muted">$</span><input type="number" id="bg" value="${budget}" min="1" inputmode="numeric" style="width:88px;text-align:right" aria-label="Weekly budget in dollars"></span></div>
-      ${hasCost ? `<div class="row" style="justify-content:space-between;margin-top:10px"><span>Estimated cost</span><b style="font-size:20px;color:${over ? 'var(--orange)' : 'var(--fg)'}">About ${money(Math.round(T.weekly))}</b></div>
+      ${hasCost ? `<div class="row" style="justify-content:space-between;margin-top:10px"><span>Estimated cost</span><b style="font-size:20px;color:${over ? 'var(--orange)' : 'var(--fg)'}">About ${money5(T.weekly)}</b></div>
       <p class="small muted" style="margin-top:4px">${over ? 'That is ' + money(Math.round(T.weekly - budget)) + ' over your budget.' : 'Within your budget.'}${T.pantry ? ' First trip adds pantry stock (rice, oil, spices) worth about ' + money(Math.round(T.pantry)) + ' that lasts weeks.' : ''}</p>` : ''}
       <button class="btn primary block" style="margin-top:12px" data-a="buildweek">Build a Week for ${money(budget)}</button></div>
     <div class="card"><label class="f" for="sr" style="margin-top:0">Shop for</label><select id="sr">${opts.map(([k, l]) => `<option value="${k}" ${k === shopRange ? 'selected' : ''}>${l}</option>`).join('')}</select>

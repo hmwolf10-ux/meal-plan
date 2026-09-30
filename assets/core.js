@@ -116,7 +116,7 @@ const Core = (() => {
   // Same thing written different ways ("banana", "ripe bananas"; thighs with or without skin) should be one line on the list.
   const ALIAS = [[/^(ripe )?bananas?$/, 'banana'], [/^(bone-in )?(skin-on )?(chicken )?(thighs|pieces|drumsticks|leg quarters)( (and|or) (thighs|drumsticks))?$|^bone-in (skin-on )?(chicken )?thighs( or drumsticks| and drumsticks)?$|^thighs and drumsticks$|^drumsticks and thighs$/, 'bone-in chicken thighs'],
     [/^boneless (skinless )?(chicken )?thighs?$/, 'boneless chicken thighs'], [/^(boneless )?(skinless )?(chicken )?breasts?$|^boneless (skinless )?(chicken )?breasts?( or thighs)?$/, 'boneless chicken breasts'],
-    [/^(onions?|white onions?|yellow onions?)$/, 'onion'], [/^carrots?$/, 'carrots'], [/^lemons?$/, 'lemon'], [/^limes?$/, 'lime'], [/^(russet )?potatoes$|^potato$/, 'potatoes'], [/^bell peppers?$/, 'bell pepper'], [/^apples?$/, 'apple'], [/^celery stalks?$/, 'celery'], [/^ground or finely( chopped)? chicken$|^ground chicken$/, 'ground chicken'], [/^cucumbers?$/, 'cucumber']];
+    [/^(onions?|white onions?|yellow onions?)$/, 'onion'], [/^carrots?$/, 'carrots'], [/^lemons?$/, 'lemon'], [/^limes?$/, 'lime'], [/^(russet )?potatoes$|^potato$/, 'potatoes'], [/^bell peppers?$/, 'bell pepper'], [/^apples?$/, 'apple'], [/^celery stalks?$/, 'celery'], [/^ground or finely( chopped)? chicken$|^ground chicken$/, 'ground chicken'], [/^cucumbers?$/, 'cucumber'], [/^garlic cloves?$/, 'garlic']];
   const norm = n => { const b = norm0(n), a = ALIAS.find(x => x[0].test(b)); return a ? a[1] : b; };
   function needIn(x, rule) {
     const unit = rule.unit;
@@ -169,12 +169,21 @@ const Core = (() => {
         const cur = target.get(key) || { name, t, base: 0, unit: u }; cur.base += base; target.set(key, cur);
       }
     }
+    // Vegetables are bought as one frozen mix: cheaper, no waste, and it covers the peppers, carrots, broccoli and so on.
+    const VEG = /bell pepper|carrot|broccoli|cauliflower|zucchini|squash|green beans|\bpeas\b|^corn$|^frozen corn|mixed vegetables|^vegetables|raw vegetables|asparagus|brussels/, NOTVEG = /sauce|powder|soup|stock|broth|cream|tortilla|chip|bread|sweet potato|starch|pickle|relish|seed/;
+    const EACH_OZ = [[/bell pepper/, 6], [/carrot/, 2.5], [/broccoli/, 10], [/cauliflower/, 18], [/zucchini|squash/, 8]], veg = { name: 'frozen vegetable mix', t: 'wt', base: 0, unit: '', covers: new Set() };
+    for (const [k, x] of [...M]) {
+      if (!VEG.test(x.name) || NOTVEG.test(x.name)) continue;
+      const each = (EACH_OZ.find(e => e[0].test(x.name)) || [0, 4])[1];
+      veg.base += x.t === 'wt' ? x.base : x.t === 'vol' ? x.base / 48 * 4.5 : x.base * each; veg.covers.add(x.name); M.delete(k);
+    }
+    if (veg.base > 0) M.set('frozen vegetable mix|wt', veg);
     const out = (m, buy) => [...m.values()].map(x => {
       let txt;
       if (x.t === 'vol') { const u = x.base >= 12 ? 'cup' : x.base >= 3 ? 'tbsp' : 'tsp'; txt = fmt(x.base / VOL[u], u); }
       else if (x.t === 'wt') txt = fmt(x.base, 'oz'); else if (x.t === 'other') txt = fmt(x.base, x.unit); else txt = fmt(x.base, '');
       const info = buy ? priceItem(x, days) : null, aisle = aisleOf(x.name);
-      return { name: x.name, txt, pkg: info && info.pkg, cost: info ? info.cost : null, loose: !!(info && info.loose), share: info ? info.share : 1, stock: info ? info.stock : aisle === 'Spices', weeks: info ? info.weeks : 0, aisle };
+      return { name: x.name, txt, pkg: info && info.pkg, cost: info ? Math.max(1, Math.round(info.cost)) : null, covers: x.covers ? [...x.covers] : null, loose: !!(info && info.loose), share: info ? info.share : 1, stock: info ? info.stock : aisle === 'Spices', weeks: info ? info.weeks : 0, aisle };
     });
     const list = out(M, true);
     return { list, made: out(made), free: [...free].filter(n => !list.some(x => x.name === n)) };
