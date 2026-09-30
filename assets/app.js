@@ -237,7 +237,7 @@ function rangeDates() {
 function entriesInRange() { const out = []; rangeDates().forEach(d => ALLMEALS.forEach(([k]) => ((diary[d] || {})[k] || []).forEach(e => { if (e.r && rec(e.r)) out.push({ r: e.r, s: e.s }); }))); return out; }
 const money = x => '$' + (x >= 100 ? Math.round(x) : x.toFixed(2).replace(/\.00$/, ''));
 function shopGroups(S) { return { buy: S.list.filter(x => !x.stock), stock: S.list.filter(x => x.stock) }; }
-function shopTotal(S, days) { const k = 7 / Math.max(1, days), L = S.list; return { trip: L.filter(x => !(x.stock && have[x.name])).reduce((a, x) => a + (x.cost || 0), 0), weekly: L.reduce((a, x) => a + (x.cost || 0) * (x.stock ? x.share : 1), 0) * k, unknown: L.filter(x => x.cost == null).length }; }
+function shopTotal(S) { const sum = L => L.reduce((a, x) => a + (x.cost || 0), 0); return { groceries: sum(S.list.filter(x => !x.stock)), pantry: sum(S.list.filter(x => x.stock)) }; }
 function shopText(S) {
   const { buy, stock } = shopGroups(S), by = {}; buy.forEach(x => (by[x.aisle] = by[x.aisle] || []).push(x));
   const line = x => `- ${Core.title(x.name)}: ${x.pkg ? x.pkg + ' (recipes use ' + x.txt + ')' : x.txt}`, need = stock.filter(x => !have[x.name]);
@@ -253,21 +253,19 @@ function viewShop() {
   setBar({ title: 'Shopping List' });
   const entries = entriesInRange(), days = rangeDates().length, S = Core.shopping(entries, days), { buy, stock } = shopGroups(S), by = {};
   buy.forEach(x => (by[x.aisle] = by[x.aisle] || []).push(x));
-  const total = buy.length, done = buy.filter(x => checked[x.name]).length, T = shopTotal(S, days), budget = store.get("budget", 50), pct = budget ? Math.min(100, T.weekly / budget * 100) : 0, over = budget && T.weekly > budget;
+  const total = buy.length, done = buy.filter(x => checked[x.name]).length, T = shopTotal(S);
   const opts = [['7', 'Next 7 days'], ['today', 'Today'], ['week', 'This week'], ['custom', 'Custom']];
   const c = store.get('shopCustom', { from: today(), to: addDays(today(), 6) });
   const recipesUsed = [...new Set(entries.map(e => e.r))].map(rec).filter(Boolean);
   $('#view').innerHTML = `<div class="card"><label class="f" for="sr" style="margin-top:0">Shop for the meals in your Meal Plan</label><select id="sr">${opts.map(([k, l]) => `<option value="${k}" ${k === shopRange ? 'selected' : ''}>${l}</option>`).join('')}</select>
       ${shopRange === 'custom' ? `<div class="row wrap"><div class="grow"><label class="f" for="sf">From</label><input type="date" id="sf" value="${c.from}"></div><div class="grow"><label class="f" for="st">To</label><input type="date" id="st" value="${c.to}"></div></div>` : ''}
       <p class="small muted" style="margin-top:8px">${entries.length ? `${recipesUsed.length} recipes · ${days} ${days === 1 ? 'day' : 'days'}` : 'Nothing planned in this range.'}</p></div>
-    ${S.list.length ? `<div class="card"><div class="row" style="justify-content:space-between;align-items:flex-end"><div><span class="tiny muted" style="text-transform:uppercase;letter-spacing:.04em">Food cost per week</span><div style="font-size:26px;font-weight:700;line-height:1.2">${money(T.weekly)}</div></div><div style="width:110px"><label class="f" for="bg" style="margin-top:0">Weekly budget ($)</label><input type="number" id="bg" value="${budget}" min="0" inputmode="numeric"></div></div>
-      <div class="pbar ${over ? 'over' : ''}" role="img" aria-label="${money(T.weekly)} of ${money(budget)} weekly budget"><i style="width:${pct}%"></i></div>
-      <p class="small ${over ? '' : 'muted'}" style="margin-top:8px;${over ? 'color:var(--orange)' : ''}">${over ? 'Over your budget by ' + money(T.weekly - budget) + ' a week. Try a cheaper week or swap expensive meals.' : budget ? money(budget - T.weekly) + ' under your weekly budget.' : ''}${T.unknown ? ' ' + T.unknown + ' item' + (T.unknown === 1 ? '' : 's') + ' not priced.' : ''}</p>
-      <p class="small" style="margin-top:6px">Cash at the store this trip: <b>${money(T.trip)}</b></p>
-      <p class="tiny muted">Weekly cost counts only the share of pantry items (rice, oil, spices) you use in a week. The trip total is what you actually pay, leaving out pantry items you check off as already owned. Prices are rough US grocery averages; your store will differ.</p></div>
+    ${S.list.length ? `<div class="card"><span class="tiny muted" style="text-transform:uppercase;letter-spacing:.04em">Estimated cost</span><div style="font-size:26px;font-weight:700;line-height:1.2">About ${money(Math.round(T.groceries))}</div>
+      ${T.pantry ? `<p class="small muted" style="margin-top:4px">Plus about ${money(Math.round(T.pantry))} of pantry items (rice, oil, spices). Those last weeks, so skip what you already have.</p>` : ''}
+      <p class="tiny muted" style="margin-top:6px">A rough guess from typical US grocery prices. Your store will differ.</p></div>
     <div class="card flush"><div style="padding:14px 16px"><div class="row" style="justify-content:space-between"><b>${done} of ${total} to buy this week</b><span class="row"><button class="btn sm" data-a="copyshop">${ICON.copy} Copy</button>${navigator.share ? `<button class="btn sm" data-a="shareshop">${ICON.share} Share</button>` : ''}</span></div><div class="progress" role="img" aria-label="${done} of ${total} checked"><i style="width:${total ? done / total * 100 : 0}%"></i></div></div></div>
       ${Core.AISLE_ORDER.filter(a => by[a]).map(a => `<h2 class="sec">${a}</h2><div class="card flush">${by[a].sort((x, y) => x.name.localeCompare(y.name)).map(x => shopRow(x, false)).join('')}</div>`).join('')}
-      ${stock.length ? `<h2 class="sec">Pantry Stock</h2><p class="small muted" style="margin:0 6px 8px">These last weeks, so buy them only when you run out. Check what you already have at home and it comes off the cost.</p><div class="card flush">${stock.sort((x, y) => x.name.localeCompare(y.name)).map(x => shopRow(x, true)).join('')}</div>` : ''}
+      ${stock.length ? `<h2 class="sec">Pantry Stock</h2><p class="small muted" style="margin:0 6px 8px">These last weeks, so buy them only when you run out. Check off what you already have at home.</p><div class="card flush">${stock.sort((x, y) => x.name.localeCompare(y.name)).map(x => shopRow(x, true)).join('')}</div>` : ''}
       ${S.free.length ? `<h2 class="sec">Check You Have</h2><div class="card small muted">${esc(S.free.map(Core.title).join(', '))}</div>` : ''}
       ${S.made.length ? `<h2 class="sec">Made by Your Batch Recipes</h2><div class="card small muted">${esc(S.made.map(x => Core.title(x.name) + ' (' + x.txt + ')').join(' · '))}<br>These are not shopping items.</div>` : ''}
       <button class="btn block" data-a="clearchecks" style="margin-top:8px">Clear Checkmarks</button>`
@@ -439,7 +437,6 @@ document.addEventListener('change', e => {
   if (t.dataset && t.dataset.a === 'equip') return A.equip(t);
   if (t.dataset && t.dataset.a === 'eat') return A.eat(t);
   if (t.dataset && t.dataset.a === 'have') return A.have(t);
-  if (t.id === 'bg') { store.set('budget', Math.max(0, +t.value || 0)); viewShop(); }
   if (t.id === 'rs') { rvServ = Math.max(1, Math.round(parseFloat(t.value)) || 1); const y = scrollY; viewRecipe(rvId); scrollTo(0, y); }
   if (t.id === 'sr') { shopRange = t.value; store.set('shopRange', shopRange); viewShop(); }
   if (t.id === 'sf' || t.id === 'st') { const c = { from: $('#sf').value, to: $('#st').value }; if (c.from && c.to && c.from <= c.to) { store.set('shopCustom', c); viewShop(); } }
