@@ -385,6 +385,7 @@ function viewMe() {
 }
 
 // ---------- events ----------
+const readProfile = () => ({ sex: $('#ps').value, age: +$('#pa').value || 30, ft: +$('#pf').value || 5, inch: +$('#pi').value || 0, lb: +$('#pw').value || 150, activity: +$('#pact').value, goal: $('#pg').value });
 const A = {
   goto: t => { location.hash = '#/plan/' + t.dataset.d; },
   eat: t => { const e = (diary[selDate] && diary[selDate][t.dataset.m] || []).find(x => x.id === t.dataset.id); if (!e) return; e.done = t.checked; saveDiary(); const y = scrollY; viewPlan(); scrollTo(0, y); },
@@ -419,7 +420,7 @@ const A = {
   equip: t => { const e = store.get('equip', {}); e[t.dataset.i] = t.checked; store.set('equip', e); },
   savegoals: () => { goals = { kcal: +$('#gk').value || 2000, protein: +$('#gp').value || 0, carbs: +$('#gc').value || 0, fat: +$('#gf').value || 0 }; store.set('goals', goals); toast('Goals saved'); },
   calcgoals: () => {
-    const p = { sex: $('#ps').value, age: +$('#pa').value || 30, ft: +$('#pf').value || 5, inch: +$('#pi').value || 0, lb: +$('#pw').value || 150, activity: +$('#pact').value, goal: $('#pg').value }; store.set('profile', p);
+    const p = readProfile(); store.set('profile', p);
     const g = Core.calcGoals(p); $('#calcout').innerHTML = `<div class="card" style="background:var(--blue-l);border-color:var(--blue-line)"><b>${g.kcal} calories a day</b><p class="small">Protein ${g.protein} g · Carbs ${g.carbs} g · Fat ${g.fat} g<br><span class="muted">Maintenance is about ${g.tdee} calories.</span></p><button class="btn primary sm" data-a="usegoals" data-k="${g.kcal}" data-p="${g.protein}" data-c="${g.carbs}" data-f="${g.fat}">Use These Goals</button></div>`;
   },
   usegoals: t => { goals = { kcal: +t.dataset.k, protein: +t.dataset.p, carbs: +t.dataset.c, fat: +t.dataset.f }; store.set('goals', goals); viewMe(); toast('Goals updated'); },
@@ -439,6 +440,7 @@ document.addEventListener('change', e => {
   if (t.dataset && t.dataset.a === 'equip') return A.equip(t);
   if (t.dataset && t.dataset.a === 'eat') return A.eat(t);
   if (t.dataset && t.dataset.a === 'have') return A.have(t);
+  if (['ps', 'pa', 'pf', 'pi', 'pw', 'pact', 'pg'].includes(t.id)) store.set('profile', readProfile());
   if (t.id === 'rs') { rvServ = Math.max(1, Math.round(parseFloat(t.value)) || 1); const y = scrollY; viewRecipe(rvId); scrollTo(0, y); }
   if (t.id === 'sr') { shopRange = t.value; store.set('shopRange', shopRange); viewShop(); }
   if (t.id === 'sf' || t.id === 'st') { const c = { from: $('#sf').value, to: $('#st').value }; if (c.from && c.to && c.from <= c.to) { store.set('shopCustom', c); viewShop(); } }
