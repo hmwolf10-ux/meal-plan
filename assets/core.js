@@ -112,7 +112,12 @@ const Core = (() => {
   const aisleOf = n => (AISLE.find(a => a[1].test(n)) || ['Other'])[0];
   const AISLE_ORDER = ['Produce', 'Meat and Fish', 'Dairy and Eggs', 'Pantry and Canned', 'Spices', 'Other'];
   const isMade = n => /^(cooked|poached|roasted|leftover|shredded|sliced|cold cooked)\b/i.test(n);
-  const norm = n => n.toLowerCase().replace(/\(.*?\)/g, '').replace(/,.*$/, '').replace(/\b(optional|to taste|of choice|fresh|large|small|diced|sliced|chopped|minced|peeled)\b/g, '').replace(/\s+/g, ' ').trim().replace(/^cans?\s+/, '');
+  const norm0 = n => n.toLowerCase().replace(/\(.*?\)/g, '').replace(/,.*$/, '').replace(/\b(optional|to taste|of choice|fresh|large|small|diced|sliced|chopped|minced|peeled)\b/g, '').replace(/\s+/g, ' ').trim().replace(/^cans?\s+/, '');
+  // Same thing written different ways ("banana", "ripe bananas"; thighs with or without skin) should be one line on the list.
+  const ALIAS = [[/^(ripe )?bananas?$/, 'banana'], [/^(bone-in )?(skin-on )?(chicken )?(thighs|pieces|drumsticks|leg quarters)( (and|or) (thighs|drumsticks))?$|^bone-in (skin-on )?(chicken )?thighs( or drumsticks| and drumsticks)?$|^thighs and drumsticks$|^drumsticks and thighs$/, 'bone-in chicken thighs'],
+    [/^boneless (skinless )?(chicken )?thighs?$/, 'boneless chicken thighs'], [/^(boneless )?(skinless )?(chicken )?breasts?$|^boneless (skinless )?(chicken )?breasts?( or thighs)?$/, 'boneless chicken breasts'],
+    [/^(onions?|white onions?|yellow onions?)$/, 'onion'], [/^carrots?$/, 'carrots'], [/^lemons?$/, 'lemon'], [/^limes?$/, 'lime'], [/^(russet )?potatoes$|^potato$/, 'potatoes'], [/^bell peppers?$/, 'bell pepper'], [/^apples?$/, 'apple'], [/^celery stalks?$/, 'celery']];
+  const norm = n => { const b = norm0(n), a = ALIAS.find(x => x[0].test(b)); return a ? a[1] : b; };
   function needIn(x, rule) {
     const unit = rule.unit;
     if (unit === 'cup') return x.t === 'vol' ? x.base / 48 : null;
@@ -183,6 +188,62 @@ const Core = (() => {
   function sumMeal(list, eatenOnly) { const T = ZERO(); (list || []).forEach(e => { if (eatenOnly && !eaten(e)) return; const m = entryMac(e); T.kcal += m.kcal; T.protein += m.protein; T.carbs += m.carbs; T.fat += m.fat; }); return T; }
   function dayTotals(day, eatenOnly) { const T = ZERO(); MEALS.forEach(([k]) => { const m = sumMeal(day && day[k], eatenOnly); T.kcal += m.kcal; T.protein += m.protein; T.carbs += m.carbs; T.fat += m.fat; }); return T; }
 
+  // ---------- budget plan builder ----------
+  function planCost(entries) {
+    const S = shopping(entries, 7); let groceries = 0, pantry = 0, weekly = 0, unknown = 0;
+    for (const x of S.list) { if (x.cost == null) { unknown++; continue; } if (x.stock) { pantry += x.cost; weekly += x.cost * x.share; } else { groceries += x.cost; weekly += x.cost; } }
+    return { groceries, pantry, weekly, unknown };
+  }
+  const mulberry = a => () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
+  const half = (x, max = 2) => Math.min(max, Math.max(0.5, Math.round(x * 2) / 2));
+  const MAINS = ['chicken', 'beef', 'pork', 'turkey', 'fish', 'eggs', 'plant', 'soups and stews', 'dinner'];
+  const SNACK_BASICS = ['basic-peanut-butter', 'basic-almonds', 'basic-apple', 'basic-banana', 'basic-string-cheese', 'basic-popcorn', 'basic-greek-yogurt', 'basic-cottage-cheese', 'basic-berries'];
+  function pools() {
+    const ok = r => r.mac && r.mac.kcal > 0 && r.category !== 'meal prep' && !r.ing.some(i => isMade(i[2])), ids = l => l.map(byId).filter(Boolean);
+    return {
+      b: [...R.filter(r => ok(r) && r.category === 'breakfast'), ...ids(['basic-hard-boiled-eggs', 'basic-greek-yogurt', 'basic-cottage-cheese'])],
+      m: [...R.filter(r => ok(r) && MAINS.includes(r.category)), 'bundle'],
+      s: [...R.filter(r => ok(r) && r.category === 'snacks'), ...ids(SNACK_BASICS)],
+      side: ids(['basic-banana', 'basic-toast', 'basic-apple', 'basic-milk', 'basic-orange', 'basic-berries'])
+    };
+  }
+  // Chicken thighs and rice cooked once on day 1, eaten as bowls: the cheapest protein there is.
+  const BOWL = () => ({ id: 'chicken-rice-bowl', mac: byId('chicken-rice-bowl').mac, bundle: true });
+  function assemble(st, goals) {
+    const split = { breakfast: 0.25, lunch: 0.3, dinner: 0.3, snacks: 0.15 }, days = []; let bowls = 0;
+    for (let d = 0; d < 7; d++) {
+      const day = {}, put = (slot, item, s) => { const r = item === 'bundle' ? BOWL() : item; if (r.bundle) bowls += s; (day[slot] = day[slot] || []).push({ r: r.id, s }); return r; };
+      const slot = (name, item, extra) => { const cap = name === 'snacks' ? 1.5 : 2, t = goals.kcal * split[name], r = item === 'bundle' ? BOWL() : item, s = half(t / r.mac.kcal, cap); put(name, item, s); if (extra && s * r.mac.kcal < t * 0.75) put(name, extra, half((t - s * r.mac.kcal) / extra.mac.kcal)); };
+      slot('breakfast', st.b[d % st.b.length], st.side[d % st.side.length]);
+      slot('lunch', st.l[d % st.l.length]); slot('dinner', st.d[d % st.d.length]); slot('snacks', st.s[d % st.s.length]);
+      days.push(day);
+    }
+    if (bowls) days[0] = { prep: [{ r: 'batch-chicken-thighs', s: Math.max(1, Math.ceil(bowls)) }, { r: 'batch-rice', s: Math.max(1, Math.ceil(bowls)) }], ...days[0] };
+    return days;
+  }
+  function evalPlan(st, goals, budget) {
+    const days = assemble(st, goals), entries = days.flatMap(d => Object.values(d).flat().map(e => ({ r: e.r, s: e.s }))), c = planCost(entries);
+    const tot = days.map(d => dayTotals(d)), avg = k => tot.reduce((a, t) => a + t[k], 0) / 7, kcal = avg('kcal'), protein = avg('protein');
+    const id = x => x === 'bundle' ? 'bundle' : x.id, dup = st.l.filter(x => st.d.some(y => id(y) === id(x))).length + (new Set(st.d.map(id)).size < st.d.length ? 1 : 0) + (new Set(st.l.map(id)).size < st.l.length ? 1 : 0);
+    const score = dup * 15 + Math.max(0, c.weekly - budget) * 8 + Math.max(0, budget - c.weekly) * 0.1 + Math.abs(kcal - goals.kcal) / goals.kcal * 60 + Math.max(0, goals.protein * 0.9 - protein) / Math.max(1, goals.protein) * 60 + c.unknown * 5;
+    return { days, cost: c, kcal, protein, score, fits: c.weekly <= budget };
+  }
+  // Finds a 7-day plan near the weekly budget and the calorie/protein goals. Different seeds give different plans.
+  function buildPlan(budget, goals, seed = Date.now()) {
+    const rnd = mulberry(seed), pick = a => a[Math.floor(rnd() * a.length)], P = pools(), pl = { b: P.b, l: P.m, d: P.m, s: P.s, side: P.side };
+    const rand = () => ({ b: [pick(P.b), pick(P.b)], l: [pick(P.m), pick(P.m)], d: [pick(P.m), pick(P.m), pick(P.m)], s: [pick(P.s), pick(P.s)], side: [pick(P.side), pick(P.side)] });
+    let best = null;
+    for (let r = 0; r < 12; r++) {
+      let st = rand(), cur = evalPlan(st, goals, budget);
+      for (let i = 0; i < 36; i++) {
+        const key = pick(['b', 'l', 'd', 's', 'side']), idx = Math.floor(rnd() * st[key].length), cand = { ...st, [key]: st[key].map((x, j) => j === idx ? pick(pl[key]) : x) }, e = evalPlan(cand, goals, budget);
+        if (e.score < cur.score) { st = cand; cur = e; }
+      }
+      if (!best || cur.score < best.score) best = cur;
+    }
+    return best;
+  }
+
   // ---------- dates ----------
   const ymd = d => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
   const parseYmd = s => { const [y, m, d] = s.split('-').map(Number); return new Date(y, m - 1, d); };
@@ -208,5 +269,5 @@ const Core = (() => {
     R.forEach(r => { r.mac = macrosOf(r); r.name = title(r.name); r.easy = isEasy(r); });
     return R;
   }
-  return { init, get recipes() { return R; }, byId, esc, cap, title, catLabel, num, fmt, ingText, normUnit, unitType, scaleFactor, VOL, WT, macrosOf, shopping, priceItem, aisleOf, AISLE_ORDER, isMade, norm, entryMac, eaten, sumMeal, dayTotals, MEALS, ymd, parseYmd, addDays, calcGoals, isEasy };
+  return { init, get recipes() { return R; }, byId, esc, cap, title, catLabel, num, fmt, ingText, normUnit, unitType, scaleFactor, VOL, WT, macrosOf, shopping, priceItem, aisleOf, AISLE_ORDER, isMade, norm, entryMac, eaten, planCost, buildPlan, sumMeal, dayTotals, MEALS, ymd, parseYmd, addDays, calcGoals, isEasy };
 })();

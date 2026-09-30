@@ -149,3 +149,9 @@ ul.ings { list-style:none; padding:0; } ul.ings li { padding:9px 0; border-botto
 .entry .icon-btn { flex:none; color:var(--mut); width:40px; height:40px; }
 .week .dot.plan { background:var(--track); box-shadow:inset 0 0 0 1.5px var(--mut); }
 .shop-item .price { flex:none; font-weight:600; font-size:14.5px; } .shop-item.done .price { color:var(--faint); text-decoration:line-through; }
+
+/* settings rows */
+.set-row { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:10px 16px; border-top:1px solid var(--line); min-height:52px; } .card.flush > .set-row:first-child { border-top:0; }
+.set-row .lbl { display:flex; flex-direction:column; min-width:0; } .set-row .lbl b { font-weight:600; }
+.set-row input, .set-row select { width:auto; max-width:60%; }
+.suggest { display:flex; align-items:center; justify-content:space-between; gap:12px; } .suggest > div { display:flex; flex-direction:column; }

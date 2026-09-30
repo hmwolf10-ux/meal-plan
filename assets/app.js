@@ -237,7 +237,7 @@ function rangeDates() {
 function entriesInRange() { const out = []; rangeDates().forEach(d => ALLMEALS.forEach(([k]) => ((diary[d] || {})[k] || []).forEach(e => { if (e.r && rec(e.r)) out.push({ r: e.r, s: e.s }); }))); return out; }
 const money = x => '$' + (x >= 100 ? Math.round(x) : x.toFixed(2).replace(/\.00$/, ''));
 function shopGroups(S) { return { buy: S.list.filter(x => !x.stock), stock: S.list.filter(x => x.stock) }; }
-function shopTotal(S) { const sum = L => L.reduce((a, x) => a + (x.cost || 0), 0); return { groceries: sum(S.list.filter(x => !x.stock)), pantry: sum(S.list.filter(x => x.stock)) }; }
+function shopTotal(S, days = 7) { const sum = L => L.reduce((a, x) => a + (x.cost || 0), 0); return { groceries: sum(S.list.filter(x => !x.stock)), pantry: sum(S.list.filter(x => x.stock)), weekly: S.list.reduce((a, x) => a + (x.cost || 0) * (x.stock ? x.share : 1), 0) * 7 / Math.max(1, days) }; }
 function shopText(S) {
   const { buy, stock } = shopGroups(S), by = {}; buy.forEach(x => (by[x.aisle] = by[x.aisle] || []).push(x));
   const line = x => `- ${Core.title(x.name)}: ${x.pkg ? x.pkg + ' (recipes use ' + x.txt + ')' : x.txt}`, need = stock.filter(x => !have[x.name]);
@@ -253,7 +253,7 @@ function viewShop() {
   setBar({ title: 'Shopping List' });
   const entries = entriesInRange(), days = rangeDates().length, S = Core.shopping(entries, days), { buy, stock } = shopGroups(S), by = {};
   buy.forEach(x => (by[x.aisle] = by[x.aisle] || []).push(x));
-  const total = buy.length, done = buy.filter(x => checked[x.name]).length, T = shopTotal(S);
+  const total = buy.length, done = buy.filter(x => checked[x.name]).length, T = shopTotal(S, days), budget = store.get("budget", 50);
   const opts = [['7', 'Next 7 days'], ['today', 'Today'], ['week', 'This week'], ['custom', 'Custom']];
   const c = store.get('shopCustom', { from: today(), to: addDays(today(), 6) });
   const recipesUsed = [...new Set(entries.map(e => e.r))].map(rec).filter(Boolean);
@@ -262,14 +262,16 @@ function viewShop() {
       <p class="small muted" style="margin-top:8px">${entries.length ? `${recipesUsed.length} recipes · ${days} ${days === 1 ? 'day' : 'days'}` : 'Nothing planned in this range.'}</p></div>
     ${S.list.length ? `<div class="card"><span class="tiny muted" style="text-transform:uppercase;letter-spacing:.04em">Estimated cost</span><div style="font-size:26px;font-weight:700;line-height:1.2">About ${money(Math.round(T.groceries))}</div>
       ${T.pantry ? `<p class="small muted" style="margin-top:4px">Plus about ${money(Math.round(T.pantry))} of pantry items (rice, oil, spices). Those last weeks, so skip what you already have.</p>` : ''}
-      <p class="tiny muted" style="margin-top:6px">A rough guess from typical US grocery prices. Your store will differ.</p></div>
+      <p class="small" style="margin-top:8px;${T.weekly > budget ? "color:var(--orange)" : ""}">${T.weekly > budget ? "About " + money(Math.round(T.weekly - budget)) + " over your " + money(budget) + " weekly budget." : "Fits your " + money(budget) + " weekly budget."}</p>
+      <div class="row" style="align-items:flex-end;margin-top:10px"><div style="width:120px"><label class="f" for="bg" style="margin-top:0">Weekly budget ($)</label><input type="number" id="bg" value="${budget}" min="1" inputmode="numeric"></div><button class="btn grow" data-a="buildweek">Build a Week for ${money(budget)}</button></div>
+      <p class="tiny muted" style="margin-top:8px">A rough guess from typical US grocery prices. Your store will differ.</p></div>
     <div class="card flush"><div style="padding:14px 16px"><div class="row" style="justify-content:space-between"><b>${done} of ${total} to buy this week</b><span class="row"><button class="btn sm" data-a="copyshop">${ICON.copy} Copy</button>${navigator.share ? `<button class="btn sm" data-a="shareshop">${ICON.share} Share</button>` : ''}</span></div><div class="progress" role="img" aria-label="${done} of ${total} checked"><i style="width:${total ? done / total * 100 : 0}%"></i></div></div></div>
       ${Core.AISLE_ORDER.filter(a => by[a]).map(a => `<h2 class="sec">${a}</h2><div class="card flush">${by[a].sort((x, y) => x.name.localeCompare(y.name)).map(x => shopRow(x, false)).join('')}</div>`).join('')}
       ${stock.length ? `<h2 class="sec">Pantry Stock</h2><p class="small muted" style="margin:0 6px 8px">These last weeks, so buy them only when you run out. Check off what you already have at home.</p><div class="card flush">${stock.sort((x, y) => x.name.localeCompare(y.name)).map(x => shopRow(x, true)).join('')}</div>` : ''}
       ${S.free.length ? `<h2 class="sec">Check You Have</h2><div class="card small muted">${esc(S.free.map(Core.title).join(', '))}</div>` : ''}
       ${S.made.length ? `<h2 class="sec">Made by Your Batch Recipes</h2><div class="card small muted">${esc(S.made.map(x => Core.title(x.name) + ' (' + x.txt + ')').join(' · '))}<br>These are not shopping items.</div>` : ''}
       <button class="btn block" data-a="clearchecks" style="margin-top:8px">Clear Checkmarks</button>`
-    : `<div class="card"><h2 style="font-size:18px">Plan a week, then shop</h2><p class="muted" style="margin:6px 0 14px">Add recipes to meals in your Meal Plan (today or upcoming days) and the shopping list builds itself. Or start from a ready-made week.</p><div class="row wrap"><button class="btn primary" data-a="templates">Start with a Ready-Made Week</button><a class="btn" href="#/recipes">Browse Recipes</a></div></div><div id="tplcosts"></div>`}`;
+    : `<div class="card"><h2 style="font-size:18px">Plan a week, then shop</h2><p class="muted" style="margin:6px 0 14px">Add recipes to meals in your Meal Plan (today or upcoming days) and the shopping list builds itself. Or start from a ready-made week.</p><div class="row wrap"><button class="btn primary" data-a="templates">Start with a Ready-Made Week</button><a class="btn" href="#/recipes">Browse Recipes</a></div></div>${budgetBlock(budget, "Or build a week for my budget", "bud2")}<div id="tplcosts"></div>`}`;
   if (!S.list.length) loadTpl().then(T => { const el = $("#tplcosts"); if (el) el.innerHTML = `<h2 class="sec">What a Week Costs</h2><div class="card flush">${T.map(t => `<div style="padding:12px 16px;border-top:1px solid var(--line)"><b>${esc(t.name)}</b><p class="small muted">${tplCost(t)}</p></div>`).join("")}</div><p class="tiny muted" style="margin:6px 8px">Rough guesses at typical US grocery prices.</p>`; });
 }
 
@@ -279,11 +281,22 @@ async function loadTpl() { if (!TPL) TPL = (await (await fetch('data/plans/templ
 function tplCost(t) { const E = []; t.days.forEach(d => Object.values(d).forEach(L => L.forEach(e => E.push({ r: e.r, s: e.s })))); const T = shopTotal(Core.shopping(E, 7)); return `About ${money(Math.round(T.groceries / 5) * 5)} a week for groceries` + (T.pantry ? `, plus about ${money(Math.round(T.pantry / 5) * 5)} of pantry items the first time` : ""); }
 async function templateSheet() {
   const T = await loadTpl();
-  openSheet(`<h2 id="sheet-title">Ready-Made Weeks</h2><p class="muted small">Adds the meals to your Meal Plan for 7 days, including the batch-cooking day. You can change anything after.</p>
+  openSheet(`<h2 id="sheet-title">Plan a Week</h2>${budgetBlock(store.get("budget", 50), "Build a week for my budget", "bud")}<h3 style="font-size:16px;margin-top:18px">Or pick a ready-made week</h3><p class="muted small">Adds the meals to your Meal Plan for 7 days, including the batch-cooking day. You can change anything after.</p>
     ${T.map((t, i) => `<div class="card" style="margin:10px 0"><b>${esc(t.name)}</b><p class="small muted">${esc(t.desc)}</p><p class="small" style="margin-top:6px"><b>${tplCost(t)}</b></p></div>`).join('')}
     <label class="f" for="tp">Plan</label><select id="tp">${T.map((t, i) => `<option value="${i}">${esc(t.name)}</option>`).join('')}</select>
     <label class="f" for="td">First day (batch-cooking day)</label><input type="date" id="td" value="${today()}">
     <button class="btn primary block" style="margin-top:16px" data-a="applytpl">Add to My Meal Plan</button>`);
+}
+let builtWeek = null;
+const budgetBlock = (budget, title, id) => `<div class="card" style="margin:10px 0"><b>${title}</b><p class="small muted" style="margin:4px 0 8px">Type what you want to spend on groceries in a week. I pick meals that fit it and your calorie and protein goals.</p><div class="row" style="align-items:flex-end"><div style="width:120px"><label class="f" for="${id}" style="margin-top:0">Weekly budget ($)</label><input type="number" id="${id}" value="${budget}" min="1" inputmode="numeric"></div><button class="btn primary grow" data-a="buildweek">Build My Week</button></div></div>`;
+function builtSheet() {
+  const b = builtWeek, bud = store.get('budget', 50), names = slot => [...new Set(b.days.flatMap(d => (d[slot] || []).map(e => rec(e.r) && rec(e.r).name)))].filter(Boolean);
+  openSheet(`<h2 id="sheet-title">A week for about ${money(Math.round(b.cost.weekly))}</h2>
+    <p class="small" style="margin-top:4px;${b.fits ? '' : 'color:var(--orange)'}">${b.fits ? 'Fits your ' + money(bud) + ' weekly budget.' : 'Closest I could get to ' + money(bud) + ' with your calorie and protein goals. Raise the budget a little or lower your calories.'}</p>
+    <p class="small muted" style="margin-top:4px">About ${r0(b.kcal).toLocaleString()} calories and ${r0(b.protein)} g protein a day.${b.days[0].prep ? ' Cook the chicken and rice in one batch on day 1.' : ''}</p>
+    ${[['breakfast', 'Breakfast'], ['lunch', 'Lunch'], ['dinner', 'Dinner'], ['snacks', 'Snacks']].map(([k, l]) => `<div class="card" style="margin:8px 0"><span class="tiny muted" style="text-transform:uppercase;letter-spacing:.04em">${l}</span><p class="small">${names(k).map(esc).join(' · ')}</p></div>`).join('')}
+    <label class="f" for="bd">First day</label><input type="date" id="bd" value="${today()}">
+    <div class="row" style="margin-top:16px"><button class="btn primary grow" data-a="applybuilt">Add to My Meal Plan</button><button class="btn" data-a="buildweek">Try Another</button></div>`);
 }
 function applyTemplate(idx, start) {
   const t = TPL[idx]; let n = 0;
@@ -361,26 +374,45 @@ async function viewGuide(g, sec) {
   } catch (e) { $('#view').innerHTML = '<div class="card err">Could not load this guide.</div>'; }
 }
 
-// ---------- ME ----------
+// ---------- SETTINGS ----------
+const PROFILE0 = { sex: 'female', age: 30, ft: 5, inch: 6, lb: 150, activity: 1.375, goal: 'keep' };
+function suggestHtml() {
+  const g = Core.calcGoals(store.get('profile', PROFILE0));
+  return `<div class="suggest"><div><b>${g.kcal.toLocaleString()} calories a day</b><span class="small muted">Protein ${g.protein} g · Carbs ${g.carbs} g · Fat ${g.fat} g<br>Maintenance is about ${g.tdee.toLocaleString()} calories.</span></div><button class="btn primary sm" data-a="usegoals" data-k="${g.kcal}" data-p="${g.protein}" data-c="${g.carbs}" data-f="${g.fat}">Use These</button></div>`;
+}
+const setRow = (label, hint, control) => `<div class="set-row"><div class="lbl"><b>${label}</b>${hint ? `<span class="small muted">${hint}</span>` : ''}</div>${control}</div>`;
 function viewMe() {
   setBar({ title: 'Settings' });
-  const p = store.get('profile', { sex: 'female', age: 30, ft: 5, inch: 6, lb: 150, activity: 1.375, goal: 'keep' });
+  const p = store.get('profile', PROFILE0), sel = (id, opts, cur) => `<select id="${id}">${opts.map(([v, l]) => `<option value="${v}" ${cur == v ? 'selected' : ''}>${l}</option>`).join('')}</select>`;
+  const num = (id, v, w = 96) => `<input type="number" id="${id}" value="${v}" inputmode="numeric" style="width:${w}px;text-align:right">`;
   $('#view').innerHTML = `<h2 style="font-size:24px;margin:4px 4px 0">Settings</h2>
-    <div class="card"><h2 style="font-size:18px">Appearance</h2><p class="small muted">Choose how the app looks on this device.</p><div class="chips" style="padding-bottom:0;margin-top:8px">${[['light', 'Light'], ['dark', 'Dark']].map(([v, l]) => `<button class="chip" data-a="theme" data-v="${v}" aria-pressed="${store.get('theme', 'light') === v}">${l}</button>`).join('')}</div></div>
-    <div class="card"><h2 style="font-size:18px">Daily Goals</h2>
-      <div class="row wrap"><div class="grow"><label class="f" for="gk">Calories</label><input type="number" id="gk" value="${goals.kcal}" inputmode="numeric"></div><div class="grow"><label class="f" for="gp">Protein (g)</label><input type="number" id="gp" value="${goals.protein}" inputmode="numeric"></div></div>
-      <div class="row wrap"><div class="grow"><label class="f" for="gc">Carbs (g)</label><input type="number" id="gc" value="${goals.carbs}" inputmode="numeric"></div><div class="grow"><label class="f" for="gf">Fat (g)</label><input type="number" id="gf" value="${goals.fat}" inputmode="numeric"></div></div>
-      <button class="btn primary block" style="margin-top:14px" data-a="savegoals">Save Goals</button></div>
-    <div class="card"><h2 style="font-size:18px">Calculate My Goals</h2><p class="small muted">Uses the Mifflin-St Jeor estimate. It is a starting point, not medical advice.</p>
-      <div class="row wrap"><div class="grow"><label class="f" for="ps">Sex</label><select id="ps"><option value="female" ${p.sex === 'female' ? 'selected' : ''}>Female</option><option value="male" ${p.sex === 'male' ? 'selected' : ''}>Male</option></select></div><div class="grow"><label class="f" for="pa">Age</label><input type="number" id="pa" value="${p.age}" inputmode="numeric"></div></div>
-      <div class="row wrap"><div class="grow"><label class="f" for="pf">Height (ft)</label><input type="number" id="pf" value="${p.ft}" inputmode="numeric"></div><div class="grow"><label class="f" for="pi">(in)</label><input type="number" id="pi" value="${p.inch}" inputmode="numeric"></div><div class="grow"><label class="f" for="pw">Weight (lb)</label><input type="number" id="pw" value="${p.lb}" inputmode="numeric"></div></div>
-      <label class="f" for="pact">Activity</label><select id="pact">${[[1.2, 'Mostly sitting'], [1.375, 'Light (1–3 workouts a week)'], [1.55, 'Moderate (3–5 workouts)'], [1.725, 'Very active (6–7 workouts)']].map(([v, l]) => `<option value="${v}" ${p.activity == v ? 'selected' : ''}>${l}</option>`).join('')}</select>
-      <label class="f" for="pg">Goal</label><select id="pg">${[['lose1', 'Lose about 1 lb a week'], ['lose05', 'Lose about ½ lb a week'], ['keep', 'Maintain weight'], ['gain05', 'Gain about ½ lb a week']].map(([v, l]) => `<option value="${v}" ${p.goal === v ? 'selected' : ''}>${l}</option>`).join('')}</select>
-      <button class="btn block" style="margin-top:14px" data-a="calcgoals">Calculate</button><div id="calcout"></div></div>
-    <div class="card"><h2 style="font-size:18px">Your Data</h2><p class="small muted">Everything is saved on this device only. Back it up before clearing your browser or changing phones.</p>
-      <div class="row wrap" style="margin-top:10px"><button class="btn" data-a="export">Download Backup</button><label class="btn" for="imp" style="cursor:pointer">Restore Backup</label><input type="file" id="imp" accept="application/json" style="display:none"></div>
-      <button class="btn danger block" style="margin-top:10px" data-a="reset">Erase All My Data</button></div>
-    <div class="card"><h2 style="font-size:18px">About</h2><p class="small muted">Recipe calories and macros are calculated from the ingredients using USDA values. See <a href="#/learn/sources">Sources</a>. Install this page from your browser menu (Add to Home Screen) to use it like an app, even offline.</p></div>`;
+    <h2 class="sec">Daily Goals</h2>
+    <div class="card flush">
+      ${setRow('Calories', '', num('gk', goals.kcal))}${setRow('Protein (g)', '', num('gp', goals.protein))}${setRow('Carbs (g)', '', num('gc', goals.carbs))}${setRow('Fat (g)', '', num('gf', goals.fat))}
+    </div>
+    <p class="tiny muted" style="margin:6px 8px">Changes save as you type. The meal plan compares your planned meals against these.</p>
+    <h2 class="sec">Work Out My Goals</h2>
+    <div class="card flush">
+      ${setRow('Sex', '', sel('ps', [['female', 'Female'], ['male', 'Male']], p.sex))}${setRow('Age', '', num('pa', p.age))}
+      ${setRow('Height', 'feet and inches', `<span class="row" style="gap:6px">${num('pf', p.ft, 64)}<span class="muted">ft</span>${num('pi', p.inch, 64)}<span class="muted">in</span></span>`)}
+      ${setRow('Weight (lb)', '', num('pw', p.lb))}
+      ${setRow('Activity', '', sel('pact', [[1.2, 'Mostly sitting'], [1.375, 'Light (1–3 workouts)'], [1.55, 'Moderate (3–5)'], [1.725, 'Very active (6–7)']], p.activity))}
+      ${setRow('Goal', '', sel('pg', [['lose1', 'Lose about 1 lb a week'], ['lose05', 'Lose about ½ lb a week'], ['keep', 'Maintain weight'], ['gain05', 'Gain about ½ lb a week']], p.goal))}
+      <div id="calcout" style="padding:14px 16px;border-top:1px solid var(--line)">${suggestHtml()}</div>
+    </div>
+    <p class="tiny muted" style="margin:6px 8px">Mifflin-St Jeor estimate. A starting point, not medical advice.</p>
+    <h2 class="sec">Shopping</h2>
+    <div class="card flush">${setRow('Weekly grocery budget ($)', 'Used to build a week of meals that fits', num('bgs', store.get('budget', 50)))}</div>
+    <h2 class="sec">Appearance</h2>
+    <div class="card flush">${setRow('Theme', '', `<span class="chips" style="padding:0">${[['light', 'Light'], ['dark', 'Dark']].map(([v, l]) => `<button class="chip" data-a="theme" data-v="${v}" aria-pressed="${store.get('theme', 'light') === v}">${l}</button>`).join('')}</span>`)}</div>
+    <h2 class="sec">Your Data</h2>
+    <div class="card flush">
+      <div class="set-row"><div class="lbl"><b>Everything is saved on this device only</b><span class="small muted">Back it up before clearing your browser or changing phones.</span></div></div>
+      <div class="row wrap" style="padding:0 16px 14px"><button class="btn" data-a="export">Download Backup</button><label class="btn" for="imp" style="cursor:pointer">Restore Backup</label><input type="file" id="imp" accept="application/json" style="display:none"></div>
+      <div style="padding:0 16px 14px"><button class="btn danger block" data-a="reset">Erase All My Data</button></div>
+    </div>
+    <h2 class="sec">About</h2>
+    <div class="card"><p class="small muted">Recipe calories and macros are calculated from the ingredients using USDA values. See <a href="#/learn/sources">Sources</a>. Prices are rough US grocery averages. Add this page to your Home Screen to use it like an app, even offline.</p></div>`;
   $('#imp').onchange = async e => { const f = e.target.files[0]; if (!f) return; try { const d = JSON.parse(await f.text()); if (d.diary) diary = d.diary; if (d.goals) goals = d.goals; if (d.favs) favs = d.favs; if (d.recent) recent = d.recent; if (d.checked) checked = d.checked; if (d.profile) store.set('profile', d.profile); store.set('diary', diary); store.set('goals', goals); store.set('favs', favs); store.set('recent', recent); store.set('checked', checked); toast('Backup restored'); viewMe(); } catch (er) { toast('That file is not a valid backup'); } };
 }
 
@@ -417,12 +449,9 @@ const A = {
   shareshop: () => navigator.share({ title: 'Shopping list', text: shopText(Core.shopping(entriesInRange(), rangeDates().length)) }).catch(() => {}),
   templates: () => templateSheet(),
   applytpl: () => { const n = applyTemplate(+$('#tp').value, $('#td').value || today()); const d = $('#td').value || today(); closeSheet(); toast('Added ' + n + ' items to your Meal Plan'); selDate = d; location.hash = '#/plan/' + d; },
+  buildweek: t => { const c = t.closest('.card'), el = c && c.querySelector('input[type=number]'); if (el) store.set('budget', Math.max(1, +el.value || 50)); openSheet('<h2 id="sheet-title">Building your week…</h2><p class="muted small">Picking meals that fit your budget and goals.</p>'); setTimeout(() => { builtWeek = Core.buildPlan(store.get('budget', 50), goals, Date.now()); builtSheet(); }, 30); },
+  applybuilt: () => { const d = $('#bd').value || today(); let n = 0; builtWeek.days.forEach((day, i) => ALLMEALS.forEach(([k]) => (day[k] || []).forEach(e => { if (rec(e.r)) { addEntry(addDays(d, i), k, { r: e.r, s: e.s }); n++; } }))); closeSheet(); selDate = d; toast('Added ' + n + ' items to your Meal Plan'); location.hash = '#/plan/' + d; },
   equip: t => { const e = store.get('equip', {}); e[t.dataset.i] = t.checked; store.set('equip', e); },
-  savegoals: () => { goals = { kcal: +$('#gk').value || 2000, protein: +$('#gp').value || 0, carbs: +$('#gc').value || 0, fat: +$('#gf').value || 0 }; store.set('goals', goals); toast('Goals saved'); },
-  calcgoals: () => {
-    const p = readProfile(); store.set('profile', p);
-    const g = Core.calcGoals(p); $('#calcout').innerHTML = `<div class="card" style="background:var(--blue-l);border-color:var(--blue-line)"><b>${g.kcal} calories a day</b><p class="small">Protein ${g.protein} g · Carbs ${g.carbs} g · Fat ${g.fat} g<br><span class="muted">Maintenance is about ${g.tdee} calories.</span></p><button class="btn primary sm" data-a="usegoals" data-k="${g.kcal}" data-p="${g.protein}" data-c="${g.carbs}" data-f="${g.fat}">Use These Goals</button></div>`;
-  },
   usegoals: t => { goals = { kcal: +t.dataset.k, protein: +t.dataset.p, carbs: +t.dataset.c, fat: +t.dataset.f }; store.set('goals', goals); viewMe(); toast('Goals updated'); },
   theme: t => { const v = t.dataset.v; store.set('theme', v); document.documentElement.dataset.theme = v; document.querySelector('meta[name=theme-color]').content = v === 'dark' ? '#0e131b' : '#f3f5f9'; viewMe(); },
   export: () => download('meal-plan-backup-' + today() + '.json', JSON.stringify({ app: 'meal-plan', diary, goals, favs, recent, checked, profile: store.get('profile', null), exported: new Date().toISOString() }, null, 1)),
@@ -440,8 +469,10 @@ document.addEventListener('change', e => {
   if (t.dataset && t.dataset.a === 'equip') return A.equip(t);
   if (t.dataset && t.dataset.a === 'eat') return A.eat(t);
   if (t.dataset && t.dataset.a === 'have') return A.have(t);
-  if (['ps', 'pa', 'pf', 'pi', 'pw', 'pact', 'pg'].includes(t.id)) store.set('profile', readProfile());
   if (t.id === 'rs') { rvServ = Math.max(1, Math.round(parseFloat(t.value)) || 1); const y = scrollY; viewRecipe(rvId); scrollTo(0, y); }
+  if (t.id === 'bg' || t.id === 'bgs' || t.id === 'bud' || t.id === 'bud2') { store.set('budget', Math.max(1, +t.value || 50)); if (t.id === 'bg') viewShop(); }
+  if (['gk', 'gp', 'gc', 'gf'].includes(t.id)) { goals = { kcal: +$('#gk').value || 2000, protein: +$('#gp').value || 0, carbs: +$('#gc').value || 0, fat: +$('#gf').value || 0 }; store.set('goals', goals); }
+  if (['ps', 'pa', 'pf', 'pi', 'pw', 'pact', 'pg'].includes(t.id)) { store.set('profile', readProfile()); $('#calcout').innerHTML = suggestHtml(); }
   if (t.id === 'sr') { shopRange = t.value; store.set('shopRange', shopRange); viewShop(); }
   if (t.id === 'sf' || t.id === 'st') { const c = { from: $('#sf').value, to: $('#st').value }; if (c.from && c.to && c.from <= c.to) { store.set('shopCustom', c); viewShop(); } }
 });
