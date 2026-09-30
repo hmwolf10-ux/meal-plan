@@ -163,10 +163,10 @@ const Core = (() => {
       for (const i of r.ing) {
         const q = num(i[0]), name = norm(i[2]), u = normUnit(i[1]); if (!name || /^(cold |hot )?water$|^water |^ice/.test(name)) continue;
         if (q == null) { free.add(name); continue; }
-        const t = unitType(u), qq = q * scaleFactor(f, i[2]);
-        const base = t === 'vol' ? qq * VOL[u] : t === 'wt' ? qq * WT[u] : qq;
-        const target = isMade(i[2]) ? made : M, key = name + '|' + t + (t === 'other' ? u : '');
-        const cur = target.get(key) || { name, t, base: 0, unit: u }; cur.base += base; target.set(key, cur);
+        const t = unitType(u), qq = q * scaleFactor(f, i[2]), riceMade = isMade(i[2]) && /\brice\b/i.test(i[2]) && t === 'vol', nm = riceMade ? 'white rice' : name;
+        const base = (t === 'vol' ? qq * VOL[u] : t === 'wt' ? qq * WT[u] : qq) / (riceMade ? 3 : 1);
+        const target = isMade(i[2]) && !riceMade ? made : M, key = nm + '|' + t + (t === 'other' ? u : '');
+        const cur = target.get(key) || { name: nm, t, base: 0, unit: u }; cur.base += base; target.set(key, cur);
       }
     }
     // Vegetables are bought as one frozen mix: cheaper, no waste, and it covers the peppers, carrots, broccoli and so on.
@@ -202,9 +202,9 @@ const Core = (() => {
   function sumMeal(list, eatenOnly) { const T = ZERO(); (list || []).forEach(e => { if (eatenOnly && !eaten(e)) return; const m = entryMac(e); T.kcal += m.kcal; T.protein += m.protein; T.carbs += m.carbs; T.fat += m.fat; }); return T; }
   function dayTotals(day, eatenOnly) { const T = ZERO(); MEALS.forEach(([k]) => { const m = sumMeal(day && day[k], eatenOnly); T.kcal += m.kcal; T.protein += m.protein; T.carbs += m.carbs; T.fat += m.fat; }); return T; }
 
-  // ---------- batch week builder ----------
-  // Everything is cooked in batches and packed into containers: a container is one serving of a
-  // complete batch dish, or one serving each of a protein dish, a carb side and a vegetable side.
+  // ---------- dishes and batch week builder ----------
+  // A dish is a complete meal: a protein, a carb and vegetables cooked together as one batch and packed into containers.
+  // One serving of a dish is one container.
   function planCost(entries) {
     const S = shopping(entries, 7); let groceries = 0, pantry = 0, weekly = 0, unknown = 0;
     for (const x of S.list) { if (x.cost == null) { unknown++; continue; } if (x.stock) { pantry += x.cost; weekly += x.cost * x.share; } else { groceries += x.cost; weekly += x.cost; } }
@@ -213,43 +213,55 @@ const Core = (() => {
   const mulberry = a => () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
   const CAP = { 16: 420, 22: 560 };   // grams of mixed cooked food a deli container holds
   const PROT_RE = /chicken|beef|pork|turkey|salmon|tuna|shrimp|fish|cod|egg|tofu|beans?|lentil|chickpea|sausage|yogurt|cottage|whey|bacon|ham\b/i;
-  const CARB_RE = /\b(rice|potatoes|potato|pasta|noodles?|oats|tortillas?|bread|quinoa|couscous|orzo|beans?|lentils?|chickpeas|pitas?|granola|spaghetti|hash browns)\b/i;
-  const isComplete = r => { const t = r.ing.map(i => i[2]).join(' | ').replace(/green beans?/gi, ''); return PROT_RE.test(t) && CARB_RE.test(t); };
+  const CARB_RE = /rice|potato|pasta|noodle|oats|tortilla|bread|quinoa|couscous|orzo|beans?|lentil|chickpea|corn|pita|bun|flour|granola|spaghetti/i;
+  const isComplete = r => { const t = r.ing.map(i => i[2]).join(' | '); return PROT_RE.test(t) && CARB_RE.test(t); };
   const NOT_BATCH = new Set(['buttermilk-fried-chicken', 'smash-burgers', 'turkey-burgers', 'fish-tacos', 'chicken-quesadilla', 'chicken-stock', 'tuna-salad', 'pan-seared-steak', 'greek-yogurt-chicken-salad', 'scrambled-eggs', 'hard-boiled-eggs', 'egg-fried-rice', 'red-lentil-dal', 'three-bean-salad', 'crispy-tofu', 'smoked-chicken-thighs']);
   const BREAKFASTS = ['overnight-oats'];
   const SNACKS = ['hummus-veggie-box', 'roasted-chickpeas', 'protein-trail-mix', 'chocolate-protein-pudding', 'banana-oat-bites', 'trail-mix-energy-bites', 'salsa-bean-cups', 'egg-snack-box', 'cottage-cheese-pineapple', 'turkey-cheese-rollups', 'edamame-cup'];
   const madeOtherThanRice = r => r.ing.some(i => isMade(i[2]) && !/rice/i.test(i[2]));
-  const riceCups = (r, c) => { let cups = 0; r.ing.forEach(i => { if (isMade(i[2]) && /rice/i.test(i[2])) { const q = num(i[0]); if (q != null && normUnit(i[1]) === 'cup') cups += q * c / r.servings; } }); return cups; };
-  const item = parts => ({ parts, kcal: parts.reduce((a, r) => a + r.mac.kcal, 0), protein: parts.reduce((a, r) => a + r.mac.protein, 0), g: parts.reduce((a, r) => a + (r.mac.g || 0), 0), key: parts.map(r => r.id).join('+') });
+  // kind: dish (lunch or dinner), breakfast, snack, basic (plain fruit, yogurt...) or component (a building block like plain chicken or rice)
+  const kindOf = r => r.category === 'breakfast' ? 'breakfast' : r.category === 'snacks' ? 'snack' : r.category === 'basics' ? 'basic' : r.category === 'meal prep' ? 'component'
+    : (r.mac && r.mac.kcal >= 250 && isComplete(r) && !madeOtherThanRice(r)) ? 'dish' : 'component';
+  const qstr = x => String(Math.round(x * 100) / 100);
+  const scaleIng = (r, f) => r.ing.map(i => { const q = num(i[0]); return q == null ? i : [qstr(q * f), i[1], i[2]]; });
+  function makeDish(P, C, V) {
+    const n = P.servings, cs = C.id === 'batch-rice' ? 'Rice' : 'Roasted Potatoes', tag = (label, steps) => steps.map(s => label + ': ' + s);
+    const d = { id: P.id + '-meal', name: P.name + ' with ' + cs + ' and Roasted Vegetables', category: 'dishes', kind: 'dish', generated: true, parts: [P.id, C.id, V.id], method: P.method, cuisine: P.cuisine, servings: n, time: Math.max(P.time, C.time, V.time) + 10,
+      ing: [...P.ing, ...scaleIng(C, n / C.servings), ...scaleIng(V, n / V.servings)],
+      steps: [...tag(P.name, P.steps), ...tag(cs, C.steps), ...tag('Vegetables', V.steps), `Pack ${n} containers: one portion of ${P.name.toLowerCase()}, one portion of ${cs.toLowerCase()} and one portion of vegetables in each. Cool, cover and refrigerate up to 4 days, or freeze.`],
+      notes: P.notes || '', bowl: `One serving is one container: a portion of ${P.name.toLowerCase()}, a portion of ${cs.toLowerCase()} and a portion of roasted vegetables.` };
+    d.mac = macrosOf(d); d.easy = isEasy(d); return d;
+  }
+  function buildDishes() {
+    R.forEach(r => { r.kind = kindOf(r); });
+    const rice = byId('batch-rice'), pot = byId('batch-roasted-potatoes'), veg = byId('batch-roasted-vegetables'); if (!rice || !pot || !veg) return;
+    const prot = R.filter(r => r.kind === 'component' && ['chicken', 'beef', 'pork', 'turkey', 'fish'].includes(r.category) && !NOT_BATCH.has(r.id) && r.servings >= 2 && r.mac && r.mac.kcal > 0 && !r.ing.some(i => isMade(i[2])));
+    prot.forEach(p => { const d = makeDish(p, p.cuisine === 'american' ? pot : rice, veg); if (d.mac && d.mac.kcal >= 380 && d.mac.kcal <= 950) R.push(d); });
+  }
   function pools(container) {
-    const cap = CAP[container] || CAP[22], has = r => r && r.mac && r.mac.kcal > 0, carbs = ['batch-rice', 'batch-roasted-potatoes'].map(byId), veg = byId('batch-roasted-vegetables');
-    const prot = R.filter(r => has(r) && ['chicken', 'beef', 'pork', 'turkey', 'fish'].includes(r.category) && !isComplete(r) && !NOT_BATCH.has(r.id) && r.servings >= 2 && !r.ing.some(i => isMade(i[2])));
-    const composed = [];
-    prot.forEach(p => carbs.forEach(c => { if (has(c) && has(veg)) { const it = item([p, c, veg]); if (it.g <= cap && it.kcal >= 380) composed.push(it); } }));
-    const complete = R.filter(r => has(r) && !['meal prep', 'basics', 'snacks', 'breakfast'].includes(r.category) && isComplete(r) && !NOT_BATCH.has(r.id) && r.servings >= 2 && !madeOtherThanRice(r) && r.mac.g <= cap && r.mac.kcal >= 350).map(r => item([r]));
-    const ids = l => l.map(byId).filter(r => has(r) && r.mac.g <= cap).map(r => item([r]));
-    return { m: [...composed, ...complete], b: ids(BREAKFASTS), s: ids(SNACKS) };
+    const cap = CAP[container] || CAP[22], ok = r => r && r.mac && r.mac.kcal > 0 && (!r.mac.g || r.mac.g <= cap);
+    return { m: R.filter(r => r.kind === 'dish' && !NOT_BATCH.has(r.id) && r.servings >= 2 && ok(r) && r.mac.kcal >= 350 && r.mac.kcal <= 900), b: BREAKFASTS.map(byId).filter(ok), s: SNACKS.map(byId).filter(ok) };
   }
-  // One week of batch cooking: one breakfast, one lunch, one dinner and one snack, cooked once and packed into containers.
-  function assemble(st, goals) {
-    const parts = new Map(), add = (id, s, counted = true) => { const p = parts.get(id) || { s: 0, c: 0 }; p.s += s; if (counted) p.c += s; parts.set(id, p); }, sc = goals.kcal - (st.b.kcal + st.l.kcal + st.d.kcal + st.s.kcal) > st.s.kcal * 0.6 ? 2 : 1;
-    [[st.b, 1], [st.l, 1], [st.d, 1], [st.s, sc]].forEach(([it, cnt]) => it.parts.forEach(r => { add(r.id, 7 * cnt); const rc = riceCups(r, 7 * cnt); if (rc) add('batch-rice', Math.ceil(rc), false); }));
-    return { items: [...parts].map(([r, p]) => { const s = Math.max(1, Math.ceil(p.s)); return p.c >= p.s ? { r, s } : { r, s, c: Math.ceil(p.c) }; }), sc };
-  }
-  function evalPlan(st, goals, budget) {
-    const { items, sc } = assemble(st, goals), c = planCost(items), kcal = st.b.kcal + st.l.kcal + st.d.kcal + sc * st.s.kcal, protein = st.b.protein + st.l.protein + st.d.protein + sc * st.s.protein;
-    const same = (x, y) => x.parts.some(p => y.parts.some(q => p.id === q.id));
-    const score = (same(st.l, st.d) ? 12 : 0) + Math.max(0, c.weekly - budget) * 8 + Math.max(0, budget - c.weekly) * 0.1 + Math.abs(kcal - goals.kcal) / goals.kcal * 60 + Math.max(0, goals.protein * 0.9 - protein) / Math.max(1, goals.protein) * 60 + c.unknown * 5;
-    const name = it => it.parts.map(r => r.id);
-    return { items, cost: c, kcal, protein, score, fits: c.weekly <= budget, containers: 7 * (3 + sc), meals: { breakfast: name(st.b), lunch: name(st.l), dinner: name(st.d), snacks: name(st.s) } };
+  function evalPlan(st, goals, budget, same) {
+    const sc = goals.kcal - (st.b.mac.kcal + st.l.mac.kcal + st.d.mac.kcal + st.s.mac.kcal) > st.s.mac.kcal * 0.6 ? 2 : 1, rows = new Map(), add = (r, s) => rows.set(r.id, (rows.get(r.id) || 0) + s);
+    add(st.b, 7); add(st.l, 7); add(st.d, 7); add(st.s, 7 * sc);
+    const items = [...rows].map(([r, s]) => ({ r, s })), c = planCost(items), kcal = st.b.mac.kcal + st.l.mac.kcal + st.d.mac.kcal + sc * st.s.mac.kcal, protein = st.b.mac.protein + st.l.mac.protein + st.d.mac.protein + sc * st.s.mac.protein;
+    const score = (!same && st.l.id === st.d.id ? 12 : 0) + Math.max(0, c.weekly - budget) * 8 + Math.max(0, budget - c.weekly) * 0.1 + Math.abs(kcal - goals.kcal) / goals.kcal * 60 + Math.max(0, goals.protein * 0.9 - protein) / Math.max(1, goals.protein) * 60 + c.unknown * 5;
+    return { items, cost: c, kcal, protein, score, fits: c.weekly <= budget, containers: 7 * (3 + sc), meals: { breakfast: [st.b.id], lunch: [st.l.id], dinner: [st.d.id], snacks: [st.s.id] } };
   }
   // Finds a one-week batch plan near the weekly budget and the calorie/protein goals. Different seeds give different plans.
-  function buildPlan(budget, goals, seed = Date.now(), container = 22) {
+  // same: lunch and dinner are the same dish, so there is one less thing to cook.
+  function buildPlan(budget, goals, seed = Date.now(), container = 22, same = false) {
     const rnd = mulberry(seed), pick = a => a[Math.floor(rnd() * a.length)], P = pools(container), pl = { b: P.b, l: P.m, d: P.m, s: P.s };
     let best = null;
     for (let r = 0; r < 20; r++) {
-      let st = { b: pick(P.b), l: pick(P.m), d: pick(P.m), s: pick(P.s) }, cur = evalPlan(st, goals, budget);
-      for (let i = 0; i < 40; i++) { const key = pick(['b', 'l', 'd', 's']), cand = { ...st, [key]: pick(pl[key]) }, e = evalPlan(cand, goals, budget); if (e.score < cur.score) { st = cand; cur = e; } }
+      let st = { b: pick(P.b), l: pick(P.m), d: pick(P.m), s: pick(P.s) }; if (same) st.d = st.l;
+      let cur = evalPlan(st, goals, budget, same);
+      for (let i = 0; i < 40; i++) {
+        const key = pick(['b', 'l', 'd', 's']); if (same && key === 'd') continue;
+        const cand = { ...st, [key]: pick(pl[key]) }; if (same && key === 'l') cand.d = cand.l;
+        const e = evalPlan(cand, goals, budget, same); if (e.score < cur.score) { st = cand; cur = e; }
+      }
       if (!best || cur.score < best.score) best = cur;
     }
     return best;
@@ -278,6 +290,7 @@ const Core = (() => {
     R = [];
     for (const f of FILES) { const r = await fetch(`data/recipes/${f}.json`); if (!r.ok) throw new Error(f + ' ' + r.status); (await r.json()).recipes.forEach(x => R.push(x)); }
     R.forEach(r => { r.mac = macrosOf(r); r.name = title(r.name); r.easy = isEasy(r); });
+    buildDishes();
     return R;
   }
   return { init, get recipes() { return R; }, byId, esc, cap, title, catLabel, num, fmt, ingText, normUnit, unitType, scaleFactor, VOL, WT, macrosOf, shopping, priceItem, CAP, aisleOf, AISLE_ORDER, isMade, norm, entryMac, eaten, planCost, buildPlan, sumMeal, dayTotals, MEALS, ymd, parseYmd, addDays, calcGoals, isEasy };

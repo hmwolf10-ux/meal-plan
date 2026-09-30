@@ -99,25 +99,25 @@ function logSheet(id) {
 }
 
 // ---------- RECIPES ----------
-let rq = '', rcat = 'all', rsort = 'name', reasy = false, rfav = false;
+let rq = '', rcat = 'dish', rsort = 'name', reasy = false, rfav = false;
 function recipeCard(r) {
   const m = r.mac, fav = favs.includes(r.id);
   return `<article class="rcard"><h3><a href="#/recipe/${r.id}">${esc(r.name)}</a></h3><p class="meta">${esc(catLabel(r.category))} · ${r.time} min · ${r.easy ? 'Easy' : 'Medium'}</p>
     <div class="mac">${m ? `<span><b>${m.kcal}</b> kcal</span><span><b>${m.protein}</b> g protein</span>` : '<span class="muted">No nutrition data</span>'}</div>
-    <div class="act"><button class="btn primary sm grow" data-a="log" data-id="${r.id}">+ Add to Meal Plan</button><button class="btn sm fav" data-a="fav" data-id="${r.id}" aria-pressed="${fav}" aria-label="${fav ? 'Remove from' : 'Add to'} favorites">${ICON.heart}</button></div></article>`;
+    <div class="act">${r.kind === "component" ? `<button class="btn sm grow" data-a="finddish" data-id="${r.id}">Find dishes using this</button>` : `<button class="btn primary sm grow" data-a="log" data-id="${r.id}">+ Add to Meal Plan</button>`}<button class="btn sm fav" data-a="fav" data-id="${r.id}" aria-pressed="${fav}" aria-label="${fav ? 'Remove from' : 'Add to'} favorites">${ICON.heart}</button></div></article>`;
 }
 function recipeList() {
   const q = rq.trim().toLowerCase();
-  let L = R().filter(r => (rcat === 'all' || r.category === rcat) && (!reasy || r.easy) && (!rfav || favs.includes(r.id)) && (!q || (r.name + ' ' + r.category + ' ' + r.cuisine + ' ' + r.method).toLowerCase().includes(q)));
+  let L = R().filter(r => r.kind === rcat && (!reasy || r.easy) && (!rfav || favs.includes(r.id)) && (!q || (r.name + ' ' + r.category + ' ' + r.cuisine + ' ' + r.method).toLowerCase().includes(q)));
   const by = { name: (a, b) => a.name.localeCompare(b.name), protein: (a, b) => (b.mac?.protein || 0) - (a.mac?.protein || 0), lean: (a, b) => ((b.mac?.protein || 0) / (b.mac?.kcal || 1)) - ((a.mac?.protein || 0) / (a.mac?.kcal || 1)), kcal: (a, b) => (a.mac?.kcal || 0) - (b.mac?.kcal || 0), time: (a, b) => a.time - b.time }[rsort];
   L = [...L].sort(by);
   return `<p class="small muted" style="margin:4px 4px 8px" aria-live="polite">${L.length} recipes</p><div class="grid">${L.map(recipeCard).join('')}</div>${L.length ? '' : '<div class="card muted">No recipes match. Try clearing a filter.</div>'}`;
 }
 function viewRecipes() {
   setBar({ title: 'Recipes' });
-  const cats = [...new Set(R().map(r => r.category))].sort((a, b) => catLabel(a).localeCompare(catLabel(b)));
+  const KINDS = [['dish', 'Lunch and Dinner'], ['breakfast', 'Breakfast'], ['snack', 'Snacks'], ['basic', 'Basics'], ['component', 'Building Blocks']];
   $('#view').innerHTML = `<input type="search" id="rq" placeholder="Search recipes" aria-label="Search recipes" value="${esc(rq)}" autocomplete="off">
-    <div class="chips" style="margin-top:8px" role="group" aria-label="Category"><button class="chip" data-a="rcat" data-c="all" aria-pressed="${rcat === 'all'}">All</button>${cats.map(c => `<button class="chip" data-a="rcat" data-c="${c}" aria-pressed="${rcat === c}">${esc(catLabel(c))}</button>`).join('')}</div>
+    <div class="chips" style="margin-top:8px" role="group" aria-label="Category">${KINDS.map(([k, l]) => `<button class="chip" data-a="rcat" data-c="${k}" aria-pressed="${rcat === k}">${l}</button>`).join("")}</div>
     <div class="row wrap" style="margin:0 0 6px"><label class="row small" style="gap:6px"><span>Sort</span><select id="rsort" style="width:auto"><option value="name">A to Z</option><option value="protein">Most protein</option><option value="lean">Protein per calorie</option><option value="kcal">Fewest calories</option><option value="time">Quickest</option></select></label>
       <button class="chip" data-a="reasy" aria-pressed="${reasy}">Easy Only</button><button class="chip" data-a="rfav" aria-pressed="${rfav}">Favorites</button></div>
     <div id="rlist">${recipeList()}</div>`;
@@ -138,7 +138,7 @@ function viewRecipe(id, from, n) {
   setBar({ title: r.name, back, right: `<button class="icon-btn fav" data-a="fav" data-id="${id}" aria-pressed="${fav}" aria-label="${fav ? 'Remove from' : 'Add to'} favorites">${ICON.heart}</button>` });
   $('#view').innerHTML = `<div class="card hero"><h2>${esc(r.name)}</h2><p class="muted small">${esc(catLabel(r.category))}${r.method ? ' · ' + esc(cap(r.method)) : ''}${r.cuisine && r.cuisine !== 'basic' ? ' · ' + esc(cap(r.cuisine)) : ''} · ${r.time} min · ${r.easy ? 'Easy' : 'Medium'}</p>
       ${m ? `<div class="nutri" role="group" aria-label="Per serving"><div><b>${m.kcal}</b><span>kcal</span></div><div><b>${m.protein} g</b><span>Protein</span></div><div><b>${m.carbs} g</b><span>Carbs</span></div><div><b>${m.fat} g</b><span>Fat</span></div></div><p class="tiny muted" style="margin-top:6px">Per serving, estimated from the ingredients.</p>${m.g ? `<p class="tiny muted">One serving is about ${r0(m.g / 28.35)} oz of food${m.g <= (Core.CAP[store.get('container', 22)] || 560) ? ', which fits a ' + store.get('container', 22) + ' oz container.' : ', too much for one ' + store.get('container', 22) + ' oz container. Split it or pick a bigger one.'}</p>` : ''}` : ''}
-      <button class="btn primary block" style="margin-top:14px" data-a="log" data-id="${id}">+ Add to Meal Plan</button></div>
+      ${r.kind === "component" ? `<p class="small muted" style="margin-top:12px">This is a building block, not a meal. It goes into dishes (protein, carb and vegetables together) that you add to your Meal Plan.</p><button class="btn block" style="margin-top:8px" data-a="finddish" data-id="${id}">Find dishes using this</button>` : `${r.bowl ? `<p class="small muted" style="margin-top:10px">${esc(r.bowl)}</p>` : ""}<button class="btn primary block" style="margin-top:14px" data-a="log" data-id="${id}">+ Add to Meal Plan</button>`}</div>
     ${rvN ? `<div class="card"><h3 style="font-size:18px">Batch cook ${rvN} ${rvN === 1 ? "serving" : "servings"}</h3><p class="small muted" style="margin-top:4px">The ingredients below are already scaled for ${rvN}. Pack each serving into a ${box} oz container. Use more pans instead of a bigger pan. ${rvN > 4 ? "Food keeps about 4 days in the fridge, so cook about 4 now and the rest midweek, or freeze some." : "Keeps about 4 days in the fridge."}</p></div>` : ''}
     <div class="card"><div class="row wrap" style="justify-content:space-between"><div><h3 style="font-size:18px">Ingredients</h3><p class="small muted">Makes ${rvServ} ${rvServ === 1 ? 'serving' : 'servings'}${f !== 1 ? ' (recipe as written: ' + r.servings + ')' : ''}</p></div>${stepper('rs', rvServ)}</div>
       <ul class="ings" style="margin-top:8px">${r.ing.map(i => `<li>${esc(ingText(i, f))}</li>`).join('')}</ul>${f > 3 || f < 0.5 ? '<p class="small muted">Big change in size: cooking times stay about the same. Use more pans instead of a bigger pan, and taste the seasoning at the end.</p>' : ''}</div>
@@ -175,7 +175,7 @@ function viewShop() {
 
 // ---------- BUILD A WEEK ----------
 let builtWeek = null;
-const budgetBlock = (budget, id) => `<div class="card" style="margin:10px 0"><p class="small muted" style="margin:0 0 8px">Type what you want to spend on groceries in a week. I pick one breakfast, lunch, dinner and snack that fit it and your calorie and protein goals, all batch cooked.</p><div class="row" style="align-items:flex-end"><div style="width:120px"><label class="f" for="${id}" style="margin-top:0">Weekly budget ($)</label><input type="number" id="${id}" value="${budget}" min="1" inputmode="numeric"></div><button class="btn primary grow" data-a="buildweek">Build My Week</button></div></div>`;
+const budgetBlock = (budget, id) => `<div class="card" style="margin:10px 0"><p class="small muted" style="margin:0 0 8px">Type what you want to spend on groceries in a week. I pick one breakfast, lunch, dinner and snack that fit it and your calorie and protein goals, all batch cooked.</p><div class="row" style="align-items:flex-end"><div style="width:120px"><label class="f" for="${id}" style="margin-top:0">Weekly budget ($)</label><input type="number" id="${id}" value="${budget}" min="1" inputmode="numeric"></div><button class="btn primary grow" data-a="buildweek">Build My Week</button></div><div class="check" style="border:0;margin-top:8px"><input type="checkbox" id="same" ${store.get("same", false) ? "checked" : ""}><label for="same">Same dish for lunch and dinner (less cooking)</label></div></div>`;
 function templateSheet() { openSheet(`<h2 id="sheet-title">Build a Week</h2>${budgetBlock(store.get('budget', 50), 'bud')}`); }
 function builtSheet() {
   const b = builtWeek, bud = store.get('budget', 50), box = store.get('container', 22);
@@ -230,7 +230,7 @@ function viewLearn(guide, sec) {
     <h2 class="sec">Set Up Your Kitchen</h2>
     <div class="card">${EQUIP.map((t, i) => `<div class="check"><input type="checkbox" id="eq${i}" data-a="equip" data-i="${i}" ${eq[i] ? 'checked' : ''}><label for="eq${i}">${esc(t)}</label></div>`).join('')}
       <p class="small muted" style="margin-top:8px">Three safety rules: use the thermometer, do not wash raw chicken, and refrigerate cooked food within 2 hours.</p>
-      <button class="btn primary block" style="margin-top:12px" data-a="templates">Start With a Ready-Made Week</button></div>
+      <button class="btn primary block" style="margin-top:12px" data-a="templates">Build a Week</button></div>
     <h2 class="sec">Guides</h2>
     ${GUIDES.map(([g, items]) => `<h3 class="tiny muted" style="margin:14px 6px 4px;text-transform:uppercase;letter-spacing:.04em">${g}</h3><div class="card flush">${items.map(([f, t, d]) => `<a class="gcard" href="#/learn/${f}"><div><b>${t}</b><span>${d}</span></div><span class="chev">${ICON.next}</span></a>`).join('')}</div>`).join('')}
     </div>`;
@@ -312,6 +312,7 @@ const A = {
     savePlan(); closeSheet(); render(); toast('In your Meal Plan', () => { plan = plan.filter(x => x.r !== id); savePlan(); render(); });
   },
   fav: t => { const id = t.dataset.id; favs = favs.includes(id) ? favs.filter(x => x !== id) : [...favs, id]; store.set('favs', favs); render(); },
+  finddish: t => { const r = rec(t.dataset.id); rq = r ? r.name.split(' ').pop() : ''; rcat = 'dish'; location.hash = '#/recipes'; if (location.hash === '#/recipes') viewRecipes(); },
   rcat: t => { rcat = t.dataset.c; viewRecipes(); }, reasy: () => { reasy = !reasy; viewRecipes(); }, rfav: () => { rfav = !rfav; viewRecipes(); },
   have: t => { have[t.dataset.n] = t.checked; if (!t.checked) delete have[t.dataset.n]; store.set('have', have); const y = scrollY; viewShop(); scrollTo(0, y); },
   tick: t => { checked[t.dataset.n] = t.checked; if (!t.checked) delete checked[t.dataset.n]; store.set('checked', checked); const y = scrollY; viewShop(); scrollTo(0, y); },
@@ -319,7 +320,7 @@ const A = {
   copyshop: () => { const txt = shopText(Core.shopping(planEntries(), DAYS)); (navigator.clipboard ? navigator.clipboard.writeText(txt) : Promise.reject()).then(() => toast('Shopping list copied'), () => toast('Could not copy')); },
   shareshop: () => navigator.share({ title: 'Shopping list', text: shopText(Core.shopping(planEntries(), DAYS)) }).catch(() => {}),
   templates: () => templateSheet(),
-  buildweek: t => { const c = t.closest('.card'), el = (c && c.querySelector('input[type=number]')) || $('#bg'); if (el) store.set('budget', Math.max(1, +el.value || 50)); openSheet('<h2 id="sheet-title">Building your week…</h2><p class="muted small">Picking meals that fit your budget and goals.</p>'); setTimeout(() => { builtWeek = Core.buildPlan(store.get('budget', 50), goals, Date.now(), store.get('container', 22)); builtSheet(); }, 30); },
+  buildweek: t => { const c = t.closest('.card'), el = (c && c.querySelector('input[type=number]')) || $('#bg'); if (el) store.set('budget', Math.max(1, +el.value || 50)); openSheet('<h2 id="sheet-title">Building your week…</h2><p class="muted small">Picking meals that fit your budget and goals.</p>'); setTimeout(() => { builtWeek = Core.buildPlan(store.get('budget', 50), goals, Date.now(), store.get('container', 22), store.get('same', false)); builtSheet(); }, 30); },
   applybuilt: () => { const snap = JSON.stringify(plan); plan = builtWeek.items.map(e => ({ ...e })); savePlan(); closeSheet(); location.hash = '#/plan'; render(); toast('Your Meal Plan is set', () => { plan = JSON.parse(snap); savePlan(); render(); }); },
   equip: t => { const e = store.get('equip', {}); e[t.dataset.i] = t.checked; store.set('equip', e); },
   usegoals: t => { goals = { kcal: +t.dataset.k, protein: +t.dataset.p, carbs: +t.dataset.c, fat: +t.dataset.f }; store.set('goals', goals); viewMe(); toast('Goals updated'); },
@@ -340,6 +341,7 @@ document.addEventListener('change', e => {
   if (t.dataset && t.dataset.a === 'have') return A.have(t);
   if (t.id === 'rs') { rvServ = Math.max(1, Math.round(parseFloat(t.value)) || 1); const y = scrollY; viewRecipe(rvId); scrollTo(0, y); }
   if (t.id === 'cts') store.set('container', +t.value);
+  if (t.id === 'same') store.set('same', t.checked);
   if (t.id === 'bg' || t.id === 'bgs' || t.id === 'bud' || t.id === 'bud2') { store.set('budget', Math.max(1, +t.value || 50)); if (t.id === 'bg') viewShop(); }
   if (['gk', 'gp', 'gc', 'gf'].includes(t.id)) { goals = { kcal: +$('#gk').value || 2000, protein: +$('#gp').value || 0, carbs: +$('#gc').value || 0, fat: +$('#gf').value || 0 }; store.set('goals', goals); }
   if (['ps', 'pa', 'pf', 'pi', 'pw', 'pact', 'pg'].includes(t.id)) { store.set('profile', readProfile()); $('#calcout').innerHTML = suggestHtml(); }
