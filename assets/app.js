@@ -13,9 +13,9 @@ const ICON = {
   recipes: svg('<path d="M7 3v8a2 2 0 0 0 2 2v8M11 3v8a2 2 0 0 1-2 2M9 3v6M17 3c-2 1.500-3 4-3 7 0 1.500 1 2.500 3 3v8"/>'),
   shop: svg('<circle cx="9" cy="20" r="1.500"/><circle cx="18" cy="20" r="1.500"/><path d="M2.500 3h3l2.500 12.500h11L21 7H6.500"/>'),
   learn: svg('<path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.500 10.900c.6.500 1 1.200 1 2V16h5v-.1c0-.8.4-1.500 1-2A6 6 0 0 0 12 3z"/>'),
-  me: svg('<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>'), x: svg('<path d="M6 6l12 12M18 6L6 18"/>')
+  me: svg('<circle cx="12" cy="12" r="3"/><path d="M19.400 15a1.700 1.700 0 0 0 .3 1.800l.1.1a2 2 0 1 1-2.800 2.800l-.1-.1a1.700 1.700 0 0 0-1.800-.3 1.700 1.700 0 0 0-1 1.500V21a2 2 0 1 1-4 0v-.1a1.700 1.700 0 0 0-1.100-1.500 1.700 1.700 0 0 0-1.800.3l-.1.1a2 2 0 1 1-2.800-2.800l.1-.1a1.700 1.700 0 0 0 .3-1.800 1.700 1.700 0 0 0-1.500-1H3a2 2 0 1 1 0-4h.1a1.700 1.700 0 0 0 1.500-1.100 1.700 1.700 0 0 0-.3-1.800l-.1-.1a2 2 0 1 1 2.800-2.800l.1.1a1.700 1.700 0 0 0 1.800.3h0a1.700 1.700 0 0 0 1-1.500V3a2 2 0 1 1 4 0v.1a1.700 1.700 0 0 0 1 1.500h0a1.700 1.700 0 0 0 1.800-.3l.1-.1a2 2 0 1 1 2.800 2.800l-.1.1a1.700 1.700 0 0 0-.3 1.800v0a1.700 1.700 0 0 0 1.500 1H21a2 2 0 1 1 0 4h-.1a1.700 1.700 0 0 0-1.500 1z"/>'), x: svg('<path d="M6 6l12 12M18 6L6 18"/>')
 };
-const NAV = [['diary', 'Diary', ICON.diary], ['recipes', 'Recipes', ICON.recipes], ['shop', 'Shop', ICON.shop], ['learn', 'Learn', ICON.learn], ['me', 'Me', ICON.me]];
+const NAV = [['diary', 'Diary', ICON.diary], ['recipes', 'Recipes', ICON.recipes], ['shop', 'Shop', ICON.shop], ['learn', 'Learn', ICON.learn], ['me', 'Settings', ICON.me]];
 
 // ---------- storage ----------
 const store = { get(k, d) { try { const v = JSON.parse(localStorage.getItem('cb.' + k)); return v ?? d; } catch (e) { return d; } }, set(k, v) { try { localStorage.setItem('cb.' + k, JSON.stringify(v)); } catch (e) {} } };
@@ -44,6 +44,7 @@ const r0 = n => Math.round(n);
 
 // ---------- ui helpers ----------
 function setBar({ title, back, right = '' }) {
+  $('#bar').hidden = !back;
   $('#barin').innerHTML = (back ? `<a class="icon-btn back" href="${back}" aria-label="Back">${ICON.back}</a>` : '') + `<h1>${esc(title)}</h1>${right}`;
   document.title = title + ' · Meal Diary';
 }
@@ -88,7 +89,7 @@ function macroRow(name, have, goal) {
 function viewDiary(date) {
   if (date && /^\d{4}-\d{2}-\d{2}$/.test(date)) selDate = date;
   const day = diary[selDate] || {}, T = Core.dayTotals(day), rem = goals.kcal - T.kcal, over = rem < 0;
-  setBar({ title: 'Diary', right: `<button class="icon-btn" data-a="pickdate" aria-label="Choose a date">${ICON.cal}</button>` });
+  setBar({ title: 'Diary' });
   const dow = parseYmd(selDate).getDay(), start = addDays(selDate, -dow);
   const week = Array.from({ length: 7 }, (_, i) => { const d = addDays(start, i), t = Core.dayTotals(diary[d]), has = t.kcal > 0 || ALLMEALS.some(([k]) => (diary[d] && diary[d][k] || []).length);
     return `<button data-a="goto" data-d="${d}" ${d === selDate ? 'aria-current="date"' : ''} aria-label="${dayLabel(d)}">${['S', 'M', 'T', 'W', 'T', 'F', 'S'][i]}<b>${parseYmd(d).getDate()}</b><span class="dot ${has ? (t.kcal > goals.kcal * 1.05 ? 'over' : 'on') : ''}"></span></button>`; }).join('');
@@ -108,7 +109,7 @@ function viewDiary(date) {
       <div>${macroRow('Carbs', T.carbs, goals.carbs)}${macroRow('Protein', T.protein, goals.protein)}${macroRow('Fat', T.fat, goals.fat)}</div></div>
       <div class="eq"><div><b>${goals.kcal}</b><span>Goal</span></div><div>−</div><div><b>${r0(T.kcal)}</b><span>Food</span></div><div>=</div><div><b>${r0(rem)}</b><span>Remaining</span></div></div></div>
     ${meals}
-    <p class="tiny muted" style="margin:6px 8px">Calories and macros are estimated from recipe ingredients. Set your goals on the <a href="#/me">Me</a> tab.</p>`;
+    <p class="tiny muted" style="margin:6px 8px">Calories and macros are estimated from recipe ingredients. Set your goals in <a href="#/me">Settings</a>.</p>`;
 }
 
 function editSheet(date, meal, id) {
@@ -336,9 +337,11 @@ async function viewGuide(g, sec) {
 
 // ---------- ME ----------
 function viewMe() {
-  setBar({ title: 'Me' });
+  setBar({ title: 'Settings' });
   const p = store.get('profile', { sex: 'female', age: 30, ft: 5, inch: 6, lb: 150, activity: 1.375, goal: 'keep' });
-  $('#view').innerHTML = `<div class="card" style="margin-top:0"><h2 style="font-size:18px">Daily Goals</h2>
+  $('#view').innerHTML = `<h2 style="font-size:24px;margin:4px 4px 0">Settings</h2>
+    <div class="card"><h2 style="font-size:18px">Appearance</h2><p class="small muted">Choose how the app looks on this device.</p><div class="chips" style="padding-bottom:0;margin-top:8px">${[['light', 'Light'], ['dark', 'Dark']].map(([v, l]) => `<button class="chip" data-a="theme" data-v="${v}" aria-pressed="${store.get('theme', 'light') === v}">${l}</button>`).join('')}</div></div>
+    <div class="card"><h2 style="font-size:18px">Daily Goals</h2>
       <div class="row wrap"><div class="grow"><label class="f" for="gk">Calories</label><input type="number" id="gk" value="${goals.kcal}" inputmode="numeric"></div><div class="grow"><label class="f" for="gp">Protein (g)</label><input type="number" id="gp" value="${goals.protein}" inputmode="numeric"></div></div>
       <div class="row wrap"><div class="grow"><label class="f" for="gc">Carbs (g)</label><input type="number" id="gc" value="${goals.carbs}" inputmode="numeric"></div><div class="grow"><label class="f" for="gf">Fat (g)</label><input type="number" id="gf" value="${goals.fat}" inputmode="numeric"></div></div>
       <button class="btn primary block" style="margin-top:14px" data-a="savegoals">Save Goals</button></div>
@@ -348,7 +351,6 @@ function viewMe() {
       <label class="f" for="pact">Activity</label><select id="pact">${[[1.2, 'Mostly sitting'], [1.375, 'Light (1–3 workouts a week)'], [1.55, 'Moderate (3–5 workouts)'], [1.725, 'Very active (6–7 workouts)']].map(([v, l]) => `<option value="${v}" ${p.activity == v ? 'selected' : ''}>${l}</option>`).join('')}</select>
       <label class="f" for="pg">Goal</label><select id="pg">${[['lose1', 'Lose about 1 lb a week'], ['lose05', 'Lose about ½ lb a week'], ['keep', 'Maintain weight'], ['gain05', 'Gain about ½ lb a week']].map(([v, l]) => `<option value="${v}" ${p.goal === v ? 'selected' : ''}>${l}</option>`).join('')}</select>
       <button class="btn block" style="margin-top:14px" data-a="calcgoals">Calculate</button><div id="calcout"></div></div>
-    <div class="card"><h2 style="font-size:18px">Appearance</h2><div class="chips" style="padding-bottom:0;margin-top:8px">${[['light', 'Light'], ['dark', 'Dark']].map(([v, l]) => `<button class="chip" data-a="theme" data-v="${v}" aria-pressed="${store.get('theme', 'light') === v}">${l}</button>`).join('')}</div></div>
     <div class="card"><h2 style="font-size:18px">Your Data</h2><p class="small muted">Everything is saved on this device only. Back it up before clearing your browser or changing phones.</p>
       <div class="row wrap" style="margin-top:10px"><button class="btn" data-a="export">Download Backup</button><label class="btn" for="imp" style="cursor:pointer">Restore Backup</label><input type="file" id="imp" accept="application/json" style="display:none"></div>
       <button class="btn danger block" style="margin-top:10px" data-a="reset">Erase All My Data</button></div>
