@@ -32,7 +32,7 @@ function dayOf(date) { const d = diary[date] = diary[date] || {}; ALLMEALS.forEa
 function tidy(date) { const d = diary[date]; if (d && ALLMEALS.every(([k]) => !(d[k] || []).length)) delete diary[date]; }
 const defDone = date => date <= today();
 function addEntry(date, meal, e) {
-  const en = { id: uid(), s: e.s, done: !!e.done }; if (e.ns) en.ns = 1; if (e.r) en.r = e.r; if (e.q) en.q = e.q;
+  const en = { id: uid(), s: e.s, done: !!e.done }; if (e.ns) en.ns = 1; if (e.r) en.r = e.r; if (e.p) en.p = e.p; if (e.q) en.q = e.q;
   dayOf(date)[meal].push(en); saveDiary();
   if (e.r) { recent = [e.r, ...recent.filter(x => x !== e.r)].slice(0, 20); store.set('recent', recent); }
   return en.id;
@@ -40,7 +40,9 @@ function addEntry(date, meal, e) {
 function removeEntry(date, meal, id) { const d = diary[date]; if (!d) return; d[meal] = d[meal].filter(e => e.id !== id); tidy(date); saveDiary(); }
 const R = () => Core.recipes;
 const rec = id => Core.byId(id);
-const entryName = e => e.q ? e.q.name : (rec(e.r) ? rec(e.r).name : 'Removed recipe');
+const shortName = n => n.replace(/^Batch Cooked /, '').replace(/^Batch Roasted /, 'Roasted ');
+const comboName = p => { const n = p.map(id => rec(id) ? rec(id).name : '').filter(Boolean); return n.length ? n[0] + (n.length > 1 ? ' with ' + n.slice(1).map(shortName).join(' & ') : '') : 'Removed recipe'; };
+const entryName = e => e.q ? e.q.name : e.p ? comboName(e.p) : (rec(e.r) ? rec(e.r).name : 'Removed recipe');
 const svText = s => (s === 1 ? '1 serving' : s + ' servings');
 const r0 = n => Math.round(n);
 
@@ -94,37 +96,37 @@ function viewPlan(date) {
   setBar({ title: 'Meal Plan' });
   const dow = parseYmd(selDate).getDay(), start = addDays(selDate, -dow);
   const listOf = d => ALLMEALS.flatMap(([k]) => (diary[d] && diary[d][k]) || []);
-  const week = Array.from({ length: 7 }, (_, i) => { const d = addDays(start, i), L = listOf(d), t = Core.dayTotals(diary[d]), cls = !L.length ? '' : t.kcal > goals.kcal * 1.05 ? 'over' : L.every(Core.eaten) ? 'on' : 'plan';
+  const week = Array.from({ length: 7 }, (_, i) => { const d = addDays(start, i), L = listOf(d), t = Core.dayTotals(diary[d]), cls = !L.length ? '' : t.kcal > goals.kcal * 1.05 ? 'over' : 'plan';
     return `<button data-a="goto" data-d="${d}" ${d === selDate ? 'aria-current="date"' : ''} aria-label="${dayLabel(d)}">${['S', 'M', 'T', 'W', 'T', 'F', 'S'][i]}<b>${parseYmd(d).getDate()}</b><span class="dot ${cls}"></span></button>`; }).join('');
-  const all = listOf(selDate), doneN = all.filter(Core.eaten).length;
-  const meals = ALLMEALS.map(([k, label]) => {
-    const list = day[k] || [], t = Core.sumMeal(list), isPrep = k === 'prep';
-    const y = diary[addDays(selDate, -1)];
-    const canCopy = !list.length && y && (y[k] || []).length;
-    return `<section class="card flush meal" aria-label="${label}"><div class="meal-h"><h3>${label}</h3><span>${isPrep ? '<span class="muted small">not counted</span>' : r0(t.kcal)}</span></div>
-      ${list.length ? list.map(e => { const m = Core.entryMac(e), ok = Core.eaten(e), r = e.r && rec(e.r), nm = esc(entryName(e));
-        return `<div class="entry ${ok ? 'done' : ''}"><input type="checkbox" data-a="eat" data-m="${k}" data-id="${e.id}" ${ok ? 'checked' : ''} aria-label="${isPrep ? 'Cooked' : 'Ate'} ${nm}"><span class="nm">${r ? `<a href="#/recipe/${r.id}/plan">${nm}</a>` : nm}<span class="sub">${isPrep ? 'Cook ' + e.s + (e.s === 1 ? ' portion' : ' portions') : e.ns ? (e.s === 1 ? '1 portion' : e.s + ' portions') : svText(e.s)}${isPrep ? '' : ' · ' + r0(m.protein) + ' g protein'}${r ? ' · <a href="#/recipe/' + r.id + '/plan">How to make it</a>' : ''}</span></span>${isPrep ? '' : `<span class="kc">${r0(m.kcal)}</span>`}<button class="icon-btn" data-a="edit" data-m="${k}" data-id="${e.id}" aria-label="Edit ${nm}">${ICON.edit}</button></div>`; }).join('') : `<div class="empty">${isPrep ? 'Plan cooking day here (chicken, rice, and so on). It goes on your shopping list.' : 'Nothing planned yet'}</div>`}
-      <div class="meal-f"><a class="btn link" href="#/add/${k}/${selDate}">+ Add ${isPrep ? 'Batch Recipe' : 'Food'}</a>${canCopy ? `<button class="btn link" data-a="copyprev" data-m="${k}">Copy Yesterday</button>` : ''}</div></section>`;
+  const prepList = day.prep || [], portion = e => e.ns ? (e.s === 1 ? '1 container' : e.s + ' containers') : svText(e.s);
+  const meals = MEALS.map(([k, label]) => {
+    const list = day[k] || [], t = Core.sumMeal(list), y = diary[addDays(selDate, -1)], canCopy = !list.length && y && (y[k] || []).length;
+    return `<section class="card flush meal" aria-label="${label}"><div class="meal-h"><h3>${label}</h3><span>${r0(t.kcal)}</span></div>
+      ${list.length ? list.map(e => { const m = Core.entryMac(e), nm = esc(entryName(e)), ids = e.p || (e.r ? [e.r] : []), links = ids.filter(rec).map(id => `<a href="#/recipe/${id}/plan">${ids.length > 1 ? esc(shortName(rec(id).name)) : 'How to make it'}</a>`).join(' · ');
+        return `<div class="entry"><span class="nm">${nm}<span class="sub">${portion(e)} · ${r0(m.protein)} g protein</span>${links ? `<span class="sub">${ids.length > 1 ? 'Recipes: ' : ''}${links}</span>` : ''}</span><span class="kc">${r0(m.kcal)}</span><button class="icon-btn" data-a="edit" data-m="${k}" data-id="${e.id}" aria-label="Edit ${nm}">${ICON.edit}</button></div>`; }).join('') : '<div class="empty">Nothing planned yet</div>'}
+      <div class="meal-f"><a class="btn link" href="#/add/${k}/${selDate}">+ Add Food</a>${canCopy ? `<button class="btn link" data-a="copyprev" data-m="${k}">Copy Yesterday</button>` : ''}</div></section>`;
   }).join('');
+  const prep = prepList.length ? `<section class="card flush meal" aria-label="Batch cooking"><div class="meal-h"><h3>Batch Cook Today</h3><span class="muted small">${prepList.length} ${prepList.length === 1 ? 'dish' : 'dishes'}</span></div>
+      <p class="small muted" style="padding:0 16px 8px">Cook these once. They fill your containers for the next few days.</p>
+      ${prepList.map(e => { const nm = esc(entryName(e)); return `<div class="entry"><span class="nm"><a href="#/recipe/${e.r}/plan">${nm}</a><span class="sub">Makes ${e.s} ${e.s === 1 ? 'portion' : 'portions'}</span></span><button class="icon-btn" data-a="edit" data-m="prep" data-id="${e.id}" aria-label="Edit ${nm}">${ICON.edit}</button></div>`; }).join('')}</section>` : '';
   $('#view').innerHTML = `
     <div class="datebar"><button class="icon-btn" data-a="goto" data-d="${addDays(selDate, -1)}" aria-label="Previous day">${ICON.back}</button><button class="label" data-a="pickdate">${dayLabel(selDate)}</button><button class="icon-btn" data-a="goto" data-d="${addDays(selDate, 1)}" aria-label="Next day">${ICON.next}</button></div>
     <div class="week" role="group" aria-label="This week">${week}</div>
-    <div class="card"><h2 class="tiny muted" style="text-transform:uppercase;letter-spacing:.04em;margin-bottom:10px">Planned Today</h2>
-      <div class="summary"><div class="ring">${ring(goals.kcal ? T.kcal / goals.kcal : 0, over)}<div class="mid"><b>${over ? '+' + r0(-rem) : r0(rem)}</b><span>${over ? "Over goal" : "Left to plan"}</span></div></div>
+    <div class="card"><h2 class="tiny muted" style="text-transform:uppercase;letter-spacing:.04em;margin-bottom:10px">Daily Goal</h2>
+      <div class="summary"><div class="ring">${ring(goals.kcal ? T.kcal / goals.kcal : 0, over)}<div class="mid"><b>${over ? '+' + r0(-rem) : r0(rem)}</b><span>${over ? 'Over goal' : 'Left to plan'}</span></div></div>
       <div>${macroRow('Carbs', T.carbs, goals.carbs)}${macroRow('Protein', T.protein, goals.protein)}${macroRow('Fat', T.fat, goals.fat)}</div></div>
-      <div class="eq"><div><b>${goals.kcal}</b><span>Goal</span></div><div>−</div><div><b>${r0(T.kcal)}</b><span>Planned</span></div><div>=</div><div><b>${r0(Math.abs(rem))}</b><span>${over ? "Over" : "Left"}</span></div></div>
-      ${all.length ? `<div class="row" style="justify-content:space-between;margin-top:14px"><b>${doneN} of ${all.length} done</b><span class="small muted">${E.kcal ? "Eaten so far " + r0(E.kcal) + " kcal" : "Nothing checked off yet"}</span></div><div class="progress" role="img" aria-label="${doneN} of ${all.length} checked off"><i style="width:${doneN / all.length * 100}%"></i></div>` : ''}</div>
-    ${meals}
-    <div class="row wrap" style="margin:4px 0 8px"><button class="btn sm" data-a="templates">Ready-Made Weeks</button><a class="btn sm" href="#/shop">Shopping List</a><a class="btn sm" href="#/recipes">Browse Recipes</a></div>
-    <p class="tiny muted" style="margin:6px 8px">Checking meals off is optional. Numbers are estimated from recipe ingredients. Set your goals in <a href="#/me">Settings</a>.</p>`;
+      <div class="eq"><div><b>${goals.kcal}</b><span>Goal</span></div><div>−</div><div><b>${r0(T.kcal)}</b><span>Planned</span></div><div>=</div><div><b>${r0(Math.abs(rem))}</b><span>${over ? 'Over' : 'Left'}</span></div></div></div>
+    ${prep}${meals}
+    <div class="row wrap" style="margin:4px 0 8px"><button class="btn sm" data-a="templates">Plan a Week</button><a class="btn sm" href="#/add/prep/${selDate}">+ Batch Recipe</a><a class="btn sm" href="#/shop">Shopping List</a><button class="btn sm danger" data-a="clearplan">Clear Meal Plan</button></div>
+    <p class="tiny muted" style="margin:6px 8px">Numbers are estimated from recipe ingredients. Set your goals in <a href="#/me">Settings</a>.</p>`;
 }
 
 function editSheet(date, meal, id) {
   const e = (diary[date] && diary[date][meal] || []).find(x => x.id === id); if (!e) return;
   const isPrep = meal === 'prep', step = isPrep ? 1 : 0.5;
-  const m1 = e.q ? { kcal: e.q.kcal || 0, protein: e.q.protein || 0, carbs: e.q.carbs || 0, fat: e.q.fat || 0 } : (rec(e.r) && rec(e.r).mac) || { kcal: 0, protein: 0, carbs: 0, fat: 0 };
+  const m1 = e.q ? { kcal: e.q.kcal || 0, protein: e.q.protein || 0, carbs: e.q.carbs || 0, fat: e.q.fat || 0 } : e.p ? Core.entryMac({ p: e.p, s: 1 }) : (rec(e.r) && rec(e.r).mac) || { kcal: 0, protein: 0, carbs: 0, fat: 0 };
   const per = e.r && rec(e.r) ? rec(e.r).servings : 1;
-  openSheet(`<h2 id="sheet-title">${esc(entryName(e))}</h2><p class="muted small">${isPrep ? 'How many servings to cook (drives the shopping list)' : 'Servings you ate'}</p>
+  openSheet(`<h2 id="sheet-title">${esc(entryName(e))}</h2><p class="muted small">${isPrep ? 'How many portions to cook (drives the shopping list)' : e.ns ? 'Containers' : 'Servings planned'}</p>
     <div class="row" style="margin:14px 0">${stepper('sv', e.s, step, step)}<div class="grow small muted" id="pv"></div></div>
     <label class="f" for="mv">Meal</label><select id="mv">${mealOptions(meal)}</select>
     <div class="row" style="margin-top:16px"><button class="btn primary grow" data-a="saveedit" data-date="${date}" data-m="${meal}" data-id="${id}">Save</button><button class="btn danger" data-a="deledit" data-date="${date}" data-m="${meal}" data-id="${id}">Delete</button></div>`);
@@ -234,7 +236,7 @@ function rangeDates() {
   if (shopRange === 'custom') { const c = store.get('shopCustom', { from: t, to: addDays(t, 6) }); const out = []; for (let d = c.from, n = 0; d <= c.to && n < 60; d = addDays(d, 1), n++) out.push(d); return out; }
   return Array.from({ length: 7 }, (_, i) => addDays(t, i));
 }
-function entriesInRange() { const out = []; rangeDates().forEach(d => ALLMEALS.forEach(([k]) => ((diary[d] || {})[k] || []).forEach(e => { if (e.r && rec(e.r) && !e.ns) out.push({ r: e.r, s: e.s }); }))); return out; }
+function entriesInRange() { const out = []; rangeDates().forEach(d => ALLMEALS.forEach(([k]) => ((diary[d] || {})[k] || []).forEach(e => { if (e.ns) return; (e.p || [e.r]).forEach(id => { if (id && rec(id)) out.push({ r: id, s: e.s }); }); }))); return out; }
 const money = x => '$' + (x >= 100 ? Math.round(x) : x.toFixed(2).replace(/\.00$/, ''));
 function shopGroups(S) { return { buy: S.list.filter(x => !x.stock), stock: S.list.filter(x => x.stock) }; }
 function shopTotal(S, days = 7) { const sum = L => L.reduce((a, x) => a + (x.cost || 0), 0); return { groceries: sum(S.list.filter(x => !x.stock)), pantry: sum(S.list.filter(x => x.stock)), weekly: S.list.reduce((a, x) => a + (x.cost || 0) * (x.stock ? x.share : 1), 0) * 7 / Math.max(1, days) }; }
@@ -247,7 +249,7 @@ function shopText(S) {
 }
 function shopRow(x, isStock) {
   const id = 'i' + x.name.replace(/\W/g, '_'), on = isStock ? have[x.name] : checked[x.name];
-  return `<label class="shop-item ${on ? 'done' : ''}" for="${id}"><input type="checkbox" id="${id}" data-a="${isStock ? 'have' : 'tick'}" data-n="${esc(x.name)}" ${on ? 'checked' : ''} aria-label="${isStock ? 'I have' : 'Got'} ${esc(Core.title(x.name))}"><span class="nm"><b>${esc(Core.title(x.name))}</b><span class="need">${x.pkg ? esc(x.pkg) + ' <span class="muted">· recipes use ' + esc(x.txt) + '</span>' : esc(x.txt)}${isStock && x.weeks ? ' <span class="muted">· lasts about ' + x.weeks + ' weeks</span>' : ''}</span></span>${x.cost != null ? `<span class="price">${x.pkg ? '' : '~'}${money(x.cost)}</span>` : ''}</label>`;
+  return `<label class="shop-item ${on ? 'done' : ''}" for="${id}"><input type="checkbox" id="${id}" data-a="${isStock ? 'have' : 'tick'}" data-n="${esc(x.name)}" ${on ? 'checked' : ''} aria-label="${isStock ? 'I have' : 'Got'} ${esc(Core.title(x.name))}"><span class="nm"><b>${esc(Core.title(x.name))}</b><span class="need">${x.loose ? esc(x.pkg) : x.pkg ? esc(x.pkg) + ' <span class="muted">· recipes use ' + esc(x.txt) + '</span>' : esc(x.txt)}${isStock && x.weeks ? ' <span class="muted">· lasts about ' + x.weeks + ' weeks</span>' : ''}</span></span>${x.cost != null ? `<span class="price">${x.pkg ? '' : '~'}${money(x.cost)}</span>` : ''}</label>`;
 }
 function viewShop() {
   setBar({ title: 'Shopping List' });
@@ -260,17 +262,12 @@ function viewShop() {
   $('#view').innerHTML = `<div class="card"><label class="f" for="sr" style="margin-top:0">Shop for the meals in your Meal Plan</label><select id="sr">${opts.map(([k, l]) => `<option value="${k}" ${k === shopRange ? 'selected' : ''}>${l}</option>`).join('')}</select>
       ${shopRange === 'custom' ? `<div class="row wrap"><div class="grow"><label class="f" for="sf">From</label><input type="date" id="sf" value="${c.from}"></div><div class="grow"><label class="f" for="st">To</label><input type="date" id="st" value="${c.to}"></div></div>` : ''}
       <p class="small muted" style="margin-top:8px">${entries.length ? `${recipesUsed.length} recipes · ${days} ${days === 1 ? 'day' : 'days'}` : 'Nothing planned in this range.'}</p></div>
-    ${S.list.length ? `<div class="card"><span class="tiny muted" style="text-transform:uppercase;letter-spacing:.04em">Estimated cost</span><div style="font-size:26px;font-weight:700;line-height:1.2">About ${money(Math.round(T.groceries))}</div>
-      ${T.pantry ? `<p class="small muted" style="margin-top:4px">Plus about ${money(Math.round(T.pantry))} of pantry items (rice, oil, spices). Those last weeks, so skip what you already have.</p>` : ''}
-      <p class="small" style="margin-top:8px;${T.weekly > budget ? "color:var(--orange)" : ""}">${T.weekly > budget ? "About " + money(Math.round(T.weekly - budget)) + " over your " + money(budget) + " weekly budget." : "Fits your " + money(budget) + " weekly budget."}</p>
-      <div class="row" style="align-items:flex-end;margin-top:10px"><div style="width:120px"><label class="f" for="bg" style="margin-top:0">Weekly budget ($)</label><input type="number" id="bg" value="${budget}" min="1" inputmode="numeric"></div><button class="btn grow" data-a="buildweek">Build a Week for ${money(budget)}</button></div>
-      <p class="tiny muted" style="margin-top:8px">A rough guess from typical US grocery prices. Your store will differ.</p></div>
-    <div class="card flush"><div style="padding:14px 16px"><div class="row" style="justify-content:space-between"><b>${done} of ${total} to buy this week</b><span class="row"><button class="btn sm" data-a="copyshop">${ICON.copy} Copy</button>${navigator.share ? `<button class="btn sm" data-a="shareshop">${ICON.share} Share</button>` : ''}</span></div><div class="progress" role="img" aria-label="${done} of ${total} checked"><i style="width:${total ? done / total * 100 : 0}%"></i></div></div></div>
-      ${Core.AISLE_ORDER.filter(a => by[a]).map(a => `<h2 class="sec">${a}</h2><div class="card flush">${by[a].sort((x, y) => x.name.localeCompare(y.name)).map(x => shopRow(x, false)).join('')}</div>`).join('')}
-      ${stock.length ? `<h2 class="sec">Pantry Stock</h2><p class="small muted" style="margin:0 6px 8px">These last weeks, so buy them only when you run out. Check off what you already have at home.</p><div class="card flush">${stock.sort((x, y) => x.name.localeCompare(y.name)).map(x => shopRow(x, true)).join('')}</div>` : ''}
-      ${S.free.length ? `<h2 class="sec">Check You Have</h2><div class="card small muted">${esc(S.free.map(Core.title).join(', '))}</div>` : ''}
-      ${S.made.length ? `<h2 class="sec">Made by Your Batch Recipes</h2><div class="card small muted">${esc(S.made.map(x => Core.title(x.name) + ' (' + x.txt + ')').join(' · '))}<br>These are not shopping items.</div>` : ''}
-      <button class="btn block" data-a="clearchecks" style="margin-top:8px">Clear Checkmarks</button>`
+    ${S.list.length ? `<div class="card"><div class="row" style="justify-content:space-between;align-items:flex-start"><div><span class="tiny muted" style="text-transform:uppercase;letter-spacing:.04em">Estimated cost</span><div style="font-size:24px;font-weight:700;line-height:1.2">About ${money(Math.round(T.groceries))}</div></div><span class="row"><button class="btn sm" data-a="copyshop">${ICON.copy} Copy</button>${navigator.share ? `<button class="btn sm" data-a="shareshop">${ICON.share} Share</button>` : ''}</span></div>
+      <p class="small" style="margin-top:6px;color:${T.weekly > budget ? 'var(--orange)' : 'var(--mut)'}">${T.weekly > budget ? 'About ' + money(Math.round(T.weekly - budget)) + ' over your ' + money(budget) + ' weekly budget.' : 'Within your ' + money(budget) + ' weekly budget.'}${T.pantry ? ' Pantry items below are extra the first time (about ' + money(Math.round(T.pantry)) + ').' : ''}</p></div>
+    <div class="card flush"><div style="padding:10px 16px" class="small muted">${done} of ${total} in the cart</div>${buy.sort((x, y) => x.name.localeCompare(y.name)).map(x => shopRow(x, false)).join('')}</div>
+      ${stock.length ? `<details class="card flush"><summary style="padding:14px 16px;cursor:pointer;font-weight:600">Pantry items (${stock.length}) <span class="small muted" style="font-weight:400">· skip what you have</span></summary>${stock.sort((x, y) => x.name.localeCompare(y.name)).map(x => shopRow(x, true)).join('')}</details>` : ''}
+      ${S.free.length ? `<p class="small muted" style="margin:8px 6px">Also check you have: ${esc(S.free.map(Core.title).join(', '))}</p>` : ''}
+      <div class="row wrap" style="margin-top:8px"><button class="btn sm" data-a="clearchecks">Clear Checkmarks</button><button class="btn sm" data-a="buildweek">Rebuild for my budget</button><span style="width:90px"><input type="number" id="bg" value="${budget}" min="1" inputmode="numeric" aria-label="Weekly budget"></span></div>`
     : `<div class="card"><h2 style="font-size:18px">Plan a week, then shop</h2><p class="muted" style="margin:6px 0 14px">Add recipes to meals in your Meal Plan (today or upcoming days) and the shopping list builds itself. Or start from a ready-made week.</p><div class="row wrap"><button class="btn primary" data-a="templates">Start with a Ready-Made Week</button><a class="btn" href="#/recipes">Browse Recipes</a></div></div>${budgetBlock(budget, "Or build a week for my budget", "bud2")}<div id="tplcosts"></div>`}`;
   if (!S.list.length) loadTpl().then(T => { const el = $("#tplcosts"); if (el) el.innerHTML = `<h2 class="sec">What a Week Costs</h2><div class="card flush">${T.map(t => `<div style="padding:12px 16px;border-top:1px solid var(--line)"><b>${esc(t.name)}</b><p class="small muted">${tplCost(t)}</p></div>`).join("")}</div><p class="tiny muted" style="margin:6px 8px">Rough guesses at typical US grocery prices.</p>`; });
 }
@@ -292,7 +289,7 @@ const budgetBlock = (budget, title, id) => `<div class="card" style="margin:10px
 function builtSheet() {
   const b = builtWeek, bud = store.get('budget', 50), box = store.get('container', 22), nm = id => rec(id) ? rec(id).name : id;
   const sessions = [[0, 4], [4, 7]].map(([from, to], i) => ({ from, n: to - from, prep: b.days[from].prep || [] }));
-  const meals = slot => [0, 4].map(f => (b.days[f][slot] || []).map(e => nm(e.r)).join(' + '));
+  const meals = slot => [0, 4].map(f => (b.days[f][slot] || []).map(e => comboName(e.p || [e.r])).join(' + '));
   openSheet(`<h2 id="sheet-title">A batch week for about ${money(Math.round(b.cost.weekly))}</h2>
     <p class="small" style="margin-top:4px;${b.fits ? '' : 'color:var(--orange)'}">${b.fits ? 'Fits your ' + money(bud) + ' weekly budget.' : 'Closest I could get to ' + money(bud) + ' with your calorie and protein goals. Raise the budget a little or lower your calories.'}</p>
     <p class="small muted" style="margin-top:4px">About ${r0(b.kcal).toLocaleString()} calories and ${r0(b.protein)} g protein a day. ${b.containers} ${box} oz containers: each one is a full meal or a full snack.</p>
@@ -435,7 +432,9 @@ const A = {
     e.s = s; const nm = $('#mv').value; if (nm !== m) { diary[date][m] = diary[date][m].filter(x => x.id !== id); dayOf(date)[nm].push(e); } saveDiary(); closeSheet(); render();
   },
   deledit: t => { const { date, m, id } = t.dataset, e = diary[date][m].find(x => x.id === id); removeEntry(date, m, id); closeSheet(); render(); toast('Removed ' + entryName(e), () => { dayOf(date)[m].push(e); saveDiary(); render(); }); },
-  copyprev: t => { const m = t.dataset.m, y = diary[addDays(selDate, -1)]; (y[m] || []).forEach(e => addEntry(selDate, m, { r: e.r, q: e.q, s: e.s })); render(); toast('Copied from yesterday'); },
+  copyprev: t => { const m = t.dataset.m, y = diary[addDays(selDate, -1)]; (y[m] || []).forEach(e => addEntry(selDate, m, { r: e.r, p: e.p, q: e.q, s: e.s, ns: e.ns })); render(); toast('Copied from yesterday'); },
+  clearplan: () => { openSheet(`<h2 id="sheet-title">Clear Meal Plan</h2><p class="muted small">You can undo right after.</p><div class="col" style="display:grid;gap:10px;margin-top:14px"><button class="btn block" data-a="clearrange" data-k="day">Clear ${dayLabel(selDate)}</button><button class="btn block" data-a="clearrange" data-k="week">Clear This Week</button><button class="btn danger block" data-a="clearrange" data-k="all">Clear Everything</button></div>`); },
+  clearrange: t => { const snap = JSON.stringify(diary), k = t.dataset.k, start = addDays(selDate, -parseYmd(selDate).getDay()); if (k === 'all') diary = {}; else (k === 'day' ? [selDate] : Array.from({ length: 7 }, (_, i) => addDays(start, i))).forEach(d => delete diary[d]); saveDiary(); closeSheet(); render(); toast('Meal plan cleared', () => { diary = JSON.parse(snap); saveDiary(); render(); }); },
   addtab: t => { addTab = t.dataset.t; viewAdd($('#view').dataset.meal, selDate); },
   pick: t => logSheet(t.dataset.id, t.dataset.m, selDate),
   quick1: t => { const r = rec(t.dataset.id), prep = r.category === 'meal prep', m = prep ? 'prep' : t.dataset.m; const id = addEntry(selDate, m, { r: r.id, s: prep ? r.servings : 1, done: !prep && defDone(selDate) }); toast('Added to ' + mealName(m), () => { removeEntry(selDate, m, id); render(); }); },
@@ -454,8 +453,8 @@ const A = {
   shareshop: () => navigator.share({ title: 'Shopping list', text: shopText(Core.shopping(entriesInRange(), rangeDates().length)) }).catch(() => {}),
   templates: () => templateSheet(),
   applytpl: () => { const n = applyTemplate(+$('#tp').value, $('#td').value || today()); const d = $('#td').value || today(); closeSheet(); toast('Added ' + n + ' items to your Meal Plan'); selDate = d; location.hash = '#/plan/' + d; },
-  buildweek: t => { const c = t.closest('.card'), el = c && c.querySelector('input[type=number]'); if (el) store.set('budget', Math.max(1, +el.value || 50)); openSheet('<h2 id="sheet-title">Building your week…</h2><p class="muted small">Picking meals that fit your budget and goals.</p>'); setTimeout(() => { builtWeek = Core.buildPlan(store.get('budget', 50), goals, Date.now(), store.get('container', 22)); builtSheet(); }, 30); },
-  applybuilt: () => { const d = $('#bd').value || today(); let n = 0; builtWeek.days.forEach((day, i) => ALLMEALS.forEach(([k]) => (day[k] || []).forEach(e => { if (rec(e.r)) { addEntry(addDays(d, i), k, { r: e.r, s: e.s, ns: e.ns }); n++; } }))); closeSheet(); selDate = d; toast('Added ' + n + ' items to your Meal Plan'); location.hash = '#/plan/' + d; },
+  buildweek: t => { const c = t.closest('.card'), el = (c && c.querySelector('input[type=number]')) || $('#bg'); if (el) store.set('budget', Math.max(1, +el.value || 50)); openSheet('<h2 id="sheet-title">Building your week…</h2><p class="muted small">Picking meals that fit your budget and goals.</p>'); setTimeout(() => { builtWeek = Core.buildPlan(store.get('budget', 50), goals, Date.now(), store.get('container', 22)); builtSheet(); }, 30); },
+  applybuilt: () => { const d = $('#bd').value || today(), snap = JSON.stringify(diary); let n = 0; for (let i = 0; i < 7; i++) delete diary[addDays(d, i)]; builtWeek.days.forEach((day, i) => ALLMEALS.forEach(([k]) => (day[k] || []).forEach(e => { addEntry(addDays(d, i), k, { r: e.r, p: e.p, s: e.s, ns: e.ns }); n++; }))); closeSheet(); selDate = d; location.hash = '#/plan/' + d; render(); toast('Replaced these 7 days with your batch week', () => { diary = JSON.parse(snap); saveDiary(); render(); }); },
   equip: t => { const e = store.get('equip', {}); e[t.dataset.i] = t.checked; store.set('equip', e); },
   usegoals: t => { goals = { kcal: +t.dataset.k, protein: +t.dataset.p, carbs: +t.dataset.c, fat: +t.dataset.f }; store.set('goals', goals); viewMe(); toast('Goals updated'); },
   theme: t => { const v = t.dataset.v; store.set('theme', v); document.documentElement.dataset.theme = v; document.querySelector('meta[name=theme-color]').content = v === 'dark' ? '#0e131b' : '#f3f5f9'; viewMe(); },

@@ -116,7 +116,7 @@ const Core = (() => {
   // Same thing written different ways ("banana", "ripe bananas"; thighs with or without skin) should be one line on the list.
   const ALIAS = [[/^(ripe )?bananas?$/, 'banana'], [/^(bone-in )?(skin-on )?(chicken )?(thighs|pieces|drumsticks|leg quarters)( (and|or) (thighs|drumsticks))?$|^bone-in (skin-on )?(chicken )?thighs( or drumsticks| and drumsticks)?$|^thighs and drumsticks$|^drumsticks and thighs$/, 'bone-in chicken thighs'],
     [/^boneless (skinless )?(chicken )?thighs?$/, 'boneless chicken thighs'], [/^(boneless )?(skinless )?(chicken )?breasts?$|^boneless (skinless )?(chicken )?breasts?( or thighs)?$/, 'boneless chicken breasts'],
-    [/^(onions?|white onions?|yellow onions?)$/, 'onion'], [/^carrots?$/, 'carrots'], [/^lemons?$/, 'lemon'], [/^limes?$/, 'lime'], [/^(russet )?potatoes$|^potato$/, 'potatoes'], [/^bell peppers?$/, 'bell pepper'], [/^apples?$/, 'apple'], [/^celery stalks?$/, 'celery']];
+    [/^(onions?|white onions?|yellow onions?)$/, 'onion'], [/^carrots?$/, 'carrots'], [/^lemons?$/, 'lemon'], [/^limes?$/, 'lime'], [/^(russet )?potatoes$|^potato$/, 'potatoes'], [/^bell peppers?$/, 'bell pepper'], [/^apples?$/, 'apple'], [/^celery stalks?$/, 'celery'], [/^ground or finely( chopped)? chicken$|^ground chicken$/, 'ground chicken'], [/^cucumbers?$/, 'cucumber']];
   const norm = n => { const b = norm0(n), a = ALIAS.find(x => x[0].test(b)); return a ? a[1] : b; };
   function needIn(x, rule) {
     const unit = rule.unit;
@@ -146,7 +146,10 @@ const Core = (() => {
     if (rule) { const need = needIn(x, rule); if (need > 0) return choosePackage(rule, need, days, !!rule.stock); }
     const fx = FIXED.find(r => r.re.test(x.name)); if (fx) return { pkg: fx.pkg, cost: fx.price, stock: !!fx.stock, share: fx.stock ? 0.08 : 1, weeks: 0 };
     const lo = LOOSE.find(r => r.re.test(x.name));
-    if (lo) { const cost = x.t === 'wt' && lo.lb ? x.base / 16 * lo.lb : x.t === 'count' && lo.each ? x.base * lo.each : null; if (cost != null) return { pkg: null, cost, stock: false, share: 1, weeks: 0 }; }
+    if (lo) {
+      if (x.t === 'wt' && lo.lb) { const lb = Math.max(0.5, Math.ceil(x.base / 8 - 1e-9) / 2); return { pkg: 'about ' + lb + ' lb', cost: lb * lo.lb, stock: false, share: 1, weeks: 0, loose: true }; }
+      if (x.t === 'count' && lo.each) { const n = Math.ceil(x.base - 1e-9); return { pkg: String(n), cost: n * lo.each, stock: false, share: 1, weeks: 0, loose: true }; }
+    }
     const fb = FALLBACK.find(r => r.re.test(x.name)); if (fb) return { pkg: fb.pkg, cost: fb.price, stock: !!fb.stock, share: fb.stock ? 0.2 : 1, weeks: 0 };
     return null;
   }
@@ -170,7 +173,7 @@ const Core = (() => {
       if (x.t === 'vol') { const u = x.base >= 12 ? 'cup' : x.base >= 3 ? 'tbsp' : 'tsp'; txt = fmt(x.base / VOL[u], u); }
       else if (x.t === 'wt') txt = fmt(x.base, 'oz'); else if (x.t === 'other') txt = fmt(x.base, x.unit); else txt = fmt(x.base, '');
       const info = buy ? priceItem(x, days) : null, aisle = aisleOf(x.name);
-      return { name: x.name, txt, pkg: info && info.pkg, cost: info ? info.cost : null, share: info ? info.share : 1, stock: info ? info.stock : aisle === 'Spices', weeks: info ? info.weeks : 0, aisle };
+      return { name: x.name, txt, pkg: info && info.pkg, cost: info ? info.cost : null, loose: !!(info && info.loose), share: info ? info.share : 1, stock: info ? info.stock : aisle === 'Spices', weeks: info ? info.weeks : 0, aisle };
     });
     const list = out(M, true);
     return { list, made: out(made), free: [...free].filter(n => !list.some(x => x.name === n)) };
@@ -180,6 +183,7 @@ const Core = (() => {
   const ZERO = () => ({ kcal: 0, protein: 0, carbs: 0, fat: 0 });
   function entryMac(e) {
     if (e.q) return { kcal: (e.q.kcal || 0) * e.s, protein: (e.q.protein || 0) * e.s, carbs: (e.q.carbs || 0) * e.s, fat: (e.q.fat || 0) * e.s };
+    if (e.p) { const T = ZERO(); e.p.forEach(id => { const m = entryMac({ r: id, s: e.s }); T.kcal += m.kcal; T.protein += m.protein; T.carbs += m.carbs; T.fat += m.fat; }); return T; }
     const r = byId(e.r); if (!r || !r.mac) return ZERO();
     return { kcal: r.mac.kcal * e.s, protein: r.mac.protein * e.s, carbs: r.mac.carbs * e.s, fat: r.mac.fat * e.s };
   }
@@ -201,7 +205,7 @@ const Core = (() => {
   const PROT_RE = /chicken|beef|pork|turkey|salmon|tuna|shrimp|fish|cod|egg|tofu|beans?|lentil|chickpea|sausage|yogurt|cottage|whey|bacon|ham\b/i;
   const CARB_RE = /\b(rice|potatoes|potato|pasta|noodles?|oats|tortillas?|bread|quinoa|couscous|orzo|beans?|lentils?|chickpeas|pitas?|granola|spaghetti|hash browns)\b/i;
   const isComplete = r => { const t = r.ing.map(i => i[2]).join(' | ').replace(/green beans?/gi, ''); return PROT_RE.test(t) && CARB_RE.test(t); };
-  const NOT_BATCH = new Set(['buttermilk-fried-chicken', 'smash-burgers', 'turkey-burgers', 'fish-tacos', 'chicken-quesadilla', 'chicken-stock', 'tuna-salad', 'pan-seared-steak', 'greek-yogurt-chicken-salad', 'scrambled-eggs', 'hard-boiled-eggs', 'egg-fried-rice', 'red-lentil-dal', 'three-bean-salad', 'crispy-tofu']);
+  const NOT_BATCH = new Set(['buttermilk-fried-chicken', 'smash-burgers', 'turkey-burgers', 'fish-tacos', 'chicken-quesadilla', 'chicken-stock', 'tuna-salad', 'pan-seared-steak', 'greek-yogurt-chicken-salad', 'scrambled-eggs', 'hard-boiled-eggs', 'egg-fried-rice', 'red-lentil-dal', 'three-bean-salad', 'crispy-tofu', 'smoked-chicken-thighs']);
   const BREAKFASTS = ['baked-oatmeal-cups', 'overnight-oats', 'breakfast-burritos', 'protein-pancakes', 'greek-yogurt-parfait', 'breakfast-hash-bowl'];
   const SNACKS = ['hummus-veggie-box', 'roasted-chickpeas', 'protein-trail-mix', 'chocolate-protein-pudding', 'banana-oat-bites', 'trail-mix-energy-bites', 'salsa-bean-cups', 'egg-snack-box', 'cottage-cheese-pineapple', 'turkey-cheese-rollups', 'edamame-cup'];
   const madeOtherThanRice = r => r.ing.some(i => isMade(i[2]) && !/rice/i.test(i[2]));
@@ -222,7 +226,7 @@ const Core = (() => {
     SESSIONS.forEach(([from, to], si) => {
       const n = to - from, b = st.b[si], l = st.l[si], d = st.d[si], sn = st.s[si], base = b.kcal + l.kcal + d.kcal + sn.kcal, sc = goals.kcal - base > sn.kcal * 0.6 ? 2 : 1;
       const slots = [['breakfast', b, 1], ['lunch', l, 1], ['dinner', d, 1], ['snacks', sn, sc]];
-      for (let day = from; day < to; day++) slots.forEach(([slot, it, cnt]) => it.parts.forEach(r => (days[day][slot] = days[day][slot] || []).push({ r: r.id, s: cnt, ns: true })));
+      for (let day = from; day < to; day++) slots.forEach(([slot, it, cnt]) => (days[day][slot] = days[day][slot] || []).push({ p: it.parts.map(r => r.id), s: cnt, ns: true }));
       slots.forEach(([, it, cnt]) => it.parts.forEach(r => { addPrep(si, r.id, n * cnt); const rc = riceCups(r, n * cnt); if (rc) addPrep(si, 'batch-rice', Math.ceil(rc)); }));
     });
     SESSIONS.forEach(([from], si) => { days[from].prep = [...prep[si]].map(([r, s]) => ({ r, s: Math.max(1, Math.ceil(s)) })); });
