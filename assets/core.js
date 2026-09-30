@@ -148,6 +148,7 @@ const Core = (() => {
     const lo = LOOSE.find(r => r.re.test(x.name));
     if (lo) {
       if (x.t === 'wt' && lo.lb) { const lb = Math.max(0.5, Math.ceil(x.base / 8 - 1e-9) / 2); return { pkg: 'about ' + lb + ' lb', cost: lb * lo.lb, stock: false, share: 1, weeks: 0, loose: true }; }
+      if (x.t === 'count' && lo.eachLb) { const lb = Math.max(1, Math.ceil(x.base * lo.eachLb * 2 - 1e-9) / 2); return { pkg: 'about ' + lb + ' lb (' + Math.ceil(x.base) + ' pieces)', cost: lb * lo.lb, stock: false, share: 1, weeks: 0, loose: true }; }
       if (x.t === 'count' && lo.each) { const n = Math.ceil(x.base - 1e-9); return { pkg: String(n), cost: n * lo.each, stock: false, share: 1, weeks: 0, loose: true }; }
     }
     const fb = FALLBACK.find(r => r.re.test(x.name)); if (fb) return { pkg: fb.pkg, cost: fb.price, stock: !!fb.stock, share: fb.stock ? 0.2 : 1, weeks: 0 };
@@ -206,7 +207,7 @@ const Core = (() => {
   const CARB_RE = /\b(rice|potatoes|potato|pasta|noodles?|oats|tortillas?|bread|quinoa|couscous|orzo|beans?|lentils?|chickpeas|pitas?|granola|spaghetti|hash browns)\b/i;
   const isComplete = r => { const t = r.ing.map(i => i[2]).join(' | ').replace(/green beans?/gi, ''); return PROT_RE.test(t) && CARB_RE.test(t); };
   const NOT_BATCH = new Set(['buttermilk-fried-chicken', 'smash-burgers', 'turkey-burgers', 'fish-tacos', 'chicken-quesadilla', 'chicken-stock', 'tuna-salad', 'pan-seared-steak', 'greek-yogurt-chicken-salad', 'scrambled-eggs', 'hard-boiled-eggs', 'egg-fried-rice', 'red-lentil-dal', 'three-bean-salad', 'crispy-tofu', 'smoked-chicken-thighs']);
-  const BREAKFASTS = ['baked-oatmeal-cups', 'overnight-oats', 'breakfast-burritos', 'protein-pancakes', 'greek-yogurt-parfait', 'breakfast-hash-bowl'];
+  const BREAKFASTS = ['overnight-oats'];
   const SNACKS = ['hummus-veggie-box', 'roasted-chickpeas', 'protein-trail-mix', 'chocolate-protein-pudding', 'banana-oat-bites', 'trail-mix-energy-bites', 'salsa-bean-cups', 'egg-snack-box', 'cottage-cheese-pineapple', 'turkey-cheese-rollups', 'edamame-cup'];
   const madeOtherThanRice = r => r.ing.some(i => isMade(i[2]) && !/rice/i.test(i[2]));
   const riceCups = (r, c) => { let cups = 0; r.ing.forEach(i => { if (isMade(i[2]) && /rice/i.test(i[2])) { const q = num(i[0]); if (q != null && normUnit(i[1]) === 'cup') cups += q * c / r.servings; } }); return cups; };
@@ -220,7 +221,7 @@ const Core = (() => {
     const ids = l => l.map(byId).filter(r => has(r) && r.mac.g <= cap).map(r => item([r]));
     return { m: [...composed, ...complete], b: ids(BREAKFASTS), s: ids(SNACKS) };
   }
-  const SESSIONS = [[0, 4], [4, 7]];   // cook on day 1 for the first four days, again on day 5 for the last three
+  const SESSIONS = [[0, 3], [3, 7]];   // cook Sunday for Sun-Tue, cook Wednesday for Wed-Sat
   function assemble(st, goals) {
     const days = Array.from({ length: 7 }, () => ({})), prep = SESSIONS.map(() => new Map()), addPrep = (si, id, s) => prep[si].set(id, (prep[si].get(id) || 0) + s);
     SESSIONS.forEach(([from, to], si) => {
@@ -229,7 +230,11 @@ const Core = (() => {
       for (let day = from; day < to; day++) slots.forEach(([slot, it, cnt]) => (days[day][slot] = days[day][slot] || []).push({ p: it.parts.map(r => r.id), s: cnt, ns: true }));
       slots.forEach(([, it, cnt]) => it.parts.forEach(r => { addPrep(si, r.id, n * cnt); const rc = riceCups(r, n * cnt); if (rc) addPrep(si, 'batch-rice', Math.ceil(rc)); }));
     });
-    SESSIONS.forEach(([from], si) => { days[from].prep = [...prep[si]].map(([r, s]) => ({ r, s: Math.max(1, Math.ceil(s)) })); });
+    SESSIONS.forEach(([from, to], si) => {
+      days[from].prep = [...prep[si]].map(([r, s]) => ({ r, s: Math.max(1, Math.ceil(s)) }));
+      const bn = Object.fromEntries(days[from].prep.map(e => [e.r, e.s]));
+      for (let day = from; day < to; day++) ['breakfast', 'lunch', 'dinner', 'snacks'].forEach(k => (days[day][k] || []).forEach(e => { e.bn = Object.fromEntries(e.p.map(id => [id, bn[id]])); }));
+    });
     return days;
   }
   function evalPlan(st, goals, budget) {

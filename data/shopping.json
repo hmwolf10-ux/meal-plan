@@ -83,9 +83,9 @@
     { "match": "corn|grapes|pears?$|cheese|popcorn|dark chocolate", "pkg": "1 package", "price": 3.0 }
   ],
   "loose": [
-    { "match": "boneless.*(thigh|breast|chicken)|(thigh|breast|cutlet).*boneless|chicken (breast|cutlet)|^boneless|breast", "lb": 3.49, "each": 1.75 },
+    { "match": "boneless.*(thigh|breast|chicken)|(thigh|breast|cutlet).*boneless|chicken (breast|cutlet)|^boneless|breast", "lb": 3.49, "each": 1.75, "eachLb": 0.5 },
     { "match": "whole chicken", "lb": 1.79, "each": 7.0 },
-    { "match": "chicken|thigh|drumstick|leg quarter|wing|carcass", "lb": 1.99, "each": 0.7 },
+    { "match": "chicken|thigh|drumstick|leg quarter|wing|carcass", "lb": 1.99, "each": 0.7, "eachLb": 0.4 },
     { "match": "ground beef|beef|chuck|flank|sirloin|steak|ribeye|stew meat", "lb": 6.49, "each": 6.0 },
     { "match": "ground turkey|turkey", "lb": 3.99 },
     { "match": "pork shoulder|pork butt", "lb": 2.99 },

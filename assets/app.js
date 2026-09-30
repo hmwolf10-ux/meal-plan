@@ -32,7 +32,7 @@ function dayOf(date) { const d = diary[date] = diary[date] || {}; ALLMEALS.forEa
 function tidy(date) { const d = diary[date]; if (d && ALLMEALS.every(([k]) => !(d[k] || []).length)) delete diary[date]; }
 const defDone = date => date <= today();
 function addEntry(date, meal, e) {
-  const en = { id: uid(), s: e.s, done: !!e.done }; if (e.ns) en.ns = 1; if (e.r) en.r = e.r; if (e.p) en.p = e.p; if (e.q) en.q = e.q;
+  const en = { id: uid(), s: e.s, done: !!e.done }; if (e.ns) en.ns = 1; if (e.r) en.r = e.r; if (e.p) en.p = e.p; if (e.bn) en.bn = e.bn; if (e.q) en.q = e.q;
   dayOf(date)[meal].push(en); saveDiary();
   if (e.r) { recent = [e.r, ...recent.filter(x => x !== e.r)].slice(0, 20); store.set('recent', recent); }
   return en.id;
@@ -96,29 +96,25 @@ function viewPlan(date) {
   setBar({ title: 'Meal Plan' });
   const dow = parseYmd(selDate).getDay(), start = addDays(selDate, -dow);
   const listOf = d => ALLMEALS.flatMap(([k]) => (diary[d] && diary[d][k]) || []);
-  const week = Array.from({ length: 7 }, (_, i) => { const d = addDays(start, i), L = listOf(d), t = Core.dayTotals(diary[d]), cls = !L.length ? '' : t.kcal > goals.kcal * 1.05 ? 'over' : 'plan';
+  const week = Array.from({ length: 7 }, (_, i) => { const d = addDays(start, i), L = listOf(d), t = Core.dayTotals(diary[d]), cls = (diary[d] && (diary[d].prep || []).length) ? 'prep' : !L.length ? '' : t.kcal > goals.kcal * 1.05 ? 'over' : 'plan';
     return `<button data-a="goto" data-d="${d}" ${d === selDate ? 'aria-current="date"' : ''} aria-label="${dayLabel(d)}">${['S', 'M', 'T', 'W', 'T', 'F', 'S'][i]}<b>${parseYmd(d).getDate()}</b><span class="dot ${cls}"></span></button>`; }).join('');
-  const prepList = day.prep || [], portion = e => e.ns ? (e.s === 1 ? '1 container' : e.s + ' containers') : svText(e.s);
+  const portion = e => e.ns ? (e.s === 1 ? '1 container' : e.s + ' containers') : svText(e.s);
   const meals = MEALS.map(([k, label]) => {
     const list = day[k] || [], t = Core.sumMeal(list), y = diary[addDays(selDate, -1)], canCopy = !list.length && y && (y[k] || []).length;
     return `<section class="card flush meal" aria-label="${label}"><div class="meal-h"><h3>${label}</h3><span>${r0(t.kcal)}</span></div>
-      ${list.length ? list.map(e => { const m = Core.entryMac(e), nm = esc(entryName(e)), ids = e.p || (e.r ? [e.r] : []), links = ids.filter(rec).map(id => `<a href="#/recipe/${id}/plan">${ids.length > 1 ? esc(shortName(rec(id).name)) : 'How to make it'}</a>`).join(' · ');
+      ${list.length ? list.map(e => { const m = Core.entryMac(e), nm = esc(entryName(e)), ids = e.p || (e.r ? [e.r] : []), links = ids.filter(rec).map(id => `<a href="#/recipe/${id}/plan${e.bn && e.bn[id] ? '/' + e.bn[id] : ''}">${ids.length > 1 ? esc(shortName(rec(id).name)) : 'How to make it'}</a>`).join(' · ');
         return `<div class="entry"><span class="nm">${nm}<span class="sub">${portion(e)} · ${r0(m.protein)} g protein</span>${links ? `<span class="sub">${ids.length > 1 ? 'Recipes: ' : ''}${links}</span>` : ''}</span><span class="kc">${r0(m.kcal)}</span><button class="icon-btn" data-a="edit" data-m="${k}" data-id="${e.id}" aria-label="Edit ${nm}">${ICON.edit}</button></div>`; }).join('') : '<div class="empty">Nothing planned yet</div>'}
       <div class="meal-f"><a class="btn link" href="#/add/${k}/${selDate}">+ Add Food</a>${canCopy ? `<button class="btn link" data-a="copyprev" data-m="${k}">Copy Yesterday</button>` : ''}</div></section>`;
   }).join('');
-  const prep = prepList.length ? `<section class="card flush meal" aria-label="Batch cooking"><div class="meal-h"><h3>Batch Cook Today</h3><span class="muted small">${prepList.length} ${prepList.length === 1 ? 'dish' : 'dishes'}</span></div>
-      <p class="small muted" style="padding:0 16px 8px">Cook these once. They fill your containers for the next few days.</p>
-      ${prepList.map(e => { const nm = esc(entryName(e)); return `<div class="entry"><span class="nm"><a href="#/recipe/${e.r}/plan">${nm}</a><span class="sub">Makes ${e.s} ${e.s === 1 ? 'portion' : 'portions'}</span></span><button class="icon-btn" data-a="edit" data-m="prep" data-id="${e.id}" aria-label="Edit ${nm}">${ICON.edit}</button></div>`; }).join('')}</section>` : '';
   $('#view').innerHTML = `
     <div class="datebar"><button class="icon-btn" data-a="goto" data-d="${addDays(selDate, -1)}" aria-label="Previous day">${ICON.back}</button><button class="label" data-a="pickdate">${dayLabel(selDate)}</button><button class="icon-btn" data-a="goto" data-d="${addDays(selDate, 1)}" aria-label="Next day">${ICON.next}</button></div>
     <div class="week" role="group" aria-label="This week">${week}</div>
-    <div class="card"><h2 class="tiny muted" style="text-transform:uppercase;letter-spacing:.04em;margin-bottom:10px">Daily Goal</h2>
-      <div class="summary"><div class="ring">${ring(goals.kcal ? T.kcal / goals.kcal : 0, over)}<div class="mid"><b>${over ? '+' + r0(-rem) : r0(rem)}</b><span>${over ? 'Over goal' : 'Left to plan'}</span></div></div>
-      <div>${macroRow('Carbs', T.carbs, goals.carbs)}${macroRow('Protein', T.protein, goals.protein)}${macroRow('Fat', T.fat, goals.fat)}</div></div>
-      <div class="eq"><div><b>${goals.kcal}</b><span>Goal</span></div><div>−</div><div><b>${r0(T.kcal)}</b><span>Planned</span></div><div>=</div><div><b>${r0(Math.abs(rem))}</b><span>${over ? 'Over' : 'Left'}</span></div></div></div>
-    ${prep}${meals}
+    <div class="card" style="padding:12px 16px"><div class="row" style="justify-content:space-between"><b>${r0(T.kcal).toLocaleString()} <span class="muted" style="font-weight:400">of ${goals.kcal.toLocaleString()} cal</span></b><span class="small" style="color:${over ? 'var(--orange)' : 'var(--mut)'}">${over ? r0(-rem).toLocaleString() + ' over' : r0(rem).toLocaleString() + ' left'}</span></div>
+      <div class="pbar ${over ? 'over' : ''}" style="margin:8px 0" role="img" aria-label="${r0(T.kcal)} of ${goals.kcal} calories"><i style="width:${goals.kcal ? Math.min(100, T.kcal / goals.kcal * 100) : 0}%"></i></div>
+      <span class="tiny muted">Protein ${r0(T.protein)}/${goals.protein} g · Carbs ${r0(T.carbs)}/${goals.carbs} g · Fat ${r0(T.fat)}/${goals.fat} g</span></div>
+    ${meals}
     <div class="row wrap" style="margin:4px 0 8px"><button class="btn sm" data-a="templates">Plan a Week</button><a class="btn sm" href="#/add/prep/${selDate}">+ Batch Recipe</a><a class="btn sm" href="#/shop">Shopping List</a><button class="btn sm danger" data-a="clearplan">Clear Meal Plan</button></div>
-    <p class="tiny muted" style="margin:6px 8px">Numbers are estimated from recipe ingredients. Set your goals in <a href="#/me">Settings</a>.</p>`;
+    <p class="tiny muted" style="margin:6px 8px">A blue dot marks a cooking day. Tap a meal's recipe to see how to batch cook it. Numbers are estimated. Set your goals in <a href="#/me">Settings</a>.</p>`;
 }
 
 function editSheet(date, meal, id) {
@@ -213,24 +209,29 @@ function viewRecipes() {
 }
 
 let rvServ = null, rvId = null;
-function viewRecipe(id, from) {
+let rvN = null;
+function viewRecipe(id, from, n) {
   const back = from === 'plan' ? '#/plan/' + selDate : '#/recipes';
   const r = rec(id); if (!r) { $('#view').innerHTML = '<div class="card">Recipe not found. <a href="#/recipes">Back to recipes</a></div>'; setBar({ title: 'Recipe', back }); return; }
-  if (rvId !== id) { rvId = id; rvServ = r.servings; }
+  if (rvId !== id) { rvId = id; rvServ = r.servings; rvN = null; }
+  n = Math.round(+n) || 0; if (n && rvN !== n) { rvN = n; rvServ = n; }
+  const box = store.get('container', 22);
   const f = rvServ / r.servings, m = r.mac, fav = favs.includes(id);
   setBar({ title: r.name, back, right: `<button class="icon-btn fav" data-a="fav" data-id="${id}" aria-pressed="${fav}" aria-label="${fav ? 'Remove from' : 'Add to'} favorites">${ICON.heart}</button>` });
   $('#view').innerHTML = `<div class="card hero"><h2>${esc(r.name)}</h2><p class="muted small">${esc(catLabel(r.category))}${r.method ? ' · ' + esc(cap(r.method)) : ''}${r.cuisine && r.cuisine !== 'basic' ? ' · ' + esc(cap(r.cuisine)) : ''} · ${r.time} min · ${r.easy ? 'Easy' : 'Medium'}</p>
       ${m ? `<div class="nutri" role="group" aria-label="Per serving"><div><b>${m.kcal}</b><span>kcal</span></div><div><b>${m.protein} g</b><span>Protein</span></div><div><b>${m.carbs} g</b><span>Carbs</span></div><div><b>${m.fat} g</b><span>Fat</span></div></div><p class="tiny muted" style="margin-top:6px">Per serving, estimated from the ingredients.</p>${m.g ? `<p class="tiny muted">One serving is about ${r0(m.g / 28.35)} oz of food${m.g <= (Core.CAP[store.get('container', 22)] || 560) ? ', which fits a ' + store.get('container', 22) + ' oz container.' : ', too much for one ' + store.get('container', 22) + ' oz container. Split it or pick a bigger one.'}</p>` : ''}` : ''}
       <button class="btn primary block" style="margin-top:14px" data-a="log" data-id="${id}">+ Add to Meal Plan</button></div>
+    ${rvN ? `<div class="card"><h3 style="font-size:18px">Batch cook ${rvN} ${rvN === 1 ? 'container' : 'containers'}</h3><p class="small muted" style="margin-top:4px">Cook ${rvN} ${rvN === 1 ? 'portion' : 'portions'} in one go and pack each into a ${box} oz container. The ingredients below are already scaled. Use more pans instead of a bigger pan, and keep containers in the fridge up to 4 days.</p></div>` : ''}
     <div class="card"><div class="row wrap" style="justify-content:space-between"><div><h3 style="font-size:18px">Ingredients</h3><p class="small muted">Makes ${rvServ} ${rvServ === 1 ? 'serving' : 'servings'}${f !== 1 ? ' (recipe as written: ' + r.servings + ')' : ''}</p></div>${stepper('rs', rvServ)}</div>
       <ul class="ings" style="margin-top:8px">${r.ing.map(i => `<li>${esc(ingText(i, f))}</li>`).join('')}</ul>${f > 3 || f < 0.5 ? '<p class="small muted">Big change in size: cooking times stay about the same. Use more pans instead of a bigger pan, and taste the seasoning at the end.</p>' : ''}</div>
     <div class="card"><h3 style="font-size:18px">Steps</h3><ol class="steps">${r.steps.map(s => `<li><span>${esc(s)}</span></li>`).join('')}</ol>${r.notes ? `<p class="small muted">${esc(r.notes)}</p>` : ''}</div>`;
 }
 
 // ---------- SHOP ----------
-let shopRange = store.get('shopRange', '7');
+let shopRange = store.get('shopRange', 'plan'); if (shopRange === '7') shopRange = 'plan';
 function rangeDates() {
   const t = today();
+  if (shopRange === 'plan') { const ds = Object.keys(diary).filter(d => d >= t && ALLMEALS.some(([k]) => (diary[d][k] || []).length)).sort(); if (!ds.length) return Array.from({ length: 7 }, (_, i) => addDays(t, i)); const out = []; for (let d = ds[0], n = 0; d <= ds[ds.length - 1] && n < 42; d = addDays(d, 1), n++) out.push(d); return out; }
   if (shopRange === 'today') return [t];
   if (shopRange === 'week') { const s = addDays(t, -parseYmd(t).getDay()); return Array.from({ length: 7 }, (_, i) => addDays(s, i)); }
   if (shopRange === 'custom') { const c = store.get('shopCustom', { from: t, to: addDays(t, 6) }); const out = []; for (let d = c.from, n = 0; d <= c.to && n < 60; d = addDays(d, 1), n++) out.push(d); return out; }
@@ -256,19 +257,22 @@ function viewShop() {
   const entries = entriesInRange(), days = rangeDates().length, S = Core.shopping(entries, days), { buy, stock } = shopGroups(S), by = {};
   buy.forEach(x => (by[x.aisle] = by[x.aisle] || []).push(x));
   const total = buy.length, done = buy.filter(x => checked[x.name]).length, T = shopTotal(S, days), budget = store.get("budget", 50);
-  const opts = [['7', 'Next 7 days'], ['today', 'Today'], ['week', 'This week'], ['custom', 'Custom']];
+  const opts = [['plan', 'All planned meals'], ['today', 'Today'], ['week', 'This week'], ['custom', 'Custom']];
   const c = store.get('shopCustom', { from: today(), to: addDays(today(), 6) });
-  const recipesUsed = [...new Set(entries.map(e => e.r))].map(rec).filter(Boolean);
-  $('#view').innerHTML = `<div class="card"><label class="f" for="sr" style="margin-top:0">Shop for the meals in your Meal Plan</label><select id="sr">${opts.map(([k, l]) => `<option value="${k}" ${k === shopRange ? 'selected' : ''}>${l}</option>`).join('')}</select>
+
+  const over = T.weekly > budget, hasCost = S.list.length > 0;
+  $('#view').innerHTML = `<div class="card"><div class="row" style="justify-content:space-between"><b>Weekly budget</b><span class="row" style="gap:4px"><span class="muted">$</span><input type="number" id="bg" value="${budget}" min="1" inputmode="numeric" style="width:88px;text-align:right" aria-label="Weekly budget in dollars"></span></div>
+      ${hasCost ? `<div class="row" style="justify-content:space-between;margin-top:10px"><span>Estimated cost</span><b style="font-size:20px;color:${over ? 'var(--orange)' : 'var(--fg)'}">About ${money(Math.round(T.weekly))}</b></div>
+      <p class="small muted" style="margin-top:4px">${over ? 'That is ' + money(Math.round(T.weekly - budget)) + ' over your budget.' : 'Within your budget.'}${T.pantry ? ' First trip adds pantry stock (rice, oil, spices) worth about ' + money(Math.round(T.pantry)) + ' that lasts weeks.' : ''}</p>` : ''}
+      <button class="btn primary block" style="margin-top:12px" data-a="buildweek">Build a Week for ${money(budget)}</button></div>
+    <div class="card"><label class="f" for="sr" style="margin-top:0">Shop for</label><select id="sr">${opts.map(([k, l]) => `<option value="${k}" ${k === shopRange ? 'selected' : ''}>${l}</option>`).join('')}</select>
       ${shopRange === 'custom' ? `<div class="row wrap"><div class="grow"><label class="f" for="sf">From</label><input type="date" id="sf" value="${c.from}"></div><div class="grow"><label class="f" for="st">To</label><input type="date" id="st" value="${c.to}"></div></div>` : ''}
-      <p class="small muted" style="margin-top:8px">${entries.length ? `${recipesUsed.length} recipes · ${days} ${days === 1 ? 'day' : 'days'}` : 'Nothing planned in this range.'}</p></div>
-    ${S.list.length ? `<div class="card"><div class="row" style="justify-content:space-between;align-items:flex-start"><div><span class="tiny muted" style="text-transform:uppercase;letter-spacing:.04em">Estimated cost</span><div style="font-size:24px;font-weight:700;line-height:1.2">About ${money(Math.round(T.groceries))}</div></div><span class="row"><button class="btn sm" data-a="copyshop">${ICON.copy} Copy</button>${navigator.share ? `<button class="btn sm" data-a="shareshop">${ICON.share} Share</button>` : ''}</span></div>
-      <p class="small" style="margin-top:6px;color:${T.weekly > budget ? 'var(--orange)' : 'var(--mut)'}">${T.weekly > budget ? 'About ' + money(Math.round(T.weekly - budget)) + ' over your ' + money(budget) + ' weekly budget.' : 'Within your ' + money(budget) + ' weekly budget.'}${T.pantry ? ' Pantry items below are extra the first time (about ' + money(Math.round(T.pantry)) + ').' : ''}</p></div>
-    <div class="card flush"><div style="padding:10px 16px" class="small muted">${done} of ${total} in the cart</div>${buy.sort((x, y) => x.name.localeCompare(y.name)).map(x => shopRow(x, false)).join('')}</div>
+      <p class="small muted" style="margin-top:8px">${entries.length ? `${days} ${days === 1 ? 'day' : 'days'} of meals` : 'Nothing planned in this range.'}</p></div>
+    ${S.list.length ? `<div class="card flush"><div class="row" style="padding:10px 16px;justify-content:space-between"><span class="small muted">${done} of ${total} in the cart</span><span class="row"><button class="btn sm" data-a="copyshop">${ICON.copy} Copy</button>${navigator.share ? `<button class="btn sm" data-a="shareshop">${ICON.share} Share</button>` : ""}</span></div>${buy.sort((x, y) => x.name.localeCompare(y.name)).map(x => shopRow(x, false)).join('')}</div>
       ${stock.length ? `<details class="card flush"><summary style="padding:14px 16px;cursor:pointer;font-weight:600">Pantry items (${stock.length}) <span class="small muted" style="font-weight:400">· skip what you have</span></summary>${stock.sort((x, y) => x.name.localeCompare(y.name)).map(x => shopRow(x, true)).join('')}</details>` : ''}
       ${S.free.length ? `<p class="small muted" style="margin:8px 6px">Also check you have: ${esc(S.free.map(Core.title).join(', '))}</p>` : ''}
-      <div class="row wrap" style="margin-top:8px"><button class="btn sm" data-a="clearchecks">Clear Checkmarks</button><button class="btn sm" data-a="buildweek">Rebuild for my budget</button><span style="width:90px"><input type="number" id="bg" value="${budget}" min="1" inputmode="numeric" aria-label="Weekly budget"></span></div>`
-    : `<div class="card"><h2 style="font-size:18px">Plan a week, then shop</h2><p class="muted" style="margin:6px 0 14px">Add recipes to meals in your Meal Plan (today or upcoming days) and the shopping list builds itself. Or start from a ready-made week.</p><div class="row wrap"><button class="btn primary" data-a="templates">Start with a Ready-Made Week</button><a class="btn" href="#/recipes">Browse Recipes</a></div></div>${budgetBlock(budget, "Or build a week for my budget", "bud2")}<div id="tplcosts"></div>`}`;
+      <div class="row wrap" style="margin-top:8px"><button class="btn sm" data-a="clearchecks">Clear Checkmarks</button></div>`
+    : `<div class="card"><h2 style="font-size:18px">Plan a week, then shop</h2><p class="muted" style="margin:6px 0 14px">Add recipes to meals in your Meal Plan (today or upcoming days) and the shopping list builds itself. Or start from a ready-made week.</p><div class="row wrap"><button class="btn primary" data-a="templates">Start with a Ready-Made Week</button><a class="btn" href="#/recipes">Browse Recipes</a></div></div><div id="tplcosts"></div>`}`;
   if (!S.list.length) loadTpl().then(T => { const el = $("#tplcosts"); if (el) el.innerHTML = `<h2 class="sec">What a Week Costs</h2><div class="card flush">${T.map(t => `<div style="padding:12px 16px;border-top:1px solid var(--line)"><b>${esc(t.name)}</b><p class="small muted">${tplCost(t)}</p></div>`).join("")}</div><p class="tiny muted" style="margin:6px 8px">Rough guesses at typical US grocery prices.</p>`; });
 }
 
@@ -285,19 +289,20 @@ async function templateSheet() {
     <button class="btn primary block" style="margin-top:16px" data-a="applytpl">Add to My Meal Plan</button>`);
 }
 let builtWeek = null;
+const nextSunday = () => { const t = today(), d = parseYmd(t).getDay(); return d ? addDays(t, 7 - d) : t; };
 const budgetBlock = (budget, title, id) => `<div class="card" style="margin:10px 0"><b>${title}</b><p class="small muted" style="margin:4px 0 8px">Type what you want to spend on groceries in a week. I pick meals that fit it and your calorie and protein goals.</p><div class="row" style="align-items:flex-end"><div style="width:120px"><label class="f" for="${id}" style="margin-top:0">Weekly budget ($)</label><input type="number" id="${id}" value="${budget}" min="1" inputmode="numeric"></div><button class="btn primary grow" data-a="buildweek">Build My Week</button></div></div>`;
 function builtSheet() {
   const b = builtWeek, bud = store.get('budget', 50), box = store.get('container', 22), nm = id => rec(id) ? rec(id).name : id;
-  const sessions = [[0, 4], [4, 7]].map(([from, to], i) => ({ from, n: to - from, prep: b.days[from].prep || [] }));
-  const meals = slot => [0, 4].map(f => (b.days[f][slot] || []).map(e => comboName(e.p || [e.r])).join(' + '));
+  const sessions = [[0, 3], [3, 7]].map(([from, to], i) => ({ from, n: to - from, prep: b.days[from].prep || [], label: i ? "Cook Wednesday" : "Cook Sunday", feeds: i ? "Wed to Sat" : "Sun to Tue" }));
+  const meals = slot => [0, 3].map(f => (b.days[f][slot] || []).map(e => comboName(e.p || [e.r])).join(' + '));
   openSheet(`<h2 id="sheet-title">A batch week for about ${money(Math.round(b.cost.weekly))}</h2>
     <p class="small" style="margin-top:4px;${b.fits ? '' : 'color:var(--orange)'}">${b.fits ? 'Fits your ' + money(bud) + ' weekly budget.' : 'Closest I could get to ' + money(bud) + ' with your calorie and protein goals. Raise the budget a little or lower your calories.'}</p>
     <p class="small muted" style="margin-top:4px">About ${r0(b.kcal).toLocaleString()} calories and ${r0(b.protein)} g protein a day. ${b.containers} ${box} oz containers: each one is a full meal or a full snack.</p>
-    ${sessions.map((s, i) => `<div class="card" style="margin:10px 0"><b>Cook day ${i + 1}</b> <span class="small muted">(plan day ${s.from + 1}, feeds ${s.n} days)</span>
+    ${sessions.map((s, i) => `<div class="card" style="margin:10px 0"><b>${s.label}</b> <span class="small muted">(feeds ${s.feeds})</span>
       <ul class="ings" style="margin-top:6px">${s.prep.map(e => `<li>${esc(nm(e.r))} <span class="muted">· ${e.s} ${e.s === 1 ? 'portion' : 'portions'}</span></li>`).join('')}</ul></div>`).join('')}
     <h3 style="font-size:15px;margin:14px 0 6px">What goes in the containers</h3>
-    ${[['breakfast', 'Breakfast'], ['lunch', 'Lunch'], ['dinner', 'Dinner'], ['snacks', 'Snacks']].map(([k, l]) => { const m = meals(k); return `<div class="card" style="margin:8px 0"><span class="tiny muted" style="text-transform:uppercase;letter-spacing:.04em">${l}</span><p class="small">Days 1–4: ${esc(m[0])}<br>Days 5–7: ${esc(m[1])}</p></div>`; }).join('')}
-    <label class="f" for="bd">Cook day 1 is</label><input type="date" id="bd" value="${today()}">
+    ${[['breakfast', 'Breakfast'], ['lunch', 'Lunch'], ['dinner', 'Dinner'], ['snacks', 'Snacks']].map(([k, l]) => { const m = meals(k); return `<div class="card" style="margin:8px 0"><span class="tiny muted" style="text-transform:uppercase;letter-spacing:.04em">${l}</span><p class="small">Sun to Tue: ${esc(m[0])}<br>Wed to Sat: ${esc(m[1])}</p></div>`; }).join('')}
+    <label class="f" for="bd">Week starts (Sunday)</label><input type="date" id="bd" value="${nextSunday()}">
     <div class="row" style="margin-top:16px"><button class="btn primary grow" data-a="applybuilt">Add to My Meal Plan</button><button class="btn" data-a="buildweek">Try Another</button></div>`);
 }
 function applyTemplate(idx, start) {
@@ -454,7 +459,7 @@ const A = {
   templates: () => templateSheet(),
   applytpl: () => { const n = applyTemplate(+$('#tp').value, $('#td').value || today()); const d = $('#td').value || today(); closeSheet(); toast('Added ' + n + ' items to your Meal Plan'); selDate = d; location.hash = '#/plan/' + d; },
   buildweek: t => { const c = t.closest('.card'), el = (c && c.querySelector('input[type=number]')) || $('#bg'); if (el) store.set('budget', Math.max(1, +el.value || 50)); openSheet('<h2 id="sheet-title">Building your week…</h2><p class="muted small">Picking meals that fit your budget and goals.</p>'); setTimeout(() => { builtWeek = Core.buildPlan(store.get('budget', 50), goals, Date.now(), store.get('container', 22)); builtSheet(); }, 30); },
-  applybuilt: () => { const d = $('#bd').value || today(), snap = JSON.stringify(diary); let n = 0; for (let i = 0; i < 7; i++) delete diary[addDays(d, i)]; builtWeek.days.forEach((day, i) => ALLMEALS.forEach(([k]) => (day[k] || []).forEach(e => { addEntry(addDays(d, i), k, { r: e.r, p: e.p, s: e.s, ns: e.ns }); n++; }))); closeSheet(); selDate = d; location.hash = '#/plan/' + d; render(); toast('Replaced these 7 days with your batch week', () => { diary = JSON.parse(snap); saveDiary(); render(); }); },
+  applybuilt: () => { const d = $('#bd').value || today(), snap = JSON.stringify(diary); let n = 0; for (let i = 0; i < 7; i++) delete diary[addDays(d, i)]; builtWeek.days.forEach((day, i) => ALLMEALS.forEach(([k]) => (day[k] || []).forEach(e => { addEntry(addDays(d, i), k, { r: e.r, p: e.p, bn: e.bn, s: e.s, ns: e.ns }); n++; }))); closeSheet(); selDate = d; location.hash = '#/plan/' + d; render(); toast('Replaced these 7 days with your batch week', () => { diary = JSON.parse(snap); saveDiary(); render(); }); },
   equip: t => { const e = store.get('equip', {}); e[t.dataset.i] = t.checked; store.set('equip', e); },
   usegoals: t => { goals = { kcal: +t.dataset.k, protein: +t.dataset.p, carbs: +t.dataset.c, fat: +t.dataset.f }; store.set('goals', goals); viewMe(); toast('Goals updated'); },
   theme: t => { const v = t.dataset.v; store.set('theme', v); document.documentElement.dataset.theme = v; document.querySelector('meta[name=theme-color]').content = v === 'dark' ? '#0e131b' : '#f3f5f9'; viewMe(); },
@@ -486,7 +491,8 @@ document.addEventListener('change', e => {
 function render() {
   const p = (location.hash || '#/plan').replace(/^#\/?/, '').split('/').map(decodeURIComponent), root = p[0] || 'plan';
   if (root === 'diary') { location.replace('#/plan' + (p[1] ? '/' + p[1] : '')); return; }
-  const map = { plan: () => viewPlan(p[1]), recipes: viewRecipes, recipe: () => viewRecipe(p[1], p[2]), add: () => viewAdd(p[1], p[2]), shop: viewShop, learn: () => viewLearn(p[1], p[2]), me: viewMe };
+  if (root !== 'recipe' || !p[3]) rvN = null; if (root !== 'recipe') rvId = null;
+  const map = { plan: () => viewPlan(p[1]), recipes: viewRecipes, recipe: () => viewRecipe(p[1], p[2], p[3]), add: () => viewAdd(p[1], p[2]), shop: viewShop, learn: () => viewLearn(p[1], p[2]), me: viewMe };
   const navRoot = { recipe: p[2] === 'plan' ? 'plan' : 'recipes', add: 'plan' }[root] || root;
   if (!map[root]) { location.hash = '#/plan'; return; }
   setNav(navRoot); map[root]();

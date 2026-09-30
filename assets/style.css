@@ -155,3 +155,4 @@ ul.ings { list-style:none; padding:0; } ul.ings li { padding:9px 0; border-botto
 .set-row .lbl { display:flex; flex-direction:column; min-width:0; } .set-row .lbl b { font-weight:600; }
 .set-row input, .set-row select { width:auto; max-width:60%; }
 .suggest { display:flex; align-items:center; justify-content:space-between; gap:12px; } .suggest > div { display:flex; flex-direction:column; }
+.week .dot.prep { background:var(--blue); }
